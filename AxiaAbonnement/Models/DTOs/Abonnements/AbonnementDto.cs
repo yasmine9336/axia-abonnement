@@ -11,6 +11,7 @@
     public string Statut { get; set; } = "";
     public string? ClientUsername { get; set; }
     public string? ClientEmail { get; set; }
+    public Guid ClientId { get; set; }
     public string? ResponsableUsername { get; set; }
     public bool PeutRenouveler { get; set; }
 }

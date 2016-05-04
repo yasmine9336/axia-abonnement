@@ -11,7 +11,7 @@ import {
   usedSubscriptionDays,
 } from "../utils";
 import AbonnementStatusPill from "./AbonnementStatusPill";
-import { useChurnPredictions } from "../../../../hooks/useChurnPredictions";
+import { useChurn } from "../../../../contexts/ChurnContext";
 
 const RISK_BADGE: Record<string, string> = {
   eleve: "bg-red-100 text-red-700",
@@ -42,7 +42,7 @@ export default function AbonnementsTable({
   pageSize,
   onPageChange,
 }: AbonnementsTableProps) {
-  const { riskMapByUsername } = useChurnPredictions();
+  const { riskMap } = useChurn();
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -60,7 +60,7 @@ export default function AbonnementsTable({
               const totalDays = totalSubscriptionDays(abonnement.dateDebut, abonnement.dateFin);
               const usedDays = usedSubscriptionDays(abonnement.dateDebut, abonnement.dateFin);
               const remainingDays = left !== null ? Math.max(0, left) : 0;
-              const prediction = riskMapByUsername.get(abonnement.clientUsername.toLowerCase());
+              const prediction = riskMap.get(abonnement.clientId.toLowerCase());
 
               return (
                 <div
@@ -69,13 +69,7 @@ export default function AbonnementsTable({
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{
-                          background: "var(--color-primary-soft)",
-                          color: "var(--color-primary)",
-                        }}
-                      >
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold bg-(--color-primary-soft) text-(--color-primary)">
                         {getInitials(abonnement.clientUsername)}
                       </div>
 
@@ -90,7 +84,7 @@ export default function AbonnementsTable({
                         </div>
 
                         <p className="text-sm text-gray-700">
-                          <span className="font-semibold" style={{ color: "var(--color-primary)" }}>
+                          <span className="font-semibold text-(--color-primary)">
                             {abonnement.intituleOffre}
                           </span>
                           {" · "}
@@ -129,14 +123,14 @@ export default function AbonnementsTable({
                     <div className="mt-4">
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                         <span>Cycle de facturation</span>
-                        <span className="font-semibold" style={{ color: "var(--color-primary)" }}>
+                        <span className="font-semibold text-(--color-primary)">
                           {progress}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div
-                          className="h-2 rounded-full"
-                          style={{ width: `${progress}%`, background: "var(--color-primary)" }}
+                          className="h-2 rounded-full bg-(--color-primary)"
+                          style={{ width: `${progress}%` }}
                         />
                       </div>
                       {totalDays > 0 && (

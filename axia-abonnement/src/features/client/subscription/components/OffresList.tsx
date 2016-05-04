@@ -64,11 +64,7 @@ export default function OffresList({
                     {offre.services.slice(0, 4).map((service) => (
                       <span
                         key={service}
-                        className="px-3 py-1 rounded-full text-xs font-semibold"
-                        style={{
-                          background: "var(--color-primary-soft)",
-                          color: "var(--color-primary)",
-                        }}
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-(--color-primary-soft) text-(--color-primary)"
                       >
                         {service}
                       </span>

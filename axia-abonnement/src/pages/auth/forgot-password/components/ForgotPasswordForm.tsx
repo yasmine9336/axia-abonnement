@@ -33,13 +33,7 @@ export default function ForgotPasswordForm({
             onChange={(event) => onEmailChange(event.target.value)}
             placeholder="votre.email@exemple.com"
             required
-            className="w-full border-0 border-b-2 border-gray-200 pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent"
-            onFocus={(event) => {
-              event.target.style.borderBottomColor = "var(--color-primary)";
-            }}
-            onBlur={(event) => {
-              event.target.style.borderBottomColor = "#e5e7eb";
-            }}
+            className="w-full border-0 border-b-2 border-gray-200 pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent focus:border-b-(--color-primary)"
           />
 
           <svg
@@ -61,8 +55,7 @@ export default function ForgotPasswordForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
-        style={{ background: "var(--color-primary)" }}
+        className="w-full py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50 bg-(--color-primary)"
       >
         {loading ? "Envoi en cours..." : "Envoyer le lien"}
       </button>

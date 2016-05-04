@@ -46,10 +46,7 @@ export default function SubscriptionCard({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-      <div
-        className="px-6 py-5 text-white"
-        style={{ background: "var(--color-primary)" }}
-      >
+      <div className="px-6 py-5 text-white bg-(--color-primary)">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
@@ -128,21 +125,15 @@ export default function SubscriptionCard({
           <div className="mt-5">
             <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
               <span>Progression du cycle</span>
-              <span
-                className="font-semibold"
-                style={{ color: "var(--color-primary)" }}
-              >
+              <span className="font-semibold text-(--color-primary)">
                 {progress}%
               </span>
             </div>
 
             <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
               <div
-                className="h-2.5 rounded-full transition-all"
-                style={{
-                  width: `${progress}%`,
-                  background: "var(--color-primary)",
-                }}
+                className="h-2.5 rounded-full transition-all bg-(--color-primary)"
+                style={{ width: `${progress}%` }}
               />
             </div>
 
@@ -211,8 +202,7 @@ export default function SubscriptionCard({
                 <button
                   type="button"
                   onClick={() => onPayer(abonnement.id)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: "var(--color-primary)" }}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-(--color-primary) hover:opacity-90 transition"
                 >
                   Payer
                 </button>
@@ -224,18 +214,7 @@ export default function SubscriptionCard({
                 <button
                   type="button"
                   onClick={() => onRenouveler(abonnement.id)}
-                  className="px-4 py-2 rounded-xl border text-sm font-semibold transition hover:text-white"
-                  style={{
-                    borderColor: "var(--color-primary)",
-                    color: "var(--color-primary)",
-                  }}
-                  onMouseEnter={(event) => {
-                    event.currentTarget.style.background =
-                      "var(--color-primary)";
-                  }}
-                  onMouseLeave={(event) => {
-                    event.currentTarget.style.background = "transparent";
-                  }}
+                  className="px-4 py-2 rounded-xl border text-sm font-semibold transition border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white"
                 >
                   {abonnement.statutDemande === "refusée" ||
                   abonnement.statutDemande === "expirée"

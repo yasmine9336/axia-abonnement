@@ -112,11 +112,7 @@ export default function ServicesGrid({
                 <button
                   type="button"
                   onClick={() => onEdit(service)}
-                  className="px-3 py-2 rounded-xl border text-sm font-semibold transition flex items-center gap-1.5 hover:opacity-80"
-                  style={{
-                    borderColor: "var(--color-primary)",
-                    color: "var(--color-primary)",
-                  }}
+                  className="px-3 py-2 rounded-xl border text-sm font-semibold transition flex items-center gap-1.5 hover:opacity-80 border-(--color-primary) text-(--color-primary)"
                 >
                   Modifier
                 </button>

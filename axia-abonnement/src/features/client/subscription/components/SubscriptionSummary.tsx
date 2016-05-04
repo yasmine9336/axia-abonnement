@@ -64,8 +64,7 @@ export default function SubscriptionSummary({
             type="button"
             onClick={onPay}
             disabled={loading}
-            className="w-full py-3 text-white rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
-            style={{ background: "var(--color-primary)" }}
+            className="w-full py-3 text-white rounded-xl font-semibold text-sm transition-all disabled:opacity-50 bg-(--color-primary)"
           >
             {loading ? "Redirection vers Stripe..." : `Payer ${montant} TND`}
           </button>

@@ -9,7 +9,7 @@ export default function HeroSection() {
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
           Gérez vos abonnements{" "}
-          <span style={{ color: "var(--color-primary)" }}>
+          <span className="text-(--color-primary)">
             en toute simplicité
           </span>
         </h1>
@@ -24,8 +24,7 @@ export default function HeroSection() {
           <button
             type="button"
             onClick={() => navigate("/register")}
-            className="text-white font-semibold px-8 py-3.5 rounded-xl transition-colors flex items-center gap-2"
-            style={{ background: "var(--color-primary)" }}
+            className="text-white font-semibold px-8 py-3.5 rounded-xl bg-(--color-primary) hover:opacity-90 transition flex items-center gap-2"
           >
             Commencer
 
@@ -51,13 +50,7 @@ export default function HeroSection() {
               key={feature.title}
               className="flex flex-col items-center text-center gap-3"
             >
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                style={{
-                  background: "var(--color-primary-soft)",
-                  color: "var(--color-primary)",
-                }}
-              >
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-(--color-primary-soft) text-(--color-primary)">
                 {feature.icon}
               </div>
 

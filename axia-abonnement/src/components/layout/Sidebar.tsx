@@ -75,8 +75,7 @@ export default function Sidebar() {
       {/* Profil utilisateur */}
       <button
         type="button"
-        className="mx-4 mb-6 p-3 rounded-2xl text-left cursor-pointer"
-        style={{ background: "var(--color-primary-soft)" }}
+        className="mx-4 mb-6 p-3 rounded-2xl text-left cursor-pointer bg-(--color-primary-soft)"
         onClick={() => navigate(getProfilePath())}
         aria-label="Voir mon profil"
       >
@@ -85,14 +84,10 @@ export default function Sidebar() {
             <img
               src={profilePhoto}
               alt="Profil"
-              className="w-9 h-9 rounded-full object-cover border-2 shrink-0"
-              style={{ borderColor: "var(--color-primary)" }}
+              className="w-9 h-9 rounded-full object-cover border-2 shrink-0 border-(--color-primary)"
             />
           ) : (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-              style={{ background: "var(--color-primary)" }}
-            >
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 bg-(--color-primary)">
               {getInitial()}
             </div>
           )}
@@ -102,10 +97,7 @@ export default function Sidebar() {
               {user?.username}
             </p>
 
-            <p
-              className="text-xs truncate"
-              style={{ color: "var(--color-primary)" }}
-            >
+            <p className="text-xs truncate text-(--color-primary)">
               {roleLabel}
             </p>
           </div>
@@ -126,12 +118,9 @@ export default function Sidebar() {
               onClick={() => navigate(item.path)}
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${
                 isActive
-                  ? "text-white"
+                  ? "text-white bg-(--color-primary)"
                   : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
               }`}
-              style={
-                isActive ? { background: "var(--color-primary)" } : undefined
-              }
             >
               {item.icon}
 

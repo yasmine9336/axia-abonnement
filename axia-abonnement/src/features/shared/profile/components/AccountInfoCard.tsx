@@ -42,11 +42,7 @@ export default function AccountInfoCard({
           <button
             type="button"
             onClick={onEdit}
-            className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border"
-            style={{
-              borderColor: "var(--color-primary)",
-              color: "var(--color-primary)",
-            }}
+            className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border border-(--color-primary) text-(--color-primary)"
           >
             Modifier
           </button>
@@ -64,8 +60,7 @@ export default function AccountInfoCard({
               type="button"
               onClick={onSave}
               disabled={profileLoading}
-              className="text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
-              style={{ background: "var(--color-primary)" }}
+              className="text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50 bg-(--color-primary)"
             >
               {profileLoading ? "Enregistrement..." : "Enregistrer"}
             </button>

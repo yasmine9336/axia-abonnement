@@ -13,12 +13,11 @@ export default function RoleSwitch({ role, onSelectRole }: RoleSwitchProps) {
           key={item}
           type="button"
           onClick={() => onSelectRole(item)}
-          className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors"
-          style={
+          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
             role === item
-              ? { background: "var(--color-primary)", color: "white" }
-              : { color: "#6b7280" }
-          }
+              ? "bg-(--color-primary) text-white"
+              : "text-gray-500"
+          }`}
         >
           {item === "Client" ? "Je suis Client" : "Je suis Responsable"}
         </button>

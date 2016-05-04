@@ -50,11 +50,7 @@ export default function SecurityCard({
           <button
             type="button"
             onClick={onTogglePasswordForm}
-            className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border"
-            style={{
-              borderColor: "var(--color-primary)",
-              color: "var(--color-primary)",
-            }}
+            className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border border-(--color-primary) text-(--color-primary)"
           >
             {showPasswordForm ? "Annuler" : "Changer"}
           </button>
@@ -68,7 +64,7 @@ export default function SecurityCard({
             <input
               type="text"
               autoComplete="username"
-              style={{ display: "none" }}
+              className="hidden"
               readOnly
             />
 
@@ -151,8 +147,7 @@ export default function SecurityCard({
             <button
               type="submit"
               disabled={passwordLoading}
-              className="w-full text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
-              style={{ background: "var(--color-primary)" }}
+              className="w-full text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50 bg-(--color-primary)"
             >
               {passwordLoading ? "Modification..." : "Modifier le mot de passe"}
             </button>

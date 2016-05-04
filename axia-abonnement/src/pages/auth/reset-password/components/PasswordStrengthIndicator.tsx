@@ -35,9 +35,8 @@ export default function PasswordStrengthIndicator({
 
         <div
           className={`h-1 flex-1 rounded-full ${
-            isStrong ? "bg-blue-700" : "bg-gray-200"
+            isStrong ? "bg-(--color-primary)" : "bg-gray-200"
           }`}
-          style={isStrong ? { background: "var(--color-primary)" } : undefined}
         />
       </div>
     </div>

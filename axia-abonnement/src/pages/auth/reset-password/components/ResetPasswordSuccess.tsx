@@ -27,8 +27,7 @@ export default function ResetPasswordSuccess({
         <button
           type="button"
           onClick={onLogin}
-          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm"
-          style={{ background: "var(--color-primary)" }}
+          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm bg-(--color-primary)"
         >
           Se connecter
         </button>
@@ -36,11 +35,7 @@ export default function ResetPasswordSuccess({
         <button
           type="button"
           onClick={onHome}
-          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2"
-          style={{
-            borderColor: "var(--color-primary)",
-            color: "var(--color-primary)",
-          }}
+          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 border-(--color-primary) text-(--color-primary)"
         >
           Accueil
         </button>

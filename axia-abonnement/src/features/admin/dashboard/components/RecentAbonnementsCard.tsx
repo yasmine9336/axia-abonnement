@@ -21,8 +21,7 @@ export default function RecentAbonnementsCard({
         <button
           type="button"
           onClick={onViewAll}
-          className="text-xs font-semibold hover:underline"
-          style={{ color: "var(--color-primary)" }}
+          className="text-xs font-semibold text-(--color-primary) hover:underline"
         >
           Voir tous →
         </button>

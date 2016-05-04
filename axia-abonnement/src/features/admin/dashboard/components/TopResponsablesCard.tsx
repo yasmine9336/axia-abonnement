@@ -19,8 +19,7 @@ export default function TopResponsablesCard({
         <button
           type="button"
           onClick={onViewAll}
-          className="text-xs font-semibold hover:underline"
-          style={{ color: "var(--color-primary)" }}
+          className="text-xs font-semibold hover:underline text-(--color-primary)"
         >
           Voir tous →
         </button>
@@ -43,13 +42,7 @@ export default function TopResponsablesCard({
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{
-                    background: "var(--color-primary-soft)",
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold bg-(--color-primary-soft) text-(--color-primary)">
                   {responsable.username.slice(0, 2).toUpperCase()}
                 </div>
 

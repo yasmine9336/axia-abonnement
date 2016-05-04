@@ -5,7 +5,8 @@ import { useNotifications } from "../../hooks/useNotifications";
 import type { NotificationItem } from "../../types";
 
 export default function NotificationBell() {
-  const { notifications, badgeCount, dismissBadge, markAsRead } = useNotifications();
+  const { notifications, badgeCount, dismissBadge, markAsRead } =
+    useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function NotificationBell() {
   const typeColor = (type: string) => {
     if (type === "success") return "bg-green-50 border-l-4 border-green-400";
     if (type === "warning") return "bg-orange-50 border-l-4 border-orange-400";
-    return "border-l-4";
+    return "bg-(--color-primary-soft) border-l-4 border-(--color-primary)";
   };
 
   const handleNotificationClick = async (n: NotificationItem) => {
@@ -74,12 +75,16 @@ export default function NotificationBell() {
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-200 shadow-lg z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <span className="font-semibold text-gray-900 text-sm">Notifications</span>
+            <span className="font-semibold text-gray-900 text-sm">
+              Notifications
+            </span>
           </div>
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-center text-sm text-gray-400 py-8">Aucune notification</p>
+              <p className="text-center text-sm text-gray-400 py-8">
+                Aucune notification
+              </p>
             ) : (
               notifications.map((n) => (
                 <div
@@ -97,17 +102,11 @@ export default function NotificationBell() {
                   className={`px-4 py-3 mx-2 my-1 rounded-xl ${
                     n.route ? "cursor-pointer" : "cursor-default"
                   } ${n.isRead ? "bg-gray-50 opacity-60" : typeColor(n.type)}`}
-                  style={
-                    !n.isRead && n.type !== "success" && n.type !== "warning"
-                      ? {
-                          background: "var(--color-primary-soft)",
-                          borderLeftColor: "var(--color-primary)",
-                        }
-                      : undefined
-                  }
                 >
                   <p className="text-sm text-gray-800">{n.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">{formatDate(n.createdAt)}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(n.createdAt)}
+                  </p>
                 </div>
               ))
             )}

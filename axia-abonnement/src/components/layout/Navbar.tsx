@@ -38,12 +38,10 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
         <button type="button" className="cursor-pointer" onClick={() => navigate("/")}>
           <img src={LogoAxia} alt="AxiaAbonnement" className="h-10" />
         </button>
 
-        {/* Nav links */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <a
@@ -56,13 +54,11 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Auth buttons — desktop */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
             <button
               onClick={handleDashboard}
-              className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
-              style={{ background: "var(--color-primary)" }}
+              className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-colors flex items-center gap-2 bg-(--color-primary)"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path
@@ -83,8 +79,7 @@ export default function Navbar() {
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-colors"
-                style={{ background: "var(--color-primary)" }}
+                className="text-sm font-semibold text-white px-5 py-2 rounded-lg transition-colors bg-(--color-primary)"
               >
                 S'inscrire
               </button>
@@ -92,7 +87,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Burger mobile */}
         <button
           type="button"
           className="md:hidden p-2 text-gray-700"
@@ -111,7 +105,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Menu mobile */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
           {navLinks.map((link) => (
@@ -127,8 +120,7 @@ export default function Navbar() {
           {user ? (
             <button
               onClick={handleDashboard}
-              className="text-sm font-semibold text-white px-5 py-2 rounded-lg text-left"
-              style={{ background: "var(--color-primary)" }}
+              className="text-sm font-semibold text-white px-5 py-2 rounded-lg text-left bg-(--color-primary)"
             >
               Dashboard
             </button>
@@ -142,8 +134,7 @@ export default function Navbar() {
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="text-sm font-semibold text-white px-5 py-2 rounded-lg"
-                style={{ background: "var(--color-primary)" }}
+                className="text-sm font-semibold text-white px-5 py-2 rounded-lg bg-(--color-primary)"
               >
                 S'inscrire
               </button>

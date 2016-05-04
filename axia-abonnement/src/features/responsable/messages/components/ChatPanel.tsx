@@ -30,14 +30,8 @@ export default function ChatPanel({
       <UiCard className="flex-1 p-0 flex flex-col overflow-hidden min-h-0">
         <div className="flex items-center justify-center h-full text-gray-400">
           <div className="text-center">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-              style={{ background: "var(--color-primary-soft)" }}
-            >
-              <MessageSquare
-                size={26}
-                style={{ color: "var(--color-primary)" }}
-              />
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 bg-(--color-primary-soft)">
+              <MessageSquare size={26} className="text-(--color-primary)" />
             </div>
 
             <p className="text-sm font-medium text-gray-600">
@@ -84,13 +78,7 @@ export default function ChatPanel({
               }`}
             >
               {isClient && (
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 mb-1"
-                  style={{
-                    background: "var(--color-primary-soft)",
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 mb-1 bg-(--color-primary-soft)">
                   {selected.clientName?.charAt(0).toUpperCase() ?? "C"}
                 </div>
               )}
@@ -99,9 +87,8 @@ export default function ChatPanel({
                 className={`max-w-[70%] px-3 py-2.5 text-sm ${
                   isClient
                     ? "bg-white text-gray-800 shadow-sm rounded-2xl rounded-bl-sm border border-gray-100"
-                    : "text-white rounded-2xl rounded-br-sm"
+                    : "text-white rounded-2xl rounded-br-sm bg-(--color-primary)"
                 }`}
-                style={!isClient ? { background: "var(--color-primary)" } : undefined}
               >
                 <p className="leading-relaxed">{message.content}</p>
 
@@ -140,8 +127,7 @@ export default function ChatPanel({
               type="button"
               onClick={onSend}
               disabled={!input.trim() || sending}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
-              style={{ background: "var(--color-primary)" }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0 bg-(--color-primary)"
               aria-label="Envoyer le message"
             >
               {sending ? (

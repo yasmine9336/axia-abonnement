@@ -26,22 +26,13 @@ export default function ProfileAvatarCard({
             className="w-20 h-20 rounded-full object-cover border border-gray-200"
           />
         ) : (
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
-            style={{ background: "var(--color-primary)" }}
-          >
+          <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold bg-(--color-primary)">
             {getInitial(profile)}
           </div>
         )}
       </div>
 
-      <label
-        className="inline-flex items-center justify-center text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer mb-3 border"
-        style={{
-          borderColor: "var(--color-primary)",
-          color: "var(--color-primary)",
-        }}
-      >
+      <label className="inline-flex items-center justify-center text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer mb-3 border border-(--color-primary) text-(--color-primary)">
         {photoLoading ? "Upload..." : "Changer la photo"}
 
         <input
@@ -64,13 +55,7 @@ export default function ProfileAvatarCard({
 
       <p className="text-xs text-gray-500 mt-0.5">{profile?.email}</p>
 
-      <span
-        className="inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full"
-        style={{
-          background: "var(--color-primary-soft)",
-          color: "var(--color-primary)",
-        }}
-      >
+      <span className="inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full bg-(--color-primary-soft) text-(--color-primary)">
         {getRoleLabel(profile?.role)}
       </span>
     </div>

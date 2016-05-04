@@ -172,13 +172,9 @@ export default function MesAbonnementsSection() {
             emptyContent={
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                 <div
-                  className="mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                  style={{ background: "var(--color-primary-soft)" }}
+                  className="mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-3 bg-(--color-primary-soft)"
                 >
-                  <PackageCheck
-                    className="w-6 h-6"
-                    style={{ color: "var(--color-primary)" }}
-                  />
+                  <PackageCheck className="w-6 h-6 text-(--color-primary)" />
                 </div>
 
                 <p className="text-gray-500">Aucun abonnement expiré</p>

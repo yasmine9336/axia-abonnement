@@ -13,6 +13,7 @@ export interface Abonnement {
   dateFin?: string;
   isActive: boolean;
   statut: AbonnementStatut;
+  clientId: string; 
   clientUsername: string;
   clientEmail: string;
 }

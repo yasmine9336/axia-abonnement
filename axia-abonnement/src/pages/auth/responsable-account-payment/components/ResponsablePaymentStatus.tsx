@@ -16,10 +16,7 @@ export default function ResponsablePaymentStatus({
   if (status === "loading") {
     return (
       <div className="flex flex-col items-center gap-4 py-8">
-        <div
-          className="w-12 h-12 border-4 border-gray-200 rounded-full animate-spin"
-          style={{ borderTopColor: "var(--color-primary)" }}
-        />
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-(--color-primary) rounded-full animate-spin" />
 
         <p className="text-sm text-gray-500">Préparation du paiement...</p>
       </div>
@@ -36,8 +33,7 @@ export default function ResponsablePaymentStatus({
         <button
           type="button"
           onClick={onRetry}
-          className="w-full py-3 text-white font-semibold rounded-xl text-sm"
-          style={{ background: "var(--color-primary)" }}
+          className="w-full py-3 text-white font-semibold rounded-xl text-sm bg-(--color-primary)"
         >
           Réessayer
         </button>

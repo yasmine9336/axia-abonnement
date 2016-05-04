@@ -51,10 +51,7 @@ export default function AdminDashboardKpiCards({
       value: stats.abonnementsActifs,
       sub: "en cours",
       icon: (
-        <ClipboardList
-          className="w-5 h-5"
-          style={{ color: "var(--color-primary)" }}
-        />
+        <ClipboardList className="w-5 h-5 text-(--color-primary)" />
       ),
       border: "border-t-blue-500",
     },

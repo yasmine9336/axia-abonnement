@@ -29,8 +29,7 @@ export default function ActiveSubscriptionsCard({
           <button
             type="button"
             onClick={onExplore}
-            className="mt-3 text-xs font-semibold hover:underline"
-            style={{ color: "var(--color-primary)" }}
+            className="mt-3 text-xs font-semibold text-(--color-primary) hover:underline"
           >
             Explorer les offres →
           </button>
@@ -67,10 +66,7 @@ export default function ActiveSubscriptionsCard({
                   {new Date(abonnement.dateFin).toLocaleDateString("fr-FR")}
                 </p>
 
-                <p
-                  className="text-xl font-extrabold mb-3"
-                  style={{ color: "var(--color-primary)" }}
-                >
+                <p className="text-xl font-extrabold mb-3 text-(--color-primary)">
                   {abonnement.montant}{" "}
                   <span className="text-xs font-semibold text-gray-400">
                     TND/{abonnement.type === "annuel" ? "an" : "mois"}
@@ -79,11 +75,8 @@ export default function ActiveSubscriptionsCard({
 
                 <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
                   <div
-                    className="h-1.5 rounded-full"
-                    style={{
-                      width: `${progress}%`,
-                      background: "var(--color-primary)",
-                    }}
+                    className="h-1.5 rounded-full bg-(--color-primary)"
+                    style={{ width: `${progress}%` }}
                   />
                 </div>
 

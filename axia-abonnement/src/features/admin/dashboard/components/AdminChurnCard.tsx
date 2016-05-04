@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrainCircuit } from "lucide-react";
-import { useChurnPredictions } from "../../../../hooks/useChurnPredictions";
+import { useChurn } from "../../../../contexts/ChurnContext";
 
 const RISK_LABELS: Record<string, string> = {
   eleve: "Élevé",
@@ -29,8 +29,14 @@ const RISK_TEXT: Record<string, string> = {
 
 type RiskFilter = "tous" | "eleve" | "moyen" | "faible";
 
+function avatarInitial(username?: string, email?: string): string {
+  if (username) return username.charAt(0).toUpperCase();
+  if (email) return email.charAt(0).toUpperCase();
+  return "?";
+}
+
 export default function AdminChurnCard() {
-  const { riskMap, loading } = useChurnPredictions();
+  const { riskMap, loading } = useChurn();
   const [filtreRisque, setFiltreRisque] = useState<RiskFilter>("eleve");
   const navigate = useNavigate();
 
@@ -51,7 +57,6 @@ export default function AdminChurnCard() {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col self-start">
-      {/* Header */}
       <div className="flex items-center gap-2 mb-1">
         <BrainCircuit className="w-5 h-5 text-blue-500 shrink-0" />
         <h2 className="text-base font-bold text-gray-900">Risque de churn</h2>
@@ -62,15 +67,13 @@ export default function AdminChurnCard() {
         </p>
         <button
           type="button"
-          onClick={() => navigate("/dashboard/admin/archive")}
-          className="text-xs font-semibold hover:underline"
-          style={{ color: "var(--color-primary)" }}
+          onClick={() => navigate("/dashboard/admin/abonnements")}
+          className="text-xs font-semibold hover:underline text-(--color-primary)"
         >
           Voir tous →
         </button>
       </div>
 
-      {/* KPI chips */}
       <div className="grid grid-cols-3 gap-2 mb-4">
         {(["eleve", "moyen", "faible"] as const).map((r) => (
           <button
@@ -93,7 +96,6 @@ export default function AdminChurnCard() {
         ))}
       </div>
 
-      {/* Liste */}
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
@@ -105,24 +107,18 @@ export default function AdminChurnCard() {
           Aucun résultat
         </p>
       ) : (
-        <div className="space-y-1 overflow-y-auto pr-1" style={{ maxHeight: "145px" }}>
+        <div className="space-y-1 overflow-y-auto pr-1 max-h-36.25">
           {listeFiltre.map((p) => (
             <div
               key={p.user_id}
               className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-50 transition-colors"
             >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                style={{
-                  background: "var(--color-primary-soft)",
-                  color: "var(--color-primary)",
-                }}
-              >
-                {(p.username ?? "?").charAt(0).toUpperCase()}
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-(--color-primary-soft) text-(--color-primary)">
+                {avatarInitial(p.username, p.email)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate leading-none">
-                  {p.username ?? p.user_id}
+                  {p.username ?? p.email ?? p.user_id}
                 </p>
                 <p className="text-xs text-gray-400 truncate">{p.email}</p>
               </div>
@@ -137,7 +133,6 @@ export default function AdminChurnCard() {
         </div>
       )}
 
-      {/* Footer */}
       {!loading && listeFiltre.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
           <span className="text-xs text-gray-400">

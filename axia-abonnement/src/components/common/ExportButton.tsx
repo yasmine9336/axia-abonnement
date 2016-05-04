@@ -92,8 +92,7 @@ export default function ExportButton<T>({
         aria-expanded={open}
         onClick={() => setOpen(!open)}
         disabled={signing}
-        className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-60"
-        style={{ background: "var(--color-primary)" }}
+        className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-60 bg-(--color-primary)"
       >
         {signing ? (
           <Loader2 size={16} className="animate-spin" />
@@ -140,13 +139,7 @@ export default function ExportButton<T>({
             Exporter en PDF
 
             {isAdmin && (
-              <span
-                className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium"
-                style={{
-                  background: "var(--color-primary-soft)",
-                  color: "var(--color-primary)",
-                }}
-              >
+              <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium bg-(--color-primary-soft) text-(--color-primary)">
                 Signé
               </span>
             )}

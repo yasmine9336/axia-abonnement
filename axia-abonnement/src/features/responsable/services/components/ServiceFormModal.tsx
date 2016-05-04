@@ -107,11 +107,7 @@ export default function ServiceFormModal({
               <label className="flex items-center gap-2 text-sm font-medium text-gray-800 mb-1">
                 Prix annuel <span className="text-gray-400">(TND)</span>
                 <span
-                  className="px-2 py-0.5 text-xs rounded-full"
-                  style={{
-                    background: "var(--color-primary-soft)",
-                    color: "var(--color-primary)",
-                  }}
+                  className="px-2 py-0.5 text-xs rounded-full bg-(--color-primary-soft) text-(--color-primary)"
                 >
                   -20%
                 </span>

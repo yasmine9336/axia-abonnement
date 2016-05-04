@@ -82,6 +82,7 @@ namespace AxiaAbonnement.Services.Implementations
                 Statut = StatutToString(a.Statut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
+                ClientId = a.UserId,
                 ResponsableUsername = a.Service?.Responsable?.Username
                     ?? a.Offre?.ServiceOffres.FirstOrDefault()?.Service?.Responsable?.Username
             }).ToList();
@@ -125,7 +126,8 @@ namespace AxiaAbonnement.Services.Implementations
                 IsActive = a.IsActive,
                 Statut = StatutToString(a.Statut, a.DateFin),
                 ClientUsername = a.User.Username,
-                ClientEmail = a.User.Email
+                ClientEmail = a.User.Email,
+                ClientId = a.UserId
             }).ToList();
 
             var sixMoisDebut = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
@@ -205,6 +207,7 @@ namespace AxiaAbonnement.Services.Implementations
                 Statut = StatutToString(a.Statut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
+                ClientId = a.UserId,
                 ResponsableUsername = a.Service?.Responsable?.Username
                     ?? a.Offre?.ServiceOffres.FirstOrDefault()?.Service?.Responsable?.Username,
             }).ToList();
@@ -274,7 +277,8 @@ namespace AxiaAbonnement.Services.Implementations
                 IsActive = a.IsActive,
                 Statut = StatutToString(a.Statut, a.DateFin),
                 ClientUsername = a.User.Username,
-                ClientEmail = a.User.Email
+                ClientEmail = a.User.Email,
+                ClientId = a.UserId
             }).ToList();
 
             return new StatsDto

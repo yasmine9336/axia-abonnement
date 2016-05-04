@@ -27,6 +27,7 @@ export function useChurnPredictions() {
     Map<string, ChurnPrediction>
   >(new Map());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -61,9 +62,9 @@ export function useChurnPredictions() {
         setRiskMap(byId);
         setRiskMapByUsername(byUsername);
       })
-      .catch(() => {})
+      .catch((e) => { setError(e?.message ?? "Erreur ML"); })
       .finally(() => setLoading(false));
   }, []);
 
-  return { riskMap, riskMapByUsername, loading };
+  return { riskMap, riskMapByUsername, loading, error };
 }

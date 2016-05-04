@@ -27,23 +27,13 @@ export default function DemandeEnCoursContent({
 
           <div>
             <p className="text-xs text-gray-400">Notification envoyée à</p>
-
             <p className="text-sm font-semibold text-gray-800">{email}</p>
           </div>
         </div>
       )}
 
-      <div
-        className="p-4 rounded-xl border"
-        style={{
-          background: "var(--color-primary-soft)",
-          borderColor: "var(--color-primary-soft)",
-        }}
-      >
-        <p
-          className="text-sm font-medium"
-          style={{ color: "var(--color-primary)" }}
-        >
+      <div className="p-4 rounded-xl border bg-(--color-primary-soft) border-(--color-primary-soft)">
+        <p className="text-sm font-medium text-(--color-primary)">
           Si votre demande est acceptée, un lien de paiement de{" "}
           <strong>500 TND</strong> vous sera envoyé pour activer votre compte.
         </p>
@@ -52,8 +42,7 @@ export default function DemandeEnCoursContent({
       <button
         type="button"
         onClick={onBackHome}
-        className="w-full py-3 text-white font-semibold rounded-xl text-sm"
-        style={{ background: "var(--color-primary)" }}
+        className="w-full py-3 text-white font-semibold rounded-xl text-sm bg-(--color-primary)"
       >
         Retour à l'accueil
       </button>

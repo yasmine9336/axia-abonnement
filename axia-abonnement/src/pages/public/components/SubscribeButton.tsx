@@ -11,19 +11,7 @@ export default function SubscribeButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 mt-auto border"
-      style={{
-        borderColor: "var(--color-primary)",
-        color: "var(--color-primary)",
-      }}
-      onMouseEnter={(event) => {
-        event.currentTarget.style.background = "var(--color-primary)";
-        event.currentTarget.style.color = "white";
-      }}
-      onMouseLeave={(event) => {
-        event.currentTarget.style.background = "transparent";
-        event.currentTarget.style.color = "var(--color-primary)";
-      }}
+      className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 mt-auto border border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white"
     >
       {label}
     </button>

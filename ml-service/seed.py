@@ -123,7 +123,6 @@ def run_seed():
                 "INSERT INTO ServiceOffres (ServiceId, OffreId) VALUES (:s, :o)"
             ), {"s": svc_ids[si], "o": offre_ids[oi]})
 
-        conn.commit()
         print("Liens service-offre crees")
 
         # ── HELPERS ───────────────────────────────────────────────────
@@ -175,7 +174,7 @@ def run_seed():
                 INSERT INTO DemandesRenouvellement (Id, AbonnementId, ClientId, Statut, CreatedAt)
                 VALUES (:id, :aid, :uid, :st, :dt)
             """), {"id": str(uuid.uuid4()), "aid": aid, "uid": uid, "st": statut, "dt": dt})
-        
+
         # ── CHURNERS (900) ────────────────────────────────────────────
         print("Generation des churners...")
         churn_profiles = [
@@ -204,7 +203,7 @@ def run_seed():
             d_debut = NOW - timedelta(days=debut_age)
             d_fin   = d_debut + timedelta(days=duree_j)
 
-            aid, montant = new_abn(uid, use_offre, oid, sid, d_debut, d_fin, 'Expiré', 0)
+            aid, montant = new_abn(uid, use_offre, oid, sid, d_debut, d_fin, 'Expire', 0)
 
             for _ in range(random.randint(*p[2])):
                 new_pay(aid, uid, montant, 'failed',
@@ -222,10 +221,8 @@ def run_seed():
                             d_fin - timedelta(days=random.randint(1, 3)))
 
             if (i + 1) % 300 == 0:
-                conn.commit()
                 print(f"  {i+1}/900 churners")
 
-        conn.commit()
         print("900 churners crees")
 
         # ── RENEWERS (900) ────────────────────────────────────────────
@@ -263,7 +260,7 @@ def run_seed():
                 if is_last and d_fin > NOW:
                     statut, is_active = 'Actif', 1
                 else:
-                    statut, is_active = 'Expiré', 0
+                    statut, is_active = 'Expire', 0
                     if d_fin > NOW:
                         d_fin = NOW - timedelta(days=random.randint(1, 5))
 
@@ -276,21 +273,19 @@ def run_seed():
                 new_pay(aid, uid, montant, 'completed',
                         d_debut + timedelta(days=random.randint(0, 2)))
 
-                if statut == 'Expiré' and random.random() < p[4]:
+                if statut == 'Expire' and random.random() < p[4]:
                     new_feedback(uid, aid, random.randint(*p[3]),
                                  d_fin - timedelta(days=random.randint(5, 30)))
 
-                if statut == 'Expiré' and c < nb_cycles - 1:
+                if statut == 'Expire' and c < nb_cycles - 1:
                     new_demande(aid, uid, 'acceptee',
                                 d_fin - timedelta(days=random.randint(3, 14)))
 
                 current = d_fin + timedelta(days=random.randint(1, 7))
 
             if (i + 1) % 300 == 0:
-                conn.commit()
                 print(f"  {i+1}/900 renewers")
 
-        conn.commit()
         print("900 renewers crees")
 
         # ── CLIENTS ACTIFS (200) ──────────────────────────────────────
@@ -329,13 +324,12 @@ def run_seed():
                             NOW - timedelta(days=random.randint(1, 10)))
 
             if (i + 1) % 50 == 0:
-                conn.commit()
                 print(f"  {i+1}/200 actifs")
 
-        conn.commit()
         print("200 clients actifs crees")
 
         # ── RÉSUMÉ ────────────────────────────────────────────────────
+        conn.commit()
         print("\n" + "=" * 45)
         print("SEED TERMINE AVEC SUCCES")
         print("=" * 45)

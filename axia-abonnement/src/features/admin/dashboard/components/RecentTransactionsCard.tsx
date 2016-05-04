@@ -22,8 +22,7 @@ export default function RecentTransactionsCard({
         <button
           type="button"
           onClick={onViewAll}
-          className="text-xs font-semibold hover:underline"
-          style={{ color: "var(--color-primary)" }}
+          className="text-xs font-semibold hover:underline text-(--color-primary)"
         >
           Voir toutes →
         </button>
@@ -46,13 +45,9 @@ export default function RecentTransactionsCard({
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "var(--color-primary-soft)" }}
-                >
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-(--color-primary-soft)">
                   <svg
-                    className="w-4 h-4"
-                    style={{ color: "var(--color-primary)" }}
+                    className="w-4 h-4 text-(--color-primary)"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}

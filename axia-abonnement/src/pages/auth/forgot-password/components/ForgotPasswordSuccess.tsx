@@ -26,8 +26,7 @@ export default function ForgotPasswordSuccess({
           type="button"
           onClick={onResend}
           disabled={cooldown > 0}
-          className="text-sm font-semibold disabled:opacity-50"
-          style={{ color: "var(--color-primary)" }}
+          className="text-sm font-semibold disabled:opacity-50 text-(--color-primary)"
         >
           {cooldown > 0 ? `Renvoyer dans ${cooldown}s` : "Renvoyer l'email"}
         </button>
@@ -37,11 +36,7 @@ export default function ForgotPasswordSuccess({
         <button
           type="button"
           onClick={onBackToLogin}
-          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2"
-          style={{
-            borderColor: "var(--color-primary)",
-            color: "var(--color-primary)",
-          }}
+          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 border-(--color-primary) text-(--color-primary)"
         >
           Retour à la connexion
         </button>
@@ -49,8 +44,7 @@ export default function ForgotPasswordSuccess({
         <button
           type="button"
           onClick={onBackHome}
-          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm"
-          style={{ background: "var(--color-primary)" }}
+          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm bg-(--color-primary)"
         >
           Retour à l'accueil
         </button>

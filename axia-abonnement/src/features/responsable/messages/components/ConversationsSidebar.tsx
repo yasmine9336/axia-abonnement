@@ -4,7 +4,7 @@ import LoadingState from "../../../../components/common/LoadingState";
 import type { Conversation } from "../../../../types";
 import type { ConversationFilter, ConversationFilterTab } from "../types";
 import { formatConversationTime } from "../utils";
-import { useChurnPredictions } from "../../../../hooks/useChurnPredictions";
+import { useChurn } from "../../../../contexts/ChurnContext";
 
 interface ConversationsSidebarProps {
   conversations: Conversation[];
@@ -25,7 +25,7 @@ export default function ConversationsSidebar({
   onFilterChange,
   onOpenConversation,
 }: ConversationsSidebarProps) {
-  const { riskMap } = useChurnPredictions();
+  const { riskMap } = useChurn();
 
   const emptyMessage =
     conversationFilter === "unread"
@@ -75,23 +75,14 @@ export default function ConversationsSidebar({
                 type="button"
                 onClick={() => onOpenConversation(conversation)}
                 className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  selected?.id === conversation.id ? "border-l-2" : ""
-                }`}
-                style={
                   selected?.id === conversation.id
-                    ? {
-                        background: "var(--color-primary-soft)",
-                        borderLeftColor: "var(--color-primary)",
-                      }
-                    : undefined
-                }
+                    ? "border-l-2 bg-(--color-primary-soft) border-l-(--color-primary)"
+                    : ""
+                }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="relative shrink-0 mt-0.5">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ background: "var(--color-primary)" }}
-                    >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-(--color-primary)">
                       {conversation.clientName.charAt(0).toUpperCase()}
                     </div>
                     {isHighRisk && (
@@ -129,10 +120,7 @@ export default function ConversationsSidebar({
                     </span>
 
                     {(conversation.unreadCount ?? 0) > 0 && (
-                      <span
-                        className="w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                        style={{ background: "var(--color-primary)" }}
-                      >
+                      <span className="w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center bg-(--color-primary)">
                         {conversation.unreadCount}
                       </span>
                     )}

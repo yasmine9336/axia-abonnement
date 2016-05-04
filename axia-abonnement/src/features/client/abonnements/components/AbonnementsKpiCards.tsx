@@ -43,14 +43,8 @@ export default function AbonnementsKpiCards({
         sub="abonnements actifs"
         borderColorClass="border-t-blue-500"
         icon={
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "var(--color-primary-soft)" }}
-          >
-            <span
-              className="w-2.5 h-2.5 rounded-full block"
-              style={{ background: "var(--color-primary)" }}
-            />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-(--color-primary-soft)">
+            <span className="w-2.5 h-2.5 rounded-full block bg-(--color-primary)" />
           </div>
         }
       />

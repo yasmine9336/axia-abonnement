@@ -108,14 +108,9 @@ export default function ResponsablesList({
               onClick={() => onStatusChange(item.key)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 responsableStatusFilter === item.key
-                  ? "text-white"
+                  ? "bg-(--color-primary) text-white"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
-              style={
-                responsableStatusFilter === item.key
-                  ? { background: "var(--color-primary)" }
-                  : undefined
-              }
             >
               {item.label}
               <span className="ml-1 text-xs font-semibold">{item.count}</span>
@@ -205,10 +200,7 @@ export default function ResponsablesList({
                         className="w-12 h-12 rounded-full object-cover border border-gray-200"
                       />
                     ) : (
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                        style={{ background: "var(--color-primary)" }}
-                      >
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg bg-(--color-primary)">
                         {resp.username.charAt(0).toUpperCase()}
                       </div>
                     )}

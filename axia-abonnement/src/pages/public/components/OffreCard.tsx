@@ -35,10 +35,7 @@ export default function OffreCard({
                 key={service}
                 className="flex items-center gap-2 text-sm text-gray-700"
               >
-                <Check
-                  className="w-4 h-4 shrink-0"
-                  style={{ color: "var(--color-primary)" }}
-                />
+                <Check className="w-4 h-4 shrink-0 text-(--color-primary)" />
                 {service}
               </li>
             ))}
@@ -47,16 +44,10 @@ export default function OffreCard({
       )}
 
       <div className="flex items-baseline gap-2 mb-1">
-        <span
-          className="text-3xl font-bold"
-          style={{ color: "var(--color-primary)" }}
-        >
+        <span className="text-3xl font-bold text-(--color-primary)">
           {offre.prix}
         </span>
-        <span
-          className="text-sm font-medium"
-          style={{ color: "var(--color-primary)" }}
-        >
+        <span className="text-sm font-medium text-(--color-primary)">
           TND
         </span>
         <span className="text-gray-400 text-sm">

@@ -34,13 +34,7 @@ export default function LoginForm({
             placeholder="john.doe@gmail.com"
             autoComplete="email"
             required
-            className="w-full border-0 border-b-2 border-gray-200 focus:border-b-2 pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent"
-            onFocus={(event) => {
-              event.target.style.borderBottomColor = "var(--color-primary)";
-            }}
-            onBlur={(event) => {
-              event.target.style.borderBottomColor = "#e5e7eb";
-            }}
+            className="w-full border-0 border-b-2 border-gray-200 focus:border-b-(--color-primary) pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent"
           />
 
           <svg
@@ -73,13 +67,7 @@ export default function LoginForm({
             placeholder="Start typing..."
             autoComplete="current-password"
             required
-            className="w-full border-0 border-b-2 border-gray-200 pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent"
-            onFocus={(event) => {
-              event.target.style.borderBottomColor = "var(--color-primary)";
-            }}
-            onBlur={(event) => {
-              event.target.style.borderBottomColor = "#e5e7eb";
-            }}
+            className="w-full border-0 border-b-2 border-gray-200 focus:border-b-(--color-primary) pb-2 text-sm text-gray-800 placeholder-gray-300 outline-none transition-colors bg-transparent"
           />
 
           <svg
@@ -110,13 +98,11 @@ export default function LoginForm({
             />
 
             <div
-              className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
-              style={{
-                borderColor: form.remember
-                  ? "var(--color-primary)"
-                  : "#d1d5db",
-                background: form.remember ? "var(--color-primary)" : "white",
-              }}
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                form.remember
+                  ? "border-(--color-primary) bg-(--color-primary)"
+                  : "border-gray-300 bg-white"
+              }`}
             >
               {form.remember && (
                 <svg
@@ -140,8 +126,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-sm font-medium transition-colors"
-          style={{ color: "var(--color-primary)" }}
+          className="text-sm font-medium transition-colors text-(--color-primary)"
         >
           Récupérer le mot de passe
         </button>
@@ -151,8 +136,7 @@ export default function LoginForm({
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50"
-          style={{ background: "var(--color-primary)" }}
+          className="flex-1 py-3 text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50 bg-(--color-primary)"
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
@@ -160,11 +144,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={onRegister}
-          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 transition-colors bg-white"
-          style={{
-            borderColor: "var(--color-primary)",
-            color: "var(--color-primary)",
-          }}
+          className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 transition-colors bg-white border-(--color-primary) text-(--color-primary)"
         >
           S'inscrire
         </button>

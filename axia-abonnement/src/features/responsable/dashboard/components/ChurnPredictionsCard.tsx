@@ -1,22 +1,6 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { BrainCircuit } from "lucide-react";
-import axiosInstance from "../../../../services/api/axiosInstance";
-
-const ML_URL = import.meta.env.VITE_ML_URL ?? "http://localhost:8000";
-const ML_KEY = import.meta.env.VITE_ML_API_KEY ?? "";
-
-interface Prediction {
-  user_id: string;
-  churn_probability: number;
-  risk_level: string;
-}
-
-interface ClientInfo {
-  id: string;
-  username: string;
-  email: string;
-}
+import { useChurn } from "../../../../contexts/ChurnContext";
 
 type RiskFilter = "tous" | "eleve" | "moyen" | "faible";
 
@@ -45,34 +29,10 @@ const RISK_TEXT: Record<string, string> = {
 };
 
 export default function ChurnPredictionsCard() {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [clients, setClients] = useState<Map<string, ClientInfo>>(new Map());
-  const [loading, setLoading] = useState(true);
+  const { riskMap, loading } = useChurn();
   const [filtreRisque, setFiltreRisque] = useState<RiskFilter>("eleve");
 
-  useEffect(() => {
-    Promise.all([
-      axios.get<{ predictions: Prediction[] }>(`${ML_URL}/predict`, {
-        headers: { "x-api-key": ML_KEY },
-      }),
-      axiosInstance.get<ClientInfo[]>("/users/clients"),
-    ])
-      .then(([mlRes, clientsRes]) => {
-        const map = new Map<string, ClientInfo>();
-        (clientsRes.data ?? []).forEach((c: ClientInfo) =>
-          map.set(c.id.toLowerCase(), c),
-        );
-        setPredictions(mlRes.data.predictions ?? []);
-        setClients(map);
-      })
-      .catch((err) => {
-        console.error("ChurnCard error:", err);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const mesPredictions = predictions
-    .filter((p) => clients.has(p.user_id.toLowerCase()))
+  const mesPredictions = Array.from(riskMap.values())
     .sort((a, b) => b.churn_probability - a.churn_probability);
 
   const counts = {
@@ -127,38 +87,29 @@ export default function ChurnPredictionsCard() {
           Aucun résultat
         </p>
       ) : (
-        <div className="space-y-1 overflow-y-auto flex-1" style={{ maxHeight: "220px" }}>
-          {listeFiltre.map((p) => {
-            const client = clients.get(p.user_id.toLowerCase());
-            return (
-              <div
-                key={p.user_id}
-                className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-50 transition-colors"
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{
-                    background: "var(--color-primary-soft)",
-                    color: "var(--color-primary)",
-                  }}
-                >
-                  {(client?.username ?? "?").charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate leading-none">
-                    {client?.username ?? p.user_id}
-                  </p>
-                  <p className="text-xs text-gray-400 truncate">{client?.email}</p>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-xs font-bold text-gray-700">
-                    {(p.churn_probability * 100).toFixed(0)}%
-                  </span>
-                  <span className={`w-2 h-2 rounded-full ${RISK_DOT[p.risk_level] ?? "bg-gray-300"}`} />
-                </div>
+        <div className="space-y-1 overflow-y-auto flex-1 max-h-55">
+          {listeFiltre.map((p) => (
+            <div
+              key={p.user_id}
+              className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-(--color-primary-soft) text-(--color-primary)">
+                {(p.username ?? "?").charAt(0).toUpperCase()}
               </div>
-            );
-          })}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate leading-none">
+                  {p.username ?? p.user_id}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{p.email}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs font-bold text-gray-700">
+                  {(p.churn_probability * 100).toFixed(0)}%
+                </span>
+                <span className={`w-2 h-2 rounded-full ${RISK_DOT[p.risk_level] ?? "bg-gray-300"}`} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

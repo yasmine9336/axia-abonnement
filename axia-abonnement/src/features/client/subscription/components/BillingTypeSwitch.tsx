@@ -17,14 +17,9 @@ export default function BillingTypeSwitch({
           onClick={() => onChange("mensuel")}
           className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
             type === "mensuel"
-              ? "text-white"
+              ? "bg-(--color-primary) text-white"
               : "text-gray-600 hover:bg-gray-50"
           }`}
-          style={
-            type === "mensuel"
-              ? { background: "var(--color-primary)" }
-              : undefined
-          }
         >
           Mensuel
         </button>
@@ -34,14 +29,9 @@ export default function BillingTypeSwitch({
           onClick={() => onChange("annuel")}
           className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
             type === "annuel"
-              ? "text-white"
+              ? "bg-(--color-primary) text-white"
               : "text-gray-600 hover:bg-gray-50"
           }`}
-          style={
-            type === "annuel"
-              ? { background: "var(--color-primary)" }
-              : undefined
-          }
         >
           Annuel
         </button>

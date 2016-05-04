@@ -24,8 +24,7 @@ export default function AuthStatusBanner({ banner }: AuthStatusBannerProps) {
         <button
           type="button"
           onClick={banner.action.onClick}
-          className="mt-3 w-full py-2 text-white font-semibold rounded-lg text-sm"
-          style={{ background: "var(--color-primary)" }}
+          className="mt-3 w-full py-2 text-white font-semibold rounded-lg text-sm bg-(--color-primary)"
         >
           {banner.action.label}
         </button>

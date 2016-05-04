@@ -10,14 +10,12 @@ def load_training_data():
             SELECT Id, CreatedAt, DateNaissance
             FROM Users
             WHERE Role = 'Client'
-            AND Email LIKE '%@seed.axia.tn'
-            AND Email NOT LIKE 'actif%@seed.axia.tn'
         """), conn)
 
         abonnements = pd.read_sql(text("""
             SELECT Id, UserId, OffreId, ServiceId, Type, Montant, DateDebut, DateFin, Statut
             FROM Abonnements
-            WHERE Statut = 'Expiré'
+            WHERE Statut = 'Expire'
             ORDER BY DateDebut ASC
         """), conn)
 
@@ -129,14 +127,13 @@ def load_prediction_data():
         users = pd.read_sql(text("""
             SELECT Id, CreatedAt, DateNaissance
             FROM Users
-            WHERE Email LIKE 'actif%@seed.axia.tn'
+            WHERE Role = 'Client'
         """), conn)
 
         abonnements = pd.read_sql(text("""
             SELECT Id, UserId, OffreId, ServiceId, Type, Montant, DateFin
             FROM Abonnements
             WHERE Statut = 'Actif'
-            AND UserId IN (SELECT Id FROM Users WHERE Email LIKE 'actif%@seed.axia.tn')
         """), conn)
 
         paiements = pd.read_sql(text("""

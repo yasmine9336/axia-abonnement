@@ -101,7 +101,7 @@ export default function DemandesResponsablesList({
             Demandes de création de compte
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Validez ou consultez les demandes d’inscription des responsables.
+            Validez ou consultez les demandes d'inscription des responsables.
           </p>
         </div>
 
@@ -122,14 +122,9 @@ export default function DemandesResponsablesList({
               onClick={() => onStatusChange(item.key)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                 demandeStatusFilter === item.key
-                  ? "text-white"
+                  ? "bg-(--color-primary) text-white"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
-              style={
-                demandeStatusFilter === item.key
-                  ? { background: "var(--color-primary)" }
-                  : undefined
-              }
             >
               {item.label}
               <span className="ml-1 text-xs font-semibold">{item.count}</span>
@@ -188,10 +183,7 @@ export default function DemandesResponsablesList({
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                      style={{ background: "var(--color-primary)" }}
-                    >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg bg-(--color-primary)">
                       {d.username.charAt(0).toUpperCase()}
                     </div>
 

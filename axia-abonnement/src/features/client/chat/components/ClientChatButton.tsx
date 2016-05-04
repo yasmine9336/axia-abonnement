@@ -14,8 +14,7 @@ export default function ClientChatButton({
     <button
       type="button"
       onClick={onOpen}
-      className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative hover:scale-105"
-      style={{ background: "var(--color-primary)" }}
+      className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative hover:scale-105 bg-(--color-primary)"
       aria-label="Ouvrir le chat"
     >
       <MessageCircle size={22} />

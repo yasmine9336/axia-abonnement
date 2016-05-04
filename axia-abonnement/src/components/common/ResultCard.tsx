@@ -27,8 +27,7 @@ export default function ResultCard({
         <button
           type="button"
           onClick={onButtonClick}
-          className="w-full py-3 text-white rounded-xl font-semibold text-sm transition-colors"
-          style={{ background: "var(--color-primary)" }}
+          className="w-full py-3 text-white rounded-xl font-semibold text-sm transition-colors bg-(--color-primary)"
         >
           {buttonLabel}
         </button>

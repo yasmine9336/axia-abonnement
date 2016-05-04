@@ -22,24 +22,12 @@ export default function RenewalBanner({
   }
 
   return (
-    <div
-      className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 border"
-      style={{
-        background: "var(--color-primary-soft)",
-        borderColor: "var(--color-primary-soft)",
-      }}
-    >
+    <div className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 border bg-(--color-primary-soft) border-(--color-primary-soft)">
       <div className="flex items-center gap-3">
-        <BarChart3
-          className="w-6 h-6 shrink-0"
-          style={{ color: "var(--color-primary)" }}
-        />
+        <BarChart3 className="w-6 h-6 shrink-0 text-(--color-primary)" />
 
         <div>
-          <p
-            className="text-sm font-semibold"
-            style={{ color: "var(--color-primary)" }}
-          >
+          <p className="text-sm font-semibold text-(--color-primary)">
             Renouvellement dans {joursAvantRenouvellement} jours
           </p>
 
@@ -53,8 +41,7 @@ export default function RenewalBanner({
       <button
         type="button"
         onClick={onManage}
-        className="shrink-0 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-        style={{ background: "var(--color-primary)" }}
+        className="shrink-0 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors bg-(--color-primary)"
       >
         Gérer →
       </button>

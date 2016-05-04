@@ -4,7 +4,7 @@ import LoadingState from "../../../../components/common/LoadingState";
 import Pagination from "../../../../components/common/Pagination";
 import type { Client } from "../types";
 import { formatDateFR } from "../utils";
-import { useChurnPredictions } from "../../../../hooks/useChurnPredictions";
+import { useChurn } from "../../../../contexts/ChurnContext";
 
 interface ResponsableClientsGridProps {
   clients: Client[];
@@ -41,7 +41,7 @@ export default function ResponsableClientsGrid({
   onOpenSubscriptions,
   onOpenConversation,
 }: ResponsableClientsGridProps) {
-  const { riskMap } = useChurnPredictions();
+  const { riskMap } = useChurn();
 
   if (loading) return <LoadingState heightClassName="min-h-40" />;
 

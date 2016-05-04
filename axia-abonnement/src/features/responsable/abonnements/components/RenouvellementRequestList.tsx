@@ -63,13 +63,9 @@ export default function RenouvellementRequestsList({
         <EmptyState
           icon={
             <div
-              className="mx-auto w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "var(--color-primary-soft)" }}
+              className="mx-auto w-10 h-10 rounded-2xl flex items-center justify-center bg-(--color-primary-soft)"
             >
-              <MailCheck
-                className="w-5 h-5"
-                style={{ color: "var(--color-primary)" }}
-              />
+              <MailCheck className="w-5 h-5 text-(--color-primary)" />
             </div>
           }
           title="Aucune demande en attente"

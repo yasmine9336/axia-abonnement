@@ -13,7 +13,7 @@ export default function QuickActionsCard({
       sub: "Parcourir les offres",
       path: "/",
       icon: (
-        <Plus className="w-6 h-6" style={{ color: "var(--color-primary)" }} />
+        <Plus className="w-6 h-6 text-(--color-primary)" />
       ),
     },
     {

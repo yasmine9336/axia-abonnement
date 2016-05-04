@@ -16,11 +16,7 @@ export default function ResponsableSelector({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2
-          size={22}
-          className="animate-spin"
-          style={{ color: "var(--color-primary)" }}
-        />
+        <Loader2 size={22} className="animate-spin text-(--color-primary)" />
       </div>
     );
   }
@@ -28,14 +24,8 @@ export default function ResponsableSelector({
   if (responsables.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center px-6">
-        <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-          style={{ background: "var(--color-primary-soft)" }}
-        >
-          <MessageCircle
-            size={22}
-            style={{ color: "var(--color-primary)" }}
-          />
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3 bg-(--color-primary-soft)">
+          <MessageCircle size={22} className="text-(--color-primary)" />
         </div>
 
         <p className="text-sm font-medium text-gray-700">
@@ -61,10 +51,7 @@ export default function ResponsableSelector({
             onClick={() => onOpenConversation(responsable)}
             className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0 text-left"
           >
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-              style={{ background: "var(--color-primary)" }}
-            >
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-(--color-primary)">
               {responsable.username.charAt(0).toUpperCase()}
             </div>
 

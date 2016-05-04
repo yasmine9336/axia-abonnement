@@ -29,8 +29,7 @@ export default function RegisterActions({
         <button
           type="submit"
           disabled={loading}
-          className="w-2/3 py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
-          style={{ background: "var(--color-primary)" }}
+          className="w-2/3 py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50 bg-(--color-primary)"
         >
           {loading ? "Inscription..." : "Envoyer ma demande"}
         </button>
@@ -43,8 +42,7 @@ export default function RegisterActions({
       <button
         type="submit"
         disabled={loading}
-        className="flex-1 py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
-        style={{ background: "var(--color-primary)" }}
+        className="flex-1 py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50 bg-(--color-primary)"
       >
         {loading ? "..." : isResponsable ? "Suivant" : "Créer un compte"}
       </button>
@@ -52,11 +50,7 @@ export default function RegisterActions({
       <button
         type="button"
         onClick={onLogin}
-        className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 bg-white"
-        style={{
-          borderColor: "var(--color-primary)",
-          color: "var(--color-primary)",
-        }}
+        className="flex-1 py-3 font-semibold rounded-xl text-sm border-2 bg-white border-(--color-primary) text-(--color-primary)"
       >
         Se connecter
       </button>

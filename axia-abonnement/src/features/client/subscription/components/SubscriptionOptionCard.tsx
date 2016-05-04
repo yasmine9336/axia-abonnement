@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { BillingType } from "../types";
-import { getOptionSelectedClass, getSelectedStyle } from "../utils";
+import { getOptionSelectedClass } from "../utils";
 import StarRating from "./StarRating";
 
 interface SubscriptionOptionCardProps {
@@ -31,7 +31,6 @@ export default function SubscriptionOptionCard({
       type="button"
       onClick={onClick}
       className={getOptionSelectedClass(isSelected)}
-      style={getSelectedStyle(isSelected)}
     >
       <div className="min-w-0">
         <p className="font-bold text-gray-900 truncate">{title}</p>
@@ -44,10 +43,7 @@ export default function SubscriptionOptionCard({
       </div>
 
       <div className="mt-4">
-        <p
-          className="text-2xl font-extrabold"
-          style={{ color: "var(--color-primary)" }}
-        >
+        <p className="text-2xl font-extrabold text-(--color-primary)">
           {price}{" "}
           <span className="text-sm font-semibold text-gray-400">
             TND/{type === "annuel" ? "an" : "mois"}

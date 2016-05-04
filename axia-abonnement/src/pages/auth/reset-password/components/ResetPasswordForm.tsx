@@ -95,8 +95,7 @@ export default function ResetPasswordForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
-        style={{ background: "var(--color-primary)" }}
+        className="w-full py-3 text-white font-semibold rounded-xl text-sm disabled:opacity-50 bg-(--color-primary)"
       >
         {loading ? "Réinitialisation..." : "Réinitialiser le mot de passe"}
       </button>

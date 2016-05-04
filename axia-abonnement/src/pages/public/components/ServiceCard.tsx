@@ -19,10 +19,9 @@ export default function ServiceCard({
   return (
     <div
       onClick={() => onSelect(service.intituleService)}
-      className="bg-white rounded-2xl p-6 flex flex-col cursor-pointer hover:shadow-lg transition-all duration-300 shrink-0 w-64 border-2"
-      style={{
-        borderColor: isSelected ? "var(--color-primary)" : "#e5e7eb",
-      }}
+      className={`bg-white rounded-2xl p-6 flex flex-col cursor-pointer hover:shadow-lg transition-all duration-300 shrink-0 w-64 border-2 ${
+        isSelected ? "border-(--color-primary)" : "border-gray-200"
+      }`}
     >
       <h3 className="text-base font-bold text-gray-900 mb-2">
         {service.intituleService}
@@ -31,16 +30,11 @@ export default function ServiceCard({
       <p className="text-gray-500 text-sm mb-3">{service.description}</p>
 
       <div className="flex items-baseline gap-1 mb-3">
-        <span
-          className="text-xl font-bold"
-          style={{ color: "var(--color-primary)" }}
-        >
+        <span className="text-xl font-bold text-(--color-primary)">
           {service.parMois}
         </span>
 
-        <span className="text-xs" style={{ color: "var(--color-primary)" }}>
-          TND
-        </span>
+        <span className="text-xs text-(--color-primary)">TND</span>
 
         <span className="text-gray-400 text-xs">/mois</span>
       </div>
@@ -56,19 +50,7 @@ export default function ServiceCard({
           event.stopPropagation();
           onSubscribe(service.id);
         }}
-        className="w-full py-2 rounded-lg text-xs font-semibold border transition-all"
-        style={{
-          borderColor: "var(--color-primary)",
-          color: "var(--color-primary)",
-        }}
-        onMouseEnter={(event) => {
-          event.currentTarget.style.background = "var(--color-primary)";
-          event.currentTarget.style.color = "white";
-        }}
-        onMouseLeave={(event) => {
-          event.currentTarget.style.background = "transparent";
-          event.currentTarget.style.color = "var(--color-primary)";
-        }}
+        className="w-full py-2 rounded-lg text-xs font-semibold border transition-all border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white"
       >
         Choisir ce service
       </button>

@@ -42,16 +42,8 @@ export function getRelatedOffres(service: Service, offres: Offre[]) {
 
 export function getOptionSelectedClass(isSelected: boolean) {
   return `text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
-    isSelected ? "ring-4" : "border-gray-200"
+    isSelected
+      ? "border-(--color-primary) ring-4 ring-(--color-primary)/10"
+      : "border-gray-200"
   }`;
-}
-
-export function getSelectedStyle(isSelected: boolean) {
-  if (!isSelected) return undefined;
-
-  return {
-    borderColor: "var(--color-primary)",
-    boxShadow:
-      "0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent)",
-  };
 }
