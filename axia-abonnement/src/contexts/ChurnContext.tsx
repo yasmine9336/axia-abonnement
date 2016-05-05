@@ -39,9 +39,10 @@ export function ChurnProvider({ children }: { children: ReactNode }) {
         (clientsRes.data ?? []).forEach((c) => clientById.set(c.id.toLowerCase(), c));
         (mlRes.data.predictions ?? []).forEach((p) => {
           const client = clientById.get(p.user_id.toLowerCase());
-          const enriched = { ...p, username: client?.username, email: client?.email };
+          if (!client) return;
+          const enriched = { ...p, username: client.username, email: client.email };
           byId.set(p.user_id.toLowerCase(), enriched);
-          if (client) byUsername.set(client.username.toLowerCase(), enriched);
+          byUsername.set(client.username.toLowerCase(), enriched);
         });
         setState({ riskMap: byId, riskMapByUsername: byUsername, loading: false, error: null });
       })
