@@ -99,9 +99,12 @@ namespace AxiaAbonnement.Services.Implementations
                 .Distinct()
                 .CountAsync();
 
-            var revenuMensuel = await _db.Abonnements
-                .Where(a => a.Statut == StatutAbonnement.Actif && a.Type == "mensuel" && a.DateFin >= now)
-                .SumAsync(a => (decimal?)a.Montant) ?? 0;
+            var debutMois = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var revenuMensuel = await _db.Paiements
+                .Where(p => p.Statut == "completed"
+                         && p.PaymentType == "subscription"
+                         && p.CreatedAt >= debutMois)
+                .SumAsync(p => (decimal?)p.Montant) ?? 0;
 
             var servicesActifs = await _db.Services.CountAsync(s => s.IsActive);
             var demandesEnAttente = await _db.DemandesRenouvellement
@@ -235,6 +238,8 @@ namespace AxiaAbonnement.Services.Implementations
 
             var culture = new System.Globalization.CultureInfo("fr-FR");
             var sixMoisDebut = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
+            var debutMois = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
             var paiementsParMois = await _db.Paiements
                 .Where(p => p.Statut == "completed"
                          && p.PaymentType == "subscription"
@@ -286,9 +291,13 @@ namespace AxiaAbonnement.Services.Implementations
                 TotalAbonnes = await baseAbos
                     .Where(a => a.Statut == StatutAbonnement.Actif && a.DateFin >= now)
                     .Select(a => a.UserId).Distinct().CountAsync(),
-                RevenuMensuel = await baseAbos
-                    .Where(a => a.Statut == StatutAbonnement.Actif && a.Type == "mensuel" && a.DateFin >= now)
-                    .SumAsync(a => (decimal?)a.Montant) ?? 0,
+                RevenuMensuel = await _db.Paiements
+                    .Where(p => p.Statut == "completed"
+                             && p.PaymentType == "subscription"
+                             && p.AbonnementId.HasValue
+                             && baseAbos.Any(a => a.Id == p.AbonnementId!.Value)
+                             && p.CreatedAt >= debutMois)
+                    .SumAsync(p => (decimal?)p.Montant) ?? 0,
                 ServicesActifs = await _db.Services.CountAsync(s => s.ResponsableId == responsableId && s.IsActive),
                 DemandesEnAttente = await _db.DemandesRenouvellement
                     .CountAsync(d => d.Statut == StatutDemande.EnAttente && baseAbos.Any(a => a.Id == d.AbonnementId)),
