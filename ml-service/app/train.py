@@ -76,7 +76,7 @@ def train():
 
     print("-" * 50)
 
-    best_name = max(results, key=lambda k: (results[k]["auc"], -results[k]["ll"]))
+    best_name = min(results, key=lambda k: results[k]["ll"])
     best = results[best_name]
 
     print(f"Meilleur modele : {best_name}")

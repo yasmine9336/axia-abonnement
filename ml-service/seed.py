@@ -31,6 +31,19 @@ def run_seed():
         conn.execute(text("DELETE FROM ServiceOffres WHERE ServiceId IN (SELECT Id FROM Services WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable'))"))
         conn.execute(text("DELETE FROM Services WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable')"))
         conn.execute(text("DELETE FROM Offres WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable')"))
+        conn.execute(text("""
+            DELETE FROM ChatMessages
+            WHERE ConversationId IN (
+            SELECT Id FROM ChatConversations
+            WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
+            OR AssignedResponsableId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
+            )
+        """))
+        conn.execute(text("""
+            DELETE FROM ChatConversations
+            WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
+            OR AssignedResponsableId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
+        """))
         conn.execute(text("DELETE FROM Users WHERE Email LIKE '%@seed.axia.tn'"))
         conn.commit()
         print("Nettoyage terminé")
