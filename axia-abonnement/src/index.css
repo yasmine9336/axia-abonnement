@@ -1,0 +1,24 @@
+@import "tailwindcss";
+* {
+  scroll-behavior: smooth;
+}
+
+@keyframes scroll-loop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-loop {
+  animation: scroll-loop 40s linear infinite;
+}
+
+.animate-scroll-loop:hover {
+  animation-play-state: paused;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.scroll-instant {
+  scroll-behavior: auto !important;
+}
