@@ -14,6 +14,7 @@ namespace AxiaAbonnement.Data
         public DbSet<Abonnement> Abonnements { get; set; }
         public DbSet<Paiement> Paiements { get; set; }
         public DbSet<DemandeRenouvellement> DemandesRenouvellement { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -71,6 +72,19 @@ namespace AxiaAbonnement.Data
                 entity.HasOne(d => d.Client)
                     .WithMany()
                     .HasForeignKey(d => d.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Feedback>(entity =>
+            {
+                entity.HasOne(f => f.Client)
+                    .WithMany()
+                    .HasForeignKey(f => f.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Abonnement)
+                    .WithMany()
+                    .HasForeignKey(f => f.AbonnementId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

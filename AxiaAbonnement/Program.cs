@@ -50,6 +50,8 @@ builder.Services.AddScoped<IAbonnementService, AbonnementService>();
 
 builder.Services.AddScoped<IDemandeService, DemandeService>();
 
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+
 var emailConfig = builder.Configuration
     .GetSection("EmailConfiguration")
     .Get<EmailConfiguration>();
