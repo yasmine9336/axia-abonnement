@@ -36,8 +36,9 @@ export default function Login() {
       if (role === 'Admin') navigate('/dashboard/admin');
       else if (role === 'Responsable') navigate('/dashboard/responsable');
       else navigate('/dashboard/client');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
     }

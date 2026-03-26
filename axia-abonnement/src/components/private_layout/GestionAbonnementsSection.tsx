@@ -21,15 +21,15 @@ export default function AbonnementsSection() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchAbonnements();
-  }, []);
-
   const fetchAbonnements = () => {
     axiosInstance.get("/abonnements/all")
       .then(r => setAbonnements(r.data))
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => {
+    fetchAbonnements();
+  }, []);
 
   const handleActiver = async (id: string) => {
     await axiosInstance.patch(`/abonnements/${id}/activer`);

@@ -95,8 +95,9 @@ export default function ResponsablesSection() {
       }
       await fetchResponsables();
       closeModal();
-    } catch (err: any) {
-      setError(err.response?.data || "Une erreur est survenue.");
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      setError(error.response?.data || "Une erreur est survenue.");
     } finally {
       setSubmitting(false);
     }

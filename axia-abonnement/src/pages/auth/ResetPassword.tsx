@@ -33,8 +33,13 @@ export default function ResetPassword() {
         password,
       });
       setResetComplete(true);
-    } catch (err: any) {
-      setError(err.response?.data?.title || err.response?.data || "Erreur lors de la réinitialisation.");
+    } catch (err) {
+      const error = err as { response?: { data?: { title?: string } | string } };
+      const apiError = error.response?.data;
+      const errorMessage = typeof apiError === 'object' && apiError !== null && 'title' in apiError 
+        ? (apiError.title || "Erreur lors de la réinitialisation.")
+        : (typeof apiError === 'string' ? apiError : "Erreur lors de la réinitialisation.");
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

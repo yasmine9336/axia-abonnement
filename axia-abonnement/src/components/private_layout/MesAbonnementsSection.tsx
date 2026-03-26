@@ -110,6 +110,7 @@ const AbonnementCard = ({ a, progress, formatDate, renouveler }: {
 export default function SubscriptionsSection() {
   const [abonnements, setAbonnements] = useState<Abonnement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now] = useState(() => Date.now());
 
   const loadAbonnements = async () => {
     const r = await axiosInstance.get("/abonnements");
@@ -127,7 +128,18 @@ export default function SubscriptionsSection() {
   };
 
   useEffect(() => {
-    loadAbonnements().finally(() => setLoading(false));
+    let active = true;
+
+    const fetchData = async () => {
+      await loadAbonnements();
+      if (active) setLoading(false);
+    };
+
+    fetchData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const refresh = () => loadAbonnements();
@@ -140,7 +152,6 @@ export default function SubscriptionsSection() {
   const getBillingProgress = (dateDebut: string, dateFin: string) => {
     const debut = new Date(dateDebut).getTime();
     const fin = new Date(dateFin).getTime();
-    const now = Date.now();
     const progress = Math.min(100, Math.max(0, ((now - debut) / (fin - debut)) * 100));
     return Math.round(progress);
   };

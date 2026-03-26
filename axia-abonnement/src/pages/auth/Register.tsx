@@ -52,8 +52,9 @@ export default function Register() {
     try {
       await register(form.fullName, form.email, form.password);
       navigate('/login');
-    } catch (err: any) {
-      setError(err.response?.data || 'Erreur lors de l\'inscription');
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      setError(error.response?.data || 'Erreur lors de l\'inscription');
     } finally {
       setLoading(false);
     }

@@ -64,8 +64,9 @@ export default function ProfileSection() {
       setProfileSuccess("Profil mis à jour avec succès.");
       setProfile((prev) => prev ? { ...prev, ...profileForm } : prev);
       setIsEditing(false);
-    } catch (err: any) {
-      setProfileError(err.response?.data || "Erreur lors de la mise à jour.");
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      setProfileError(error.response?.data || "Erreur lors de la mise à jour.");
     } finally {
       setProfileLoading(false);
     }
@@ -89,8 +90,9 @@ export default function ProfileSection() {
       setPasswordSuccess("Mot de passe modifié avec succès.");
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordForm(false);
-    } catch (err: any) {
-      setPasswordError(err.response?.data || "Mot de passe actuel incorrect.");
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      setPasswordError(error.response?.data || "Mot de passe actuel incorrect.");
     } finally {
       setPasswordLoading(false);
     }

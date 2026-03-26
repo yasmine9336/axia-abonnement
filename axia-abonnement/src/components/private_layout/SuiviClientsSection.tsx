@@ -42,7 +42,18 @@ export default function DemandesSection() {
   };
 
   useEffect(() => {
-    loadData().finally(() => setLoading(false));
+    let active = true;
+
+    const fetchData = async () => {
+      await loadData();
+      if (active) setLoading(false);
+    };
+
+    fetchData();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const refresh = () => loadData();

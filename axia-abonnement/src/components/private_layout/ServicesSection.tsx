@@ -74,8 +74,9 @@ export default function ServicesPage() {
       }
       setShowModal(false);
       fetchServices();
-    } catch (err: any) {
-      setFormError(err.response?.data || "Une erreur est survenue.");
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      setFormError(error.response?.data || "Une erreur est survenue.");
     } finally {
       setFormLoading(false);
     }
