@@ -131,5 +131,6 @@ app.UseHttpsRedirection();
 app.UseCors("ReactPolicy");   // ← AVANT Authentication
 app.UseAuthentication();       // ← Lire et valider le JWT
 app.UseAuthorization();        // ← Appliquer les [Authorize]
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();

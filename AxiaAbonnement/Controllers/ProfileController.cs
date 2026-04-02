@@ -46,5 +46,17 @@ namespace AxiaAbonnement.Controllers
             if (!result) return BadRequest("Mot de passe actuel incorrect.");
             return Ok(new { Message = "Mot de passe modifié avec succès." });
         }
+
+        [HttpPatch("photo")]
+        public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
+        {
+            if (photo == null || photo.Length == 0)
+                return BadRequest("Aucune image reçue.");
+
+            var url = await _profileService.UpdateProfilePhotoAsync(GetUserId(), photo);
+            if (url == null) return BadRequest("Image invalide.");
+
+            return Ok(new { profileImageUrl = url, message = "Photo mise à jour." });
+        }
     }
 }

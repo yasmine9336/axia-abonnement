@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
-import { Plus, Edit2, Trash2, Search, Mail, Phone, Power, X, Eye, EyeOff } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Search,
+  Mail,
+  Phone,
+  Power,
+  X,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 interface Responsable {
   id: string;
@@ -8,6 +19,7 @@ interface Responsable {
   email: string;
   phoneNumber: string | null;
   isActive: boolean;
+  profileImageUrl?: string | null;
 }
 
 interface FormData {
@@ -83,8 +95,12 @@ export default function ResponsablesSection() {
         const payload: Record<string, string> = {};
         if (form.username) payload.username = form.username;
         if (form.email) payload.email = form.email;
-        if (form.phoneNumber !== undefined) payload.phoneNumber = form.phoneNumber;
-        await axiosInstance.patch(`/users/responsables/${editingResp.id}`, payload);
+        if (form.phoneNumber !== undefined)
+          payload.phoneNumber = form.phoneNumber;
+        await axiosInstance.patch(
+          `/users/responsables/${editingResp.id}`,
+          payload,
+        );
       } else {
         await axiosInstance.post("/users/responsables", {
           username: form.username,
@@ -107,7 +123,9 @@ export default function ResponsablesSection() {
     try {
       await axiosInstance.patch(`/users/responsables/${resp.id}/toggle`);
       setResponsables((prev) =>
-        prev.map((r) => (r.id === resp.id ? { ...r, isActive: !r.isActive } : r))
+        prev.map((r) =>
+          r.id === resp.id ? { ...r, isActive: !r.isActive } : r,
+        ),
       );
     } catch {
       setError("Erreur lors du changement de statut.");
@@ -115,7 +133,8 @@ export default function ResponsablesSection() {
   };
 
   const handleDelete = async (resp: Responsable) => {
-    if (!confirm(`Supprimer ${resp.username} ? Cette action est irréversible.`)) return;
+    if (!confirm(`Supprimer ${resp.username} ? Cette action est irréversible.`))
+      return;
     try {
       await axiosInstance.delete(`/users/responsables/${resp.id}`);
       setResponsables((prev) => prev.filter((r) => r.id !== resp.id));
@@ -127,19 +146,29 @@ export default function ResponsablesSection() {
   const filtered = responsables.filter(
     (r) =>
       r.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.email.toLowerCase().includes(searchTerm.toLowerCase())
+      r.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const activeCount = responsables.filter((r) => r.isActive).length;
+
+  const getPhotoUrl = (photoPath?: string | null) => {
+    if (!photoPath) return null;
+    if (photoPath.startsWith("http")) return photoPath;
+    return `https://localhost:7000${photoPath}`;
+  };
 
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gérer les Responsables</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Gérer les Responsables
+          </h1>
           <p className="text-gray-500 text-sm mt-1">
-            {activeCount} actif{activeCount > 1 ? "s" : ""} sur {responsables.length} responsable{responsables.length > 1 ? "s" : ""}
+            {activeCount} actif{activeCount > 1 ? "s" : ""} sur{" "}
+            {responsables.length} responsable
+            {responsables.length > 1 ? "s" : ""}
           </p>
         </div>
         <button
@@ -161,7 +190,10 @@ export default function ResponsablesSection() {
       {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Rechercher par nom ou email..."
@@ -176,7 +208,10 @@ export default function ResponsablesSection() {
       {loading ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse"
+            >
               <div className="flex justify-between mb-4">
                 <div className="w-12 h-12 bg-gray-200 rounded-full" />
                 <div className="w-16 h-6 bg-gray-200 rounded-full" />
@@ -195,26 +230,45 @@ export default function ResponsablesSection() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg font-medium">Aucun responsable trouvé</p>
-          <p className="text-sm mt-1">Créez votre premier responsable avec le bouton ci-dessus</p>
+          <p className="text-sm mt-1">
+            Créez votre premier responsable avec le bouton ci-dessus
+          </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((resp) => (
-            <div key={resp.id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div
+              key={resp.id}
+              className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            >
               {/* Top */}
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {resp.username.charAt(0).toUpperCase()}
-                </div>
-                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                  resp.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                }`}>
+                {getPhotoUrl(resp.profileImageUrl) ? (
+                  <img
+                    src={getPhotoUrl(resp.profileImageUrl)!}
+                    alt={`Photo de ${resp.username}`}
+                    className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {resp.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    resp.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-600"
+                  }`}
+                >
                   {resp.isActive ? "Actif" : "Inactif"}
                 </span>
               </div>
 
               {/* Info */}
-              <h3 className="font-semibold text-gray-900 mb-3">{resp.username}</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                {resp.username}
+              </h3>
               <div className="space-y-1.5 mb-6">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Mail size={13} />
@@ -267,9 +321,14 @@ export default function ResponsablesSection() {
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">
-                {editingResp ? "Modifier le responsable" : "Ajouter un responsable"}
+                {editingResp
+                  ? "Modifier le responsable"
+                  : "Ajouter un responsable"}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -282,20 +341,26 @@ export default function ResponsablesSection() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom d'utilisateur</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Nom d'utilisateur
+                </label>
                 <input
                   type="text"
                   required
                   autoComplete="off"
                   value={form.username}
-                  onChange={(e) => setForm({ ...form, username: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, username: e.target.value })
+                  }
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition-all"
                   placeholder="ex: responsable1"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email
+                </label>
                 <input
                   type="email"
                   required
@@ -309,14 +374,18 @@ export default function ResponsablesSection() {
 
               {!editingResp && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Mot de passe</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Mot de passe
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       autoComplete="new-password"
                       value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                      }
                       className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition-all"
                       placeholder="Minimum 8 caractères"
                     />
@@ -333,12 +402,15 @@ export default function ResponsablesSection() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Téléphone <span className="text-gray-400 font-normal">(optionnel)</span>
+                  Téléphone{" "}
+                  <span className="text-gray-400 font-normal">(optionnel)</span>
                 </label>
                 <input
                   type="tel"
                   value={form.phoneNumber}
-                  onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, phoneNumber: e.target.value })
+                  }
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition-all"
                   placeholder="ex: 0612345678"
                 />
@@ -350,7 +422,11 @@ export default function ResponsablesSection() {
                   disabled={submitting}
                   className="flex-1 bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
                 >
-                  {submitting ? "En cours..." : editingResp ? "Mettre à jour" : "Créer"}
+                  {submitting
+                    ? "En cours..."
+                    : editingResp
+                      ? "Mettre à jour"
+                      : "Créer"}
                 </button>
                 <button
                   type="button"

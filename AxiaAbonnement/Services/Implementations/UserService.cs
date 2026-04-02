@@ -24,7 +24,8 @@ namespace AxiaAbonnement.Services.Implementations
                     Username = u.Username,
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
-                    IsActive = u.IsActive
+                    IsActive = u.IsActive,
+                    ProfileImageUrl = u.ProfileImageUrl
                 })
                 .ToListAsync();
 
