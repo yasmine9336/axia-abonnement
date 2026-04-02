@@ -5,8 +5,10 @@
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
-        public Guid OffreId { get; set; }
-        public Offre Offre { get; set; } = null!;
+        public Guid? OffreId { get; set; }
+        public Offre? Offre { get; set; }
+        public Guid? ServiceId { get; set; }
+        public Service? Service { get; set; }
         public string Type { get; set; } = "mensuel"; // ou "annuel"
         public decimal Montant { get; set; }
         public DateTime DateDebut { get; set; } = DateTime.UtcNow;

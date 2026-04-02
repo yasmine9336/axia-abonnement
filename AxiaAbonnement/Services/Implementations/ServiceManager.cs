@@ -19,7 +19,10 @@ namespace AxiaAbonnement.Services.Implementations
             Id = s.Id,
             IntituleService = s.IntituleService,
             Description = s.Description,
+            ParMois = s.ParMois,
+            ParAnnee = s.ParAnnee,
             NbOffres = s.ServiceOffres.Count,
+            NbAbonnes = 0,
             IsActive = s.IsActive,
             CreatedAt = s.CreatedAt,
             CreePar = s.CreePar,
@@ -32,9 +35,24 @@ namespace AxiaAbonnement.Services.Implementations
         {
             return await _ctx.Services
                 .Include(s => s.ServiceOffres)
-                .Select(s => MapToDto(s))
+                .Select(s => new ServiceResponsableDto
+                {
+                    Id = s.Id,
+                    IntituleService = s.IntituleService,
+                    Description = s.Description,
+                    ParMois = s.ParMois,
+                    ParAnnee = s.ParAnnee,
+                    NbAbonnes = _ctx.Abonnements.Count(a => a.ServiceId == s.Id && a.IsActive),
+                    NbOffres = s.ServiceOffres.Count,
+                    IsActive = s.IsActive,
+                    CreatedAt = s.CreatedAt,
+                    CreePar = s.CreePar,
+                    CbModification = s.CbModification,
+                    CbModificateur = s.CbModificateur
+                })
                 .ToListAsync();
         }
+
 
         public async Task<ServiceResponsableDto?> GetServiceByIdAsync(Guid id)
         {
@@ -49,6 +67,8 @@ namespace AxiaAbonnement.Services.Implementations
                 Id = Guid.NewGuid(),
                 IntituleService = dto.IntituleService,
                 Description = dto.Description,
+                ParMois = dto.ParMois,
+                ParAnnee = dto.ParAnnee,
                 CreatedAt = DateTime.UtcNow,
                 CreePar = responsable?.Username ?? "",
             };
@@ -68,6 +88,10 @@ namespace AxiaAbonnement.Services.Implementations
                 service.IntituleService = dto.IntituleService;
             if (!string.IsNullOrWhiteSpace(dto.Description))
                 service.Description = dto.Description;
+            if (dto.ParMois.HasValue)
+                service.ParMois = dto.ParMois.Value;
+            if (dto.ParAnnee.HasValue)
+                service.ParAnnee = dto.ParAnnee.Value;
 
             service.CbModification = DateTime.UtcNow;
             service.CbModificateur = responsable?.Username ?? "";
@@ -107,6 +131,8 @@ namespace AxiaAbonnement.Services.Implementations
                     Id = s.Id,
                     IntituleService = s.IntituleService,
                     Description = s.Description,
+                    ParMois = s.ParMois,
+                    ParAnnee = s.ParAnnee,
                     NbOffres = s.ServiceOffres.Count
                 })
                 .ToListAsync();

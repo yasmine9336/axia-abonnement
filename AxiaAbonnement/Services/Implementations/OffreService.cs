@@ -20,7 +20,7 @@ namespace AxiaAbonnement.Services.Implementations
             Description = o.Description,
             ParMois = o.ParMois,
             ParAnnee = o.ParAnnee,
-            NbUsers = o.NbUsers,
+            NbAbonnes = 0,
             IsActive = o.IsActive,
             CreatedAt = o.CreatedAt,
             CreePar = o.CreePar,
@@ -34,9 +34,24 @@ namespace AxiaAbonnement.Services.Implementations
             return await _ctx.Offres
                 .Include(o => o.ServiceOffres)
                     .ThenInclude(so => so.Service)
-                .Select(o => MapToDto(o))
+                .Select(o => new OffreDto
+                {
+                    Id = o.Id,
+                    IntituleOffre = o.IntituleOffre,
+                    Description = o.Description,
+                    ParMois = o.ParMois,
+                    ParAnnee = o.ParAnnee,
+                    NbAbonnes = _ctx.Abonnements.Count(a => a.OffreId == o.Id && a.IsActive),
+                    IsActive = o.IsActive,
+                    CreatedAt = o.CreatedAt,
+                    CreePar = o.CreePar,
+                    CbModification = o.CbModification,
+                    CbModificateur = o.CbModificateur,
+                    Services = o.ServiceOffres.Select(so => so.Service.IntituleService).ToList()
+                })
                 .ToListAsync();
         }
+
 
         public async Task<List<PublicOffreDto>> GetPublicOffresAsync()
         {

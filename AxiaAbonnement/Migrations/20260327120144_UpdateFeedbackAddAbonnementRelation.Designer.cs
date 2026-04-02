@@ -4,6 +4,7 @@ using AxiaAbonnement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AxiaAbonnement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260327120144_UpdateFeedbackAddAbonnementRelation")]
+    partial class UpdateFeedbackAddAbonnementRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -44,10 +47,7 @@ namespace AxiaAbonnement.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid?>("OffreId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ServiceId")
+                    b.Property<Guid>("OffreId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("StripeSessionId")
@@ -66,8 +66,6 @@ namespace AxiaAbonnement.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OffreId");
-
-                    b.HasIndex("ServiceId");
 
                     b.HasIndex("UserId");
 
@@ -167,6 +165,9 @@ namespace AxiaAbonnement.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("NbUsers")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("ParAnnee")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -244,10 +245,6 @@ namespace AxiaAbonnement.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("ParMois")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Services");
@@ -320,11 +317,9 @@ namespace AxiaAbonnement.Migrations
                 {
                     b.HasOne("AxiaAbonnement.Models.Entities.Offre", "Offre")
                         .WithMany()
-                        .HasForeignKey("OffreId");
-
-                    b.HasOne("AxiaAbonnement.Models.Entities.Service", "Service")
-                        .WithMany()
-                        .HasForeignKey("ServiceId");
+                        .HasForeignKey("OffreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("AxiaAbonnement.Models.Entities.User", "User")
                         .WithMany()
@@ -333,8 +328,6 @@ namespace AxiaAbonnement.Migrations
                         .IsRequired();
 
                     b.Navigation("Offre");
-
-                    b.Navigation("Service");
 
                     b.Navigation("User");
                 });

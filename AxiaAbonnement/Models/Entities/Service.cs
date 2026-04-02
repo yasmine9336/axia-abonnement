@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public string IntituleService { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public decimal ParMois { get; set; }
         public decimal ParAnnee { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -9,5 +9,9 @@ namespace AxiaAbonnement.Models.DTOs.Services
         [Required]
         public string Description { get; set; } = string.Empty;
 
+        [Required]
+        public decimal ParMois { get; set; }
+        public decimal ParAnnee { get; set; }
+
     }
 }

@@ -41,6 +41,7 @@ namespace AxiaAbonnement.Data
 
             modelBuilder.Entity<Service>(entity =>
             {
+                entity.Property(o => o.ParMois).HasPrecision(18, 2);
                 entity.Property(s => s.ParAnnee).HasPrecision(18, 2);
             });
 
@@ -53,7 +54,14 @@ namespace AxiaAbonnement.Data
 
                 entity.HasOne(a => a.Offre)
                     .WithMany()
-                    .HasForeignKey(a => a.OffreId);
+                    .HasForeignKey(a => a.OffreId)
+                    .IsRequired(false);
+
+                entity.HasOne(a => a.Service)
+                    .WithMany()
+                    .HasForeignKey(a => a.ServiceId)
+                    .IsRequired(false);
+
 
                 entity.Property(a => a.Montant).HasPrecision(18, 2);
             });

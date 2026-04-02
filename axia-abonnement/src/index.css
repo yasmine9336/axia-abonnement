@@ -9,7 +9,7 @@
 }
 
 .animate-scroll-loop {
-  animation: scroll-loop 40s linear infinite;
+  animation: scroll-loop 120s linear infinite;
 }
 
 .animate-scroll-loop:hover {

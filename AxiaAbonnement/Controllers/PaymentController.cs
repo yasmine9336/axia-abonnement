@@ -25,7 +25,7 @@ namespace AxiaAbonnement.Controllers
         public async Task<IActionResult> CreateCheckoutSession([FromBody] CreateSessionDto dto)
         {
             var url = await _paymentService.CreateCheckoutSessionAsync(GetUserId(), dto);
-            if (url == null) return BadRequest("Offre invalide ou inactive.");
+            if (url == null) return BadRequest("Offre ou service invalide ou inactif.");
             return Ok(new { url });
         }
 
