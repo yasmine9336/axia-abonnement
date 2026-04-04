@@ -2,9 +2,9 @@
 using AxiaAbonnement.Models.DTOs.Payment;
 using AxiaAbonnement.Models.Entities;
 using AxiaAbonnement.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
-using Microsoft.EntityFrameworkCore;
 
 namespace AxiaAbonnement.Services.Implementations
 {
@@ -69,9 +69,8 @@ namespace AxiaAbonnement.Services.Implementations
 
             var options = new SessionCreateOptions
             {
-                PaymentMethodTypes = new List<string> { "card" },
-                LineItems = new List<SessionLineItemOptions>
-                {
+                PaymentMethodTypes = ["card"],
+                LineItems = [
                     new SessionLineItemOptions
                     {
                         PriceData = new SessionLineItemPriceDataOptions
@@ -86,7 +85,7 @@ namespace AxiaAbonnement.Services.Implementations
                         },
                         Quantity = 1
                     }
-                },
+                    ],
                 Mode = "payment",
                 SuccessUrl = $"{_config["Frontend:Url"]}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl = $"{_config["Frontend:Url"]}/payment/cancel",
@@ -109,8 +108,7 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
             {
-                var session = stripeEvent.Data.Object as Session;
-                if (session == null) return;
+                if (stripeEvent.Data.Object is not Session session) return;
 
                 var userId = Guid.Parse(session.Metadata["userId"]);
                 var type = session.Metadata["type"];
@@ -118,11 +116,11 @@ namespace AxiaAbonnement.Services.Implementations
                 var user = await _ctx.Users.FindAsync(userId);
                 if (user == null) return;
 
-                Guid? offreId = session.Metadata.ContainsKey("offreId") 
-                    ? Guid.Parse(session.Metadata["offreId"]) 
+                Guid? offreId = session.Metadata.TryGetValue("offreId", out var rawOffre)
+                    ? Guid.Parse(rawOffre)
                     : null;
-                Guid? serviceId = session.Metadata.ContainsKey("serviceId") 
-                    ? Guid.Parse(session.Metadata["serviceId"]) 
+                Guid? serviceId = session.Metadata.TryGetValue("serviceId", out var rawService)
+                    ? Guid.Parse(rawService)
                     : null;
 
                 string productName;
@@ -204,5 +202,54 @@ namespace AxiaAbonnement.Services.Implementations
                 }
             }
         }
+
+        public async Task<List<PaiementDto>> GetMyPaiementsAsync(Guid userId)
+        {
+            return await _ctx.Paiements
+                .Include(p => p.Abonnement).ThenInclude(a => a.Offre)
+                .Include(p => p.Abonnement).ThenInclude(a => a.Service)
+                .Where(p => p.Abonnement.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PaiementDto
+                {
+                    Id = p.Id,
+                    Montant = p.Montant,
+                    Statut = p.Statut,
+                    CreatedAt = p.CreatedAt,
+                    IntituleOffre = p.Abonnement.Offre != null
+                        ? p.Abonnement.Offre.IntituleOffre
+                        : p.Abonnement.Service != null
+                            ? p.Abonnement.Service.IntituleService
+                            : "",
+                    TypeAbonnement = p.Abonnement.Type
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<PaiementDto>> GetAllPaiementsAsync()
+        {
+            return await _ctx.Paiements
+                .Include(p => p.Abonnement).ThenInclude(a => a.Offre)
+                .Include(p => p.Abonnement).ThenInclude(a => a.Service)
+                .Include(p => p.Abonnement).ThenInclude(a => a.User)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PaiementDto
+                {
+                    Id = p.Id,
+                    Montant = p.Montant,
+                    Statut = p.Statut,
+                    CreatedAt = p.CreatedAt,
+                    IntituleOffre = p.Abonnement.Offre != null
+                        ? p.Abonnement.Offre.IntituleOffre
+                        : p.Abonnement.Service != null
+                            ? p.Abonnement.Service.IntituleService
+                            : "",
+                    TypeAbonnement = p.Abonnement.Type,
+                    ClientUsername = p.Abonnement.User.Username,
+                    ClientEmail = p.Abonnement.User.Email
+                })
+                .ToListAsync();
+        }
+
     }
 }

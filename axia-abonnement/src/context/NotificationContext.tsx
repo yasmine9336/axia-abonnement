@@ -8,6 +8,7 @@ interface Notification {
   message: string;
   type: string;
   createdAt: string;
+  isRead: boolean;
 }
 
 interface NotificationContextType {
@@ -75,19 +76,21 @@ export function NotificationProvider({
 
   const markAsRead = async (id: string) => {
     await axiosInstance.patch(`/notifications/${id}/read`);
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+    );
   };
 
   const markAllAsRead = async () => {
     await axiosInstance.patch("/notifications/read-all");
-    setNotifications([]);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
-        unreadCount: notifications.length,
+        unreadCount: notifications.filter((n) => !n.isRead).length,
         markAsRead,
         markAllAsRead,
       }}

@@ -8,14 +8,9 @@ namespace AxiaAbonnement.Controllers
 {
     [ApiController]
     [Route("api/payment")]
-    public class PaymentController : ControllerBase
+    public class PaymentController(IPaymentService paymentService) : ControllerBase
     {
-        private readonly IPaymentService _paymentService;
-
-        public PaymentController(IPaymentService paymentService)
-        {
-            _paymentService = paymentService;
-        }
+        private readonly IPaymentService _paymentService = paymentService;
 
         private Guid GetUserId() =>
             Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -48,5 +43,23 @@ namespace AxiaAbonnement.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpGet("history")]
+        [Authorize(Policy = "ClientOnly")]
+        public async Task<IActionResult> GetMyPaiements()
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var paiements = await _paymentService.GetMyPaiementsAsync(userId);
+            return Ok(paiements);
+        }
+
+        [HttpGet("history/all")]
+        [Authorize(Policy = "StaffOnly")]
+        public async Task<IActionResult> GetAllPaiements()
+        {
+            var paiements = await _paymentService.GetAllPaiementsAsync();
+            return Ok(paiements);
+        }
+
     }
 }

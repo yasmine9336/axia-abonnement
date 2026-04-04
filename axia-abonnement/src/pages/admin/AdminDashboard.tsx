@@ -4,14 +4,9 @@ import ResponsablesSection from "../../components/private_layout/ResponsablesSec
 import AbonnementsAdminSection from "../../components/private_layout/AbonnementsAdminSection";
 import CatalogueAdminSection from "../../components/private_layout/CatalogueAdminSection";
 import ArchiveAdminSection from "../../components/private_layout/ArchiveAdminSection";
+import TransactionsAdminSection from "../../components/private_layout/TransactionsAdminSection";
 
-type Section =
-  | "dashboard"
-  | "responsables"
-  | "abonnements"
-  | "catalogue"
-  | "archive"
-  | "profile";
+type Section = "dashboard" | "transactions" | "responsables" | "abonnements" | "catalogue" | "archive" | "profile";
 
 interface Props {
   section?: Section;
@@ -25,6 +20,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
   if (section === "abonnements") return <AbonnementsAdminSection />;
   if (section === "catalogue") return <CatalogueAdminSection />;
   if (section === "archive") return <ArchiveAdminSection />;
+  if (section === "transactions") return <TransactionsAdminSection />;
 
   return (
     <div className="p-6 lg:p-8">

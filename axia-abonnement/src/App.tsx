@@ -40,10 +40,7 @@ function App() {
           path="subscriptions"
           element={<ClientDashboard section="subscriptions" />}
         />
-        <Route
-          path="history"
-          element={<ClientDashboard section="dashboard" />}
-        />
+        <Route path="history" element={<ClientDashboard section="history" />} />
         <Route path="chat" element={<ClientDashboard section="dashboard" />} />
         <Route path="profile" element={<ClientDashboard section="profile" />} />
       </Route>
@@ -82,6 +79,10 @@ function App() {
           path="suivi-clients"
           element={<ResponsableDashboard section="suivi-clients" />}
         />
+        <Route
+          path="transactions"
+          element={<ResponsableDashboard section="transactions" />}
+        />
       </Route>
 
       {/* Dashboard Admin */}
@@ -108,6 +109,10 @@ function App() {
         />
         <Route path="archive" element={<AdminDashboard section="archive" />} />
         <Route path="profile" element={<AdminDashboard section="profile" />} />
+        <Route
+          path="transactions"
+          element={<AdminDashboard section="transactions" />}
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

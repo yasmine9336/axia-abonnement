@@ -3,6 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import ProfileSection from "../../components/private_layout/ProfileSection";
 import PaymentSection from "../../components/private_layout/PaymentSection";
 import SubscriptionsSection from "../../components/private_layout/MesAbonnementsSection";
+import HistoriqueSection from "../../components/private_layout/HistoriqueSection";
+
 
 type Section = "dashboard" | "payment" | "subscriptions" | "history" | "chat" | "profile";
 
@@ -17,6 +19,7 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
   if (section === "profile") return <ProfileSection />;
   if (section === "payment") return <PaymentSection />;
   if (section === "subscriptions") return <SubscriptionsSection />;
+  if (section === "history") return <HistoriqueSection />;
 
   return (
     <div className="p-6 lg:p-8">

@@ -8,14 +8,9 @@ namespace AxiaAbonnement.Controllers;
 [ApiController]
 [Route("api/notifications")]
 [Authorize]
-public class NotificationController : ControllerBase
+public class NotificationController(INotificationService notifService) : ControllerBase
 {
-    private readonly INotificationService _notifService;
-
-    public NotificationController(INotificationService notifService)
-    {
-        _notifService = notifService;
-    }
+    private readonly INotificationService _notifService = notifService;
 
     [HttpGet]
     public async Task<IActionResult> GetUnread()
@@ -34,8 +29,8 @@ public class NotificationController : ControllerBase
     [HttpPatch("{id}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
-        await _notifService.MarkAsReadAsync(id);
-        return NoContent();
+        var success = await _notifService.MarkAsReadAsync(id);
+        return success ? NoContent() : NotFound();
     }
 
     [HttpPatch("read-all")]

@@ -25,14 +25,19 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
         await _ctx.SaveChangesAsync();
 
         // Envoyer en temps réel si l'utilisateur est connecté
-        await _hub.Clients.Group(userId.ToString())
-            .SendAsync("ReceiveNotification", new
-            {
-                id = notif.Id,
-                message = notif.Message,
-                type = notif.Type,
-                createdAt = notif.CreatedAt
-            });
+        try
+        {
+            await _hub.Clients.Group(userId.ToString())
+                .SendAsync("ReceiveNotification", new
+                {
+                    id = notif.Id,
+                    message = notif.Message,
+                    type = notif.Type,
+                    createdAt = notif.CreatedAt
+                });
+        }
+        catch { }
+
     }
 
     public async Task<List<Notification>> GetUnreadAsync(Guid userId)
@@ -43,15 +48,15 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
             .ToListAsync();
     }
 
-    public async Task MarkAsReadAsync(Guid notificationId)
+    public async Task<bool> MarkAsReadAsync(Guid notificationId)
     {
         var notif = await _ctx.Notifications.FindAsync(notificationId);
-        if (notif != null)
-        {
-            notif.IsRead = true;
-            await _ctx.SaveChangesAsync();
-        }
+        if (notif == null) return false;
+        notif.IsRead = true;
+        await _ctx.SaveChangesAsync();
+        return true;
     }
+
 
     public async Task MarkAllAsReadAsync(Guid userId)
     {

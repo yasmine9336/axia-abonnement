@@ -15,7 +15,7 @@ namespace AxiaAbonnement.Data
         public DbSet<Paiement> Paiements { get; set; }
         public DbSet<DemandeRenouvellement> DemandesRenouvellement { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
