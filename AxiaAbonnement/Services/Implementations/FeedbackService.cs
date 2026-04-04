@@ -9,10 +9,12 @@ namespace AxiaAbonnement.Services.Implementations
     public class FeedbackService : IFeedbackService
     {
         private readonly AppDbContext _db;
+        private readonly INotificationService _notifService;
 
-        public FeedbackService(AppDbContext db)
+        public FeedbackService(AppDbContext db, INotificationService notifService)
         {
             _db = db;
+            _notifService = notifService;
         }
 
         public async Task<(bool Ok, string? Error)> AddFeedbackAsync(Guid clientId, CreateFeedbackDto dto)
@@ -48,6 +50,20 @@ namespace AxiaAbonnement.Services.Implementations
             _db.Feedbacks.Add(feedback);
             await _db.SaveChangesAsync();
 
+            var client = await _db.Users.FindAsync(clientId);
+            var responsables = await _db.Users
+                .Where(u => u.Role == "Responsable" && u.IsActive)
+                .ToListAsync();
+
+            foreach (var resp in responsables)
+            {
+                await _notifService.SendAsync(
+                    resp.Id,
+                    $"Nouveau feedback de {client?.Username ?? "un client"} — Note : {dto.Note}/5.",
+                    "info"
+                );
+            }
+
             return (true, null);
         }
 
@@ -57,6 +73,8 @@ namespace AxiaAbonnement.Services.Implementations
                 .Include(f => f.Client)
                 .Include(f => f.Abonnement)
                 .ThenInclude(a => a.Offre)
+                .Include(f => f.Abonnement)
+                .ThenInclude(a => a.Service)
                 .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new FeedbackDto
                 {
@@ -65,7 +83,9 @@ namespace AxiaAbonnement.Services.Implementations
                     ClientUsername = f.Client.Username,
                     ClientEmail = f.Client.Email,
                     AbonnementId = f.AbonnementId,
-                    OffreIntitule = f.Abonnement.Offre.IntituleOffre,
+                    OffreIntitule = f.Abonnement.Offre != null ? f.Abonnement.Offre.IntituleOffre
+                    : f.Abonnement.Service != null ? f.Abonnement.Service.IntituleService
+                    : "",
                     Message = f.Message,
                     Note = f.Note,
                     CreatedAt = f.CreatedAt

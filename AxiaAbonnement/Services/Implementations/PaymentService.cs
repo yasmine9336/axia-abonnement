@@ -4,7 +4,7 @@ using AxiaAbonnement.Models.Entities;
 using AxiaAbonnement.Services.Interfaces;
 using Stripe;
 using Stripe.Checkout;
-using System.Diagnostics.Eventing.Reader;
+using Microsoft.EntityFrameworkCore;
 
 namespace AxiaAbonnement.Services.Implementations
 {
@@ -14,12 +14,14 @@ namespace AxiaAbonnement.Services.Implementations
         private readonly IConfiguration _config;
         private readonly IEmailSender _emailSender;
         private readonly StripeClient _stripeClient;
+        private readonly INotificationService _notifService;
 
-        public PaymentService(AppDbContext ctx, IConfiguration config, IEmailSender emailSender)
+        public PaymentService(AppDbContext ctx, IConfiguration config, IEmailSender emailSender, INotificationService notifService)
         {
             _ctx = ctx;
             _config = config;
             _emailSender = emailSender;
+            _notifService = notifService;
             _stripeClient = new StripeClient(_config["Stripe:SecretKey"]);
         }
 
@@ -180,6 +182,26 @@ namespace AxiaAbonnement.Services.Implementations
                     <p>Valable jusqu'au : {dateFin:dd/MM/yyyy}</p>
                     <p>Merci de votre confiance !</p>"
                 );
+
+                await _notifService.SendAsync(
+                user.Id,
+                $"Votre abonnement \"{productName}\" est maintenant actif.",
+                "success"
+                );
+
+                // Notifier tous les responsables
+                var responsables = await _ctx.Users
+                    .Where(u => u.Role == "Responsable" && u.IsActive)
+                    .ToListAsync();
+
+                foreach (var resp in responsables)
+                {
+                    await _notifService.SendAsync(
+                        resp.Id,
+                        $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\" ({montant} TND - {type}).",
+                        "info"
+                    );
+                }
             }
         }
     }

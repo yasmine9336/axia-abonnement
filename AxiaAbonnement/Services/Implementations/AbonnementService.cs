@@ -1,5 +1,6 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Abonnements;
+using AxiaAbonnement.Models.Entities;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,16 +9,19 @@ namespace AxiaAbonnement.Services.Implementations
     public class AbonnementService : IAbonnementService
     {
         private readonly AppDbContext _db;
+        private readonly INotificationService _notifService;
 
-        public AbonnementService(AppDbContext db)
+        public AbonnementService(AppDbContext db, INotificationService notifService)
         {
             _db = db;
+            _notifService = notifService;
         }
 
         public async Task<List<AbonnementDto>> GetMyAbonnementsAsync(Guid userId)
         {
             var abonnements = await _db.Abonnements
                 .Include(a => a.Offre)
+                .Include(a => a.Service)
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
@@ -25,8 +29,8 @@ namespace AxiaAbonnement.Services.Implementations
             return abonnements.Select(a => new AbonnementDto
             {
                 Id = a.Id,
-                IntituleOffre = a.Offre.IntituleOffre,
-                Description = a.Offre.Description,
+                IntituleOffre = a.Offre?.IntituleOffre ?? a.Service?.IntituleService ?? "",
+                Description = a.Offre?.Description ?? a.Service?.Description ?? "",
                 Type = a.Type,
                 Montant = a.Montant,
                 DateDebut = a.DateDebut,
@@ -58,13 +62,15 @@ namespace AxiaAbonnement.Services.Implementations
 
             var abonnementsRecents = await _db.Abonnements
                 .Include(a => a.Offre)
+                .Include(a => a.Service)
                 .Include(a => a.User)
+
                 .OrderByDescending(a => a.CreatedAt)
                 .Take(5)
                 .Select(a => new AbonnementDto
                 {
                     Id = a.Id,
-                    IntituleOffre = a.Offre.IntituleOffre,
+                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre : a.Service != null ? a.Service.IntituleService : "",
                     Type = a.Type,
                     Montant = a.Montant,
                     DateDebut = a.DateDebut,
@@ -91,13 +97,14 @@ namespace AxiaAbonnement.Services.Implementations
             var now = DateTime.UtcNow;
             return await _db.Abonnements
                 .Include(a => a.Offre)
+                .Include(a => a.Service)
                 .Include(a => a.User)
                 .OrderByDescending(a => a.CreatedAt)
                 .Select(a => new AbonnementDto
                 {
                     Id = a.Id,
-                    IntituleOffre = a.Offre.IntituleOffre,
-                    Description = a.Offre.Description,
+                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre : a.Service != null ? a.Service.IntituleService : "",
+                    Description = a.Offre != null ? a.Offre.Description : a.Service != null ? a.Service.Description : "",
                     Type = a.Type,
                     Montant = a.Montant,
                     DateDebut = a.DateDebut,
@@ -107,6 +114,7 @@ namespace AxiaAbonnement.Services.Implementations
                     ClientUsername = a.User.Username,
                     ClientEmail = a.User.Email
                 })
+
                 .ToListAsync();
         }
 
@@ -116,7 +124,15 @@ namespace AxiaAbonnement.Services.Implementations
             if (a == null || !a.IsActive) return false;
             a.IsActive = false;
             await _db.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                a.UserId,
+                "Votre abonnement a été désactivé.",
+                "warning"
+                );
+
             return true;
+
         }
 
         public async Task<bool> ActiverAsync(Guid abonnementId)
@@ -125,7 +141,15 @@ namespace AxiaAbonnement.Services.Implementations
             if (a == null || a.IsActive) return false;
             a.IsActive = true;
             await _db.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                a.UserId,
+                $"Votre abonnement a été activé.",
+                "success"
+                );
+
             return true;
+
         }
     }
 }

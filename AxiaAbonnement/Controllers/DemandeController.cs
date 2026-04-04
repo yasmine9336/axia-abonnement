@@ -36,7 +36,7 @@ namespace AxiaAbonnement.Controllers
 
         // Responsable — voir toutes les demandes
         [HttpGet]
-        [Authorize(Policy = "ResponsableOnly")]
+        [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetDemandes()
         {
             var demandes = await _demandeService.GetDemandesAsync();

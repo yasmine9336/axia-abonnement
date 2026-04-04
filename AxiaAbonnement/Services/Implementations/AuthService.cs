@@ -17,8 +17,10 @@ namespace AxiaAbonnement.Services.Implementations
         private readonly AppDbContext _ctx;
         private readonly IConfiguration _cfg;
         private readonly IEmailSender _emailSender;
-        public AuthService(AppDbContext ctx, IConfiguration cfg, IEmailSender emailSender)
-        { _ctx = ctx; _cfg = cfg; _emailSender = emailSender; }
+        private readonly INotificationService _notifService;
+
+        public AuthService(AppDbContext ctx, IConfiguration cfg, IEmailSender emailSender, INotificationService notifService)
+        { _ctx = ctx; _cfg = cfg; _emailSender = emailSender; _notifService = notifService; }
 
         //inscription
         public async Task<User?> RegisterAsync(RegisterDto dto)
@@ -34,7 +36,29 @@ namespace AxiaAbonnement.Services.Implementations
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.Password);
             _ctx.Users.Add(user);
             await _ctx.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                user.Id,
+                $"Bienvenue {user.Username} ! Votre compte a été créé avec succès. Explorez nos services et offres dès maintenant.",
+                "success"
+            );
+
+            // Notifier tous les responsables
+            var responsables = await _ctx.Users
+                .Where(u => u.Role == "Responsable" && u.IsActive)
+                .ToListAsync();
+
+            foreach (var resp in responsables)
+            {
+                await _notifService.SendAsync(
+                    resp.Id,
+                    $"Nouveau client inscrit : {user.Username} ({user.Email}).",
+                    "info"
+                );
+            }
+
             return user;
+
         }
 
         //connexion

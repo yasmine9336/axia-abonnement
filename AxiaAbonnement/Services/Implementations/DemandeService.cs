@@ -9,7 +9,13 @@ namespace AxiaAbonnement.Services.Implementations
     public class DemandeService : IDemandeService
     {
         private readonly AppDbContext _db;
-        public DemandeService(AppDbContext db) => _db = db;
+        private readonly INotificationService _notifService;
+
+        public DemandeService(AppDbContext db, INotificationService notifService)
+        {
+            _db = db;
+            _notifService = notifService;
+        }
 
         public async Task<bool> DemanderRenouvellementAsync(Guid abonnementId, Guid clientId)
         {
@@ -29,6 +35,21 @@ namespace AxiaAbonnement.Services.Implementations
                 Statut = "en_attente"
             });
             await _db.SaveChangesAsync();
+
+            // Notifier tous les responsables
+            var responsables = await _db.Users
+                .Where(u => u.Role == "Responsable" && u.IsActive)
+                .ToListAsync();
+
+            foreach (var resp in responsables)
+            {
+                await _notifService.SendAsync(
+                    resp.Id,
+                    $"Nouvelle demande de renouvellement d'abonnement en attente.",
+                    "info"
+                );
+            }
+
             return true;
         }
 
@@ -36,6 +57,7 @@ namespace AxiaAbonnement.Services.Implementations
         {
             return await _db.DemandesRenouvellement
                 .Include(d => d.Abonnement).ThenInclude(a => a.Offre)
+                .Include(d => d.Abonnement).ThenInclude(a => a.Service)
                 .Include(d => d.Client)
                 .OrderByDescending(d => d.CreatedAt)
                 .Select(d => new DemandeDto
@@ -44,7 +66,7 @@ namespace AxiaAbonnement.Services.Implementations
                     AbonnementId = d.AbonnementId,
                     ClientUsername = d.Client.Username,
                     ClientEmail = d.Client.Email,
-                    IntituleOffre = d.Abonnement.Offre.IntituleOffre,
+                    IntituleOffre = d.Abonnement.Offre != null ? d.Abonnement.Offre.IntituleOffre : d.Abonnement.Service != null ? d.Abonnement.Service.IntituleService : "",
                     Type = d.Abonnement.Type,
                     Montant = d.Abonnement.Montant,
                     Statut = d.Statut,
@@ -70,6 +92,13 @@ namespace AxiaAbonnement.Services.Implementations
                 : DateTime.UtcNow.AddMonths(1);
 
             await _db.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                demande.Abonnement.UserId,
+                "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.",
+                "success"
+            );
+
             return true;
         }
 
@@ -83,6 +112,13 @@ namespace AxiaAbonnement.Services.Implementations
             demande.TraiteeAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                demande.ClientId,
+                "Votre demande de renouvellement a été refusée.",
+                "warning"
+            );
+
             return true;
         }
 

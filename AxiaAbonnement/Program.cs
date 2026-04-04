@@ -8,11 +8,15 @@ using System.Text;
 using System.Security.Claims;
 using AxiaAbonnement.Services.Implementations;
 using AxiaAbonnement.Services.Interfaces;
+using AxiaAbonnement.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Contrôleurs API (JSON uniquement)
 builder.Services.AddControllers();
+
+builder.Services.AddSignalR();
+
 
 // 2. OpenAPI + Scalar (remplace Swashbuckle/Swagger sous .NET 10)
 builder.Services.AddOpenApi();
@@ -22,7 +26,7 @@ var allowedOrigins = builder.Configuration
     .GetSection("AllowedOrigins").Get<string[]>()!;
 builder.Services.AddCors(options => {
     options.AddPolicy("ReactPolicy", policy => {
-        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
@@ -51,6 +55,8 @@ builder.Services.AddScoped<IAbonnementService, AbonnementService>();
 builder.Services.AddScoped<IDemandeService, DemandeService>();
 
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 var emailConfig = builder.Configuration
     .GetSection("EmailConfiguration")
@@ -81,15 +87,27 @@ builder.Services
 
                 var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userId != null) 
+                if (userId != null)
                 {
                     var user = await dbContext.Users.FindAsync(Guid.Parse(userId));
 
-                    if (user == null || !user.IsActive) 
+                    if (user == null || !user.IsActive)
                     {
                         context.Fail("Compte désactivé");
                     }
                 }
+            },
+
+            OnMessageReceived = context =>
+            {
+                // SignalR envoie le token via la query string
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
             }
         };
     });
@@ -133,4 +151,5 @@ app.UseAuthentication();       // ← Lire et valider le JWT
 app.UseAuthorization();        // ← Appliquer les [Authorize]
 app.UseStaticFiles();
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.Run();
