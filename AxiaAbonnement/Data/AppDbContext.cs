@@ -44,6 +44,10 @@ namespace AxiaAbonnement.Data
             {
                 entity.Property(o => o.ParMois).HasPrecision(18, 2);
                 entity.Property(s => s.ParAnnee).HasPrecision(18, 2);
+                entity.HasOne(s => s.Responsable)
+                .WithMany()
+                .HasForeignKey(s => s.ResponsableId)
+                .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Abonnement>(entity =>
@@ -71,7 +75,13 @@ namespace AxiaAbonnement.Data
             {
                 entity.HasOne(p => p.Abonnement)
                     .WithMany()
-                    .HasForeignKey(p => p.AbonnementId);
+                    .HasForeignKey(p => p.AbonnementId)
+                    .IsRequired(false); // paiement responsable sans abonnement
+
+                entity.HasOne(p => p.User)
+                    .WithMany()
+                    .HasForeignKey(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.Property(p => p.Montant).HasPrecision(18, 2);
             });

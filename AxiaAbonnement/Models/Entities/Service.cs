@@ -13,6 +13,8 @@
         public DateTime? CbModification { get; set; }
         public string? CbModificateur { get; set; }
         public ICollection<ServiceOffre> ServiceOffres { get; set; } = new List<ServiceOffre>();
+        public Guid? ResponsableId { get; set; }
+        public User? Responsable { get; set; }
     }
 
 }

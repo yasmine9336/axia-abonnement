@@ -14,6 +14,7 @@ namespace AxiaAbonnement.Services.Implementations
         {
             _ctx = ctx;
         }
+
         private static ServiceResponsableDto MapToDto(Service s) => new()
         {
             Id = s.Id,
@@ -21,20 +22,26 @@ namespace AxiaAbonnement.Services.Implementations
             Description = s.Description,
             ParMois = s.ParMois,
             ParAnnee = s.ParAnnee,
-            NbOffres = s.ServiceOffres.Count,
+            NbOffres = s.ServiceOffres?.Count ?? 0,
             NbAbonnes = 0,
             IsActive = s.IsActive,
             CreatedAt = s.CreatedAt,
             CreePar = s.CreePar,
             CbModification = s.CbModification,
             CbModificateur = s.CbModificateur
-            
         };
 
-        public async Task<List<ServiceResponsableDto>> GetAllServicesAsync()
+        // IMPORTANT: adapter aussi l'interface IServiceManager
+        public async Task<List<ServiceResponsableDto>> GetAllServicesAsync(Guid currentUserId, string role)
         {
-            return await _ctx.Services
+            var query = _ctx.Services
                 .Include(s => s.ServiceOffres)
+                .AsQueryable();
+
+            if (role == "Responsable")
+                query = query.Where(s => s.ResponsableId == currentUserId);
+
+            return await query
                 .Select(s => new ServiceResponsableDto
                 {
                     Id = s.Id,
@@ -53,15 +60,19 @@ namespace AxiaAbonnement.Services.Implementations
                 .ToListAsync();
         }
 
-
         public async Task<ServiceResponsableDto?> GetServiceByIdAsync(Guid id)
         {
-            var s = await _ctx.Services.FindAsync(id);
-            return s == null ? null : MapToDto(s);
+            var service = await _ctx.Services
+                .Include(s => s.ServiceOffres)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            return service == null ? null : MapToDto(service);
         }
+
         public async Task<ServiceResponsableDto> CreateServiceAsync(Guid responsableId, CreateServiceDto dto)
         {
             var responsable = await _ctx.Users.FindAsync(responsableId);
+
             var service = new Service
             {
                 Id = Guid.NewGuid(),
@@ -71,9 +82,12 @@ namespace AxiaAbonnement.Services.Implementations
                 ParAnnee = dto.ParAnnee,
                 CreatedAt = DateTime.UtcNow,
                 CreePar = responsable?.Username ?? "",
+                ResponsableId = responsableId
             };
+
             _ctx.Services.Add(service);
             await _ctx.SaveChangesAsync();
+
             return MapToDto(service);
         }
 
@@ -81,20 +95,28 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var service = await _ctx.Services.FindAsync(id);
             if (service == null) return false;
-            
-            var responsable = await _ctx.Users.FindAsync(responsableId);
+
+            var user = await _ctx.Users.FindAsync(responsableId);
+            if (user == null) return false;
+
+            // Cloisonnement
+            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+                return false;
 
             if (!string.IsNullOrWhiteSpace(dto.IntituleService))
                 service.IntituleService = dto.IntituleService;
+
             if (!string.IsNullOrWhiteSpace(dto.Description))
                 service.Description = dto.Description;
+
             if (dto.ParMois.HasValue)
                 service.ParMois = dto.ParMois.Value;
+
             if (dto.ParAnnee.HasValue)
                 service.ParAnnee = dto.ParAnnee.Value;
 
             service.CbModification = DateTime.UtcNow;
-            service.CbModificateur = responsable?.Username ?? "";
+            service.CbModificateur = user.Username;
 
             await _ctx.SaveChangesAsync();
             return true;
@@ -104,6 +126,14 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var service = await _ctx.Services.FindAsync(id);
             if (service == null) return false;
+
+            var user = await _ctx.Users.FindAsync(responsableId);
+            if (user == null) return false;
+
+            // Cloisonnement
+            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+                return false;
+
             _ctx.Services.Remove(service);
             await _ctx.SaveChangesAsync();
             return true;
@@ -112,15 +142,24 @@ namespace AxiaAbonnement.Services.Implementations
         public async Task<bool?> ToggleServiceAsync(Guid id, Guid responsableId)
         {
             var service = await _ctx.Services.FindAsync(id);
-            if (service == null) return false;
+            if (service == null) return null;
+
+            var user = await _ctx.Users.FindAsync(responsableId);
+            if (user == null) return null;
+
+            // Cloisonnement
+            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+                return null;
+
             service.IsActive = !service.IsActive;
             service.CbModification = DateTime.UtcNow;
-            var responsable = await _ctx.Users.FindAsync(responsableId);
-            service.CbModificateur = responsable?.Username ?? "";
+            service.CbModificateur = user.Username;
+
             await _ctx.SaveChangesAsync();
             return service.IsActive;
         }
 
+        // Public client => tout actif
         public async Task<List<PublicServiceDto>> GetPublicServicesAsync()
         {
             return await _ctx.Services
