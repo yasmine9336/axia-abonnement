@@ -326,6 +326,7 @@ const adminNav: NavItem[] = [
       </svg>
     ),
   },
+
   {
     label: "Abonnements",
     path: "/dashboard/admin/abonnements",

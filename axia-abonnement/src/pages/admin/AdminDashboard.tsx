@@ -16,7 +16,8 @@ type Section =
   | "abonnements"
   | "catalogue"
   | "archive"
-  | "profile";
+  | "profile"
+  | "demandes-responsables";
 
 interface Props {
   section?: Section;
@@ -135,14 +136,20 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {loading
           ? [1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse"
+              >
                 <div className="w-24 h-4 bg-gray-200 rounded mb-3" />
                 <div className="w-16 h-8 bg-gray-200 rounded mb-2" />
                 <div className="w-20 h-3 bg-gray-200 rounded" />
               </div>
             ))
           : statCards.map((stat) => (
-              <div key={stat.label} className="bg-white rounded-2xl border border-gray-200 p-5">
+              <div
+                key={stat.label}
+                className="bg-white rounded-2xl border border-gray-200 p-5"
+              >
                 <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className={`text-xs mt-1 ${stat.color}`}>{stat.sub}</p>
@@ -151,11 +158,16 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Clients récents</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          Clients récents
+        </h2>
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="h-10 bg-gray-100 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         ) : (
@@ -163,20 +175,31 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Client</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Email</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Statut</th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Client
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Email
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Statut
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {clients.slice(0, 5).map((c) => (
-                  <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr
+                    key={c.id}
+                    className="border-b border-gray-50 hover:bg-gray-50"
+                  >
                     <td className="py-3 px-2">{c.username}</td>
                     <td className="py-3 px-2 text-gray-500">{c.email}</td>
                     <td className="py-3 px-2">
                       <span
                         className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                          c.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
                         }`}
                       >
                         {c.isActive ? "Actif" : "Inactif"}
@@ -191,11 +214,16 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mt-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Abonnements récents</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          Abonnements récents
+        </h2>
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="h-10 bg-gray-100 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         ) : (
@@ -203,31 +231,52 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Client</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Offre / Service</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Type</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Montant</th>
-                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">Statut</th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Client
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Offre / Service
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Type
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Montant
+                  </th>
+                  <th className="text-left py-3 px-2 text-xs text-gray-500 font-medium">
+                    Statut
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {stats.abonnementsRecents.map((a) => (
-                  <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <tr
+                    key={a.id}
+                    className="border-b border-gray-50 hover:bg-gray-50"
+                  >
                     <td className="py-3 px-2">
-                      <p className="font-medium text-gray-900">{a.clientUsername}</p>
+                      <p className="font-medium text-gray-900">
+                        {a.clientUsername}
+                      </p>
                       <p className="text-xs text-gray-400">{a.clientEmail}</p>
                     </td>
-                    <td className="py-3 px-2 text-gray-600">{a.intituleOffre}</td>
-                    <td className="py-3 px-2 capitalize text-gray-600">{a.type}</td>
-                    <td className="py-3 px-2 font-medium text-gray-900">{a.montant} TND</td>
+                    <td className="py-3 px-2 text-gray-600">
+                      {a.intituleOffre}
+                    </td>
+                    <td className="py-3 px-2 capitalize text-gray-600">
+                      {a.type}
+                    </td>
+                    <td className="py-3 px-2 font-medium text-gray-900">
+                      {a.montant} TND
+                    </td>
                     <td className="py-3 px-2">
                       <span
                         className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
                           a.statut === "actif"
                             ? "bg-green-100 text-green-700"
                             : a.statut === "expiré"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-gray-100 text-gray-600"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {a.statut}

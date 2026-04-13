@@ -8,11 +8,36 @@ interface User {
   role: string;
 }
 
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  role: 'Client' | 'Responsable';
+  phoneNumber?: string;
+  nomEntreprise?: string;
+  matriculeFiscal?: string;
+  secteurActivite?: string;
+  adresseProfessionnelle?: string;
+}
+
+export interface RegisterResult {
+  role: string;
+  statut?: string;
+  message?: string;
+}
+
+export type LoginOutcome =
+  | { kind: 'success'; role: string }
+  | { kind: 'pending'; message: string }
+  | { kind: 'payment_required'; message: string; userId: string }
+  | { kind: 'rejected'; message: string }
+  | { kind: 'invalid'; message: string };
+
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, remember: boolean) => Promise<string>;
+  login: (email: string, password: string, remember: boolean) => Promise<LoginOutcome>;
   logout: () => void;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<RegisterResult>;
   loading: boolean;
 }
 
@@ -29,40 +54,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading] = useState(false);
 
-  // Ce useEffect n'est plus nécessaire pour l'initialisation initiale de user
-  // puisqu'on le fait directement dans le useState.
+  const login = async (email: string, password: string, remember: boolean): Promise<LoginOutcome> => {
+    try {
+      const response = await axiosInstance.post('/auth/login', { email, password, rememberMe: remember });
+      const { accessToken, refreshToken, role } = response.data;
 
+      if (remember) {
+        localStorage.setItem('accessToken', accessToken);
+        if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        sessionStorage.setItem('accessToken', accessToken);
+        if (refreshToken) sessionStorage.setItem('refreshToken', refreshToken);
+        localStorage.removeItem('rememberMe');
+      }
 
-  const login = async (email: string, password: string, remember: boolean): Promise<string> => {
-    const response = await axiosInstance.post('/auth/login', { email, password, rememberMe: remember });
-    const { accessToken, refreshToken, role } = response.data;
+      const meResponse = await axiosInstance.get('/auth/me');
+      const userData: User = { ...meResponse.data, role };
 
-    // ✅ accessToken aussi dans le bon storage
-    if (remember) {
-      localStorage.setItem('accessToken', accessToken);
-      if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('rememberMe', 'true');
-    } else {
-      sessionStorage.setItem('accessToken', accessToken);
-      if (refreshToken) sessionStorage.setItem('refreshToken', refreshToken);
-      localStorage.removeItem('rememberMe');
+      if (remember) localStorage.setItem('user', JSON.stringify(userData));
+      else sessionStorage.setItem('user', JSON.stringify(userData));
+
+      setUser(userData);
+      return { kind: 'success', role };
+    } catch (err) {
+      const error = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; code?: string; userId?: string };
+        };
+      };
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const message = data?.message || 'Email ou mot de passe incorrect';
+
+      if (status === 403 && data?.code) {
+        switch (data.code) {
+          case 'PENDING': return { kind: 'pending', message };
+          case 'PAYMENT_REQUIRED':
+            return { kind: 'payment_required', message, userId: data.userId ?? '' };
+          case 'REJECTED': return { kind: 'rejected', message };
+          default: return { kind: 'invalid', message };
+        }
+      }
+      return { kind: 'invalid', message };
     }
-
-    const meResponse = await axiosInstance.get('/auth/me');
-    const userData: User = { ...meResponse.data, role };
-
-    if (remember) {
-      localStorage.setItem('user', JSON.stringify(userData));
-    } else {
-      sessionStorage.setItem('user', JSON.stringify(userData));
-    }
-
-    setUser(userData);
-    return role;
   };
 
-  const register = async (username: string, email: string, password: string): Promise<void> => {
-    await axiosInstance.post('/auth/register', { username, email, password });
+  const register = async (data: RegisterData): Promise<RegisterResult> => {
+    const response = await axiosInstance.post('/auth/register', data);
+    return {
+      role: response.data?.role ?? data.role,
+      statut: response.data?.statut,
+      message: response.data?.message,
+    };
   };
 
   const logout = () => {

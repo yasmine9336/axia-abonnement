@@ -11,6 +11,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ResponsableDashboard from "./pages/responsable/ResponsableDashboard";
 import PaymentSuccess from "./pages/client/PaymentSuccess";
 import PaymentCancel from "./pages/client/PaymentCancel";
+import DemandeEnCours from "./pages/auth/DemandeEnCours";
+import ResponsableAccountPayment from "./pages/auth/ResponsableAccountPayment";
 
 function App() {
   return (
@@ -21,6 +23,12 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+
+      <Route path="/register/demande-en-cours" element={<DemandeEnCours />} />
+      <Route
+        path="/payment/responsable-account"
+        element={<ResponsableAccountPayment />}
+      />
 
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />

@@ -25,7 +25,9 @@ namespace AxiaAbonnement.Controllers
         [Authorize]
         public async Task<ActionResult> GetAll()
         {
-            var services = await _serviceManager.GetAllServicesAsync();
+            var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            var services = await _serviceManager.GetAllServicesAsync(currentUserId, role);
             return Ok(services);
         }
 
