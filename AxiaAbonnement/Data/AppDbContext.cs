@@ -96,6 +96,12 @@ namespace AxiaAbonnement.Data
                     .HasForeignKey(f => f.AbonnementId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Statut)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
         }
     }
 }

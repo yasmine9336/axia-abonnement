@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search } from "lucide-react";
+import ExportButton from "./../common/ExportButton";
+import { formatDateFR } from "../../utils/exportUtils";
 
 interface Paiement {
   id: string;
@@ -45,7 +47,7 @@ export default function TransactionsAdminSection() {
     (p) =>
       p.clientUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.intituleOffre.toLowerCase().includes(searchTerm.toLowerCase())
+      p.intituleOffre.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -55,6 +57,25 @@ export default function TransactionsAdminSection() {
         <p className="text-gray-500 text-sm mt-1">
           {paiements.length} transaction(s)
         </p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={filtered}
+          columns={[
+            { key: "createdAt", label: "Date", format: (v) => formatDateFR(v) },
+            { key: "clientUsername", label: "Client" },
+            { key: "clientEmail", label: "Email" },
+            { key: "intituleOffre", label: "Offre / Service" },
+            { key: "typeAbonnement", label: "Type" },
+            { key: "montant", label: "Montant (TND)" },
+            { key: "statut", label: "Statut" },
+          ]}
+          filename="transactions"
+          label="Exporter transactions"
+          sheetName="Transactions"
+          pdfTitle="Historique des transactions"
+        />
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">

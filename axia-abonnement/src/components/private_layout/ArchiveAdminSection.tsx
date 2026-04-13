@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search } from "lucide-react";
+import ExportButton from "./../common/ExportButton";
 
 interface Client {
   id: string;
@@ -25,7 +26,7 @@ export default function ArchiveAdminSection() {
   const filtered = clients.filter(
     (c) =>
       c.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase())
+      c.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const actifs = filtered.filter((c) => c.isActive);
@@ -36,13 +37,38 @@ export default function ArchiveAdminSection() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Archive clients</h1>
         <p className="text-gray-500 text-sm mt-1">
-          {clients.filter(c => c.isActive).length} actif(s) · {clients.filter(c => !c.isActive).length} inactif(s) · {clients.length} total
+          {clients.filter((c) => c.isActive).length} actif(s) ·{" "}
+          {clients.filter((c) => !c.isActive).length} inactif(s) ·{" "}
+          {clients.length} total
         </p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={filtered}
+          columns={[
+            { key: "username", label: "Nom d'utilisateur" },
+            { key: "email", label: "Email" },
+            { key: "phoneNumber", label: "Téléphone" },
+            {
+              key: "isActive",
+              label: "Statut",
+              format: (v) => (v ? "Actif" : "Inactif"),
+            },
+          ]}
+          filename="clients"
+          label="Exporter clients"
+          sheetName="Clients"
+          pdfTitle="Liste des clients"
+        />
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Rechercher par nom ou email..."
@@ -62,10 +88,15 @@ export default function ArchiveAdminSection() {
           {/* actifs */}
           {actifs.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">Clients actifs</h2>
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">
+                Clients actifs
+              </h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {actifs.map((c) => (
-                  <div key={c.id} className="bg-white rounded-2xl border border-gray-200 p-5">
+                  <div
+                    key={c.id}
+                    className="bg-white rounded-2xl border border-gray-200 p-5"
+                  >
                     <p className="font-semibold text-gray-900">{c.username}</p>
                     <p className="text-xs text-gray-400">{c.email}</p>
                   </div>
@@ -77,10 +108,15 @@ export default function ArchiveAdminSection() {
           {/* inactifs */}
           {inactifs.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">Clients inactifs</h2>
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">
+                Clients inactifs
+              </h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {inactifs.map((c) => (
-                  <div key={c.id} className="bg-white rounded-2xl border border-gray-200 p-5 opacity-60">
+                  <div
+                    key={c.id}
+                    className="bg-white rounded-2xl border border-gray-200 p-5 opacity-60"
+                  >
                     <p className="font-semibold text-gray-900">{c.username}</p>
                     <p className="text-xs text-gray-400">{c.email}</p>
                   </div>

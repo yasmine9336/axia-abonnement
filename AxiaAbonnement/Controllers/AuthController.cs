@@ -20,10 +20,23 @@ namespace AxiaAbonnement.Controllers
 
             var user = await _auth.RegisterAsync(dto);
             if (user is null)
-                return BadRequest("cet email est déjà utilisé.");
+                return BadRequest(new { Message = "Cet email est déjà utilisé ou les informations professionnelles sont incomplètes." });
+
+            if (user.Role == "Responsable")
+            {
+                return Ok(new
+                {
+                    Message = "Votre demande a été envoyée. Vous recevrez un email une fois qu'elle sera traitée par l'administrateur.",
+                    user.Id,
+                    user.Username,
+                    user.Role,
+                    Statut = user.Statut.ToString()
+                });
+            }
 
             return Created("", new { user.Id, user.Username, user.Role });
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -31,10 +44,24 @@ namespace AxiaAbonnement.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var result = await _auth.LoginAsync(dto);
-            if (result is null)
-                return Unauthorized(new { Message = "Email ou mot de passe incorrect." });
-            return Ok(result);
+
+            // Succès → token
+            if (result.Token != null)
+                return Ok(result.Token);
+
+            // Erreur : identifiants incorrects
+            if (result.ErrorCode == "INVALID")
+                return Unauthorized(new { Message = result.Message });
+
+            // Erreurs bloquantes (Pending / Accepted / Rejected)
+            return StatusCode(403, new
+            {
+                Code = result.ErrorCode,
+                Message = result.Message,
+                UserId = result.UserId
+            });
         }
+
 
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)

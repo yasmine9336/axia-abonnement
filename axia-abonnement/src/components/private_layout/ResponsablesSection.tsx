@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
+import ExportButton from "../common/ExportButton";
+
 import {
   Plus,
   Edit2,
@@ -186,6 +188,25 @@ export default function ResponsablesSection() {
           {error}
         </div>
       )}
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={responsables}
+          columns={[
+            { key: "username", label: "Nom d'utilisateur" },
+            { key: "email", label: "Email" },
+            { key: "phoneNumber", label: "Téléphone" },
+            {
+              key: "isActive",
+              label: "Statut",
+              format: (v: unknown) => (v ? "Actif" : "Inactif"),
+            },
+          ]}
+          filename="responsables"
+          label="Exporter responsables"
+          sheetName="Responsables"
+          pdfTitle="Liste des responsables"
+        />
+      </div>
 
       {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">

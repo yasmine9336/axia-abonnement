@@ -38,6 +38,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 5. Injection de dépendance
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddScoped<IDemandeResponsableService, DemandeResponsableService>();
+
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddScoped<IServiceManager, ServiceManager>();

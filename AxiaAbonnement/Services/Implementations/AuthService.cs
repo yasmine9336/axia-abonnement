@@ -26,26 +26,71 @@ namespace AxiaAbonnement.Services.Implementations
         public async Task<User?> RegisterAsync(RegisterDto dto)
         {
             if (await _ctx.Users.AnyAsync(u => u.Email == dto.Email)) return null;
+
+            // Normaliser le rôle
+            var role = dto.Role == "Responsable" ? "Responsable" : "Client";
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 Username = dto.Username,
                 Email = dto.Email,
-                Role = "Client"
+                Role = role,
+                PhoneNumber = dto.PhoneNumber,
             };
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.Password);
+
+            if (role == "Responsable")
+            {
+                // Compte en attente de validation — les infos pros sont obligatoires
+                if (string.IsNullOrWhiteSpace(dto.NomEntreprise) ||
+                    string.IsNullOrWhiteSpace(dto.MatriculeFiscal) ||
+                    string.IsNullOrWhiteSpace(dto.SecteurActivite) ||
+                    string.IsNullOrWhiteSpace(dto.AdresseProfessionnelle))
+                {
+                    return null; // Infos pros manquantes
+                }
+
+                user.Statut = StatutCompte.Pending;
+                user.NomEntreprise = dto.NomEntreprise;
+                user.MatriculeFiscal = dto.MatriculeFiscal;
+                user.SecteurActivite = dto.SecteurActivite;
+                user.AdresseProfessionnelle = dto.AdresseProfessionnelle;
+
+                _ctx.Users.Add(user);
+                await _ctx.SaveChangesAsync();
+
+                // Notifier tous les admins qu'une demande est arrivée
+                var admins = await _ctx.Users
+                    .Where(u => u.Role == "Admin" && u.Statut == StatutCompte.Active)
+                    .ToListAsync();
+
+                foreach (var admin in admins)
+                {
+                    await _notifService.SendAsync(
+                        admin.Id,
+                        $"Nouvelle demande de compte responsable : {user.Username} ({user.NomEntreprise}).",
+                        "info"
+                    );
+                }
+
+                return user;
+            }
+
+            // Sinon → Client (comportement actuel)
+            user.Statut = StatutCompte.Active;
             _ctx.Users.Add(user);
             await _ctx.SaveChangesAsync();
 
             await _notifService.SendAsync(
                 user.Id,
-                $"Bienvenue {user.Username} ! Votre compte a été créé avec succès. Explorez nos services et offres dès maintenant.",
+                $"Bienvenue {user.Username} ! Votre compte a été créé avec succès.",
                 "success"
             );
 
-            // Notifier tous les responsables
+            // Notifier les responsables actifs
             var responsables = await _ctx.Users
-                .Where(u => u.Role == "Responsable" && u.IsActive)
+                .Where(u => u.Role == "Responsable" && u.Statut == StatutCompte.Active)
                 .ToListAsync();
 
             foreach (var resp in responsables)
@@ -58,20 +103,63 @@ namespace AxiaAbonnement.Services.Implementations
             }
 
             return user;
-
         }
 
         //connexion
-        public async Task<TokenResponseDto?> LoginAsync(LoginDto dto)
+        public async Task<LoginResultDto> LoginAsync(LoginDto dto)
         {
             var user = await _ctx.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (user is null) return null;
-            if (!user.IsActive) return null;
+            if (user is null)
+                return new LoginResultDto { ErrorCode = "INVALID", Message = "Email ou mot de passe incorrect." };
+
             var check = new PasswordHasher<User>()
                 .VerifyHashedPassword(user, user.PasswordHash, dto.Password);
-            if (check == PasswordVerificationResult.Failed) return null;
-            return await BuildTokenResponseAsync(user, dto.RememberMe);
+            if (check == PasswordVerificationResult.Failed)
+                return new LoginResultDto { ErrorCode = "INVALID", Message = "Email ou mot de passe incorrect." };
+
+            // Vérifier le statut du compte
+            switch (user.Statut)
+            {
+                case StatutCompte.Pending:
+                    return new LoginResultDto
+                    {
+                        ErrorCode = "PENDING",
+                        Message = "Votre demande est en cours d'examen par l'administrateur. Vous recevrez un email dès qu'elle sera traitée."
+                    };
+
+                case StatutCompte.Accepted:
+                    return new LoginResultDto
+                    {
+                        ErrorCode = "PAYMENT_REQUIRED",
+                        Message = "Votre demande a été acceptée. Veuillez procéder au paiement (500 TND) pour activer votre compte.",
+                        UserId = user.Id
+                    };
+
+                case StatutCompte.Rejected:
+                    return new LoginResultDto
+                    {
+                        ErrorCode = "REJECTED",
+                        Message = string.IsNullOrEmpty(user.MotifRefus)
+                            ? "Votre demande a été refusée."
+                            : $"Votre demande a été refusée. Motif : {user.MotifRefus}"
+                    };
+
+                case StatutCompte.Active:
+                    // Vérification complémentaire : l'ancien IsActive peut avoir désactivé le compte
+                    if (!user.IsActive)
+                        return new LoginResultDto { ErrorCode = "INVALID", Message = "Compte désactivé." };
+
+                    // OK
+                    return new LoginResultDto
+                    {
+                        Token = await BuildTokenResponseAsync(user, dto.RememberMe)
+                    };
+
+                default:
+                    return new LoginResultDto { ErrorCode = "INVALID", Message = "Statut de compte inconnu." };
+            }
         }
+
 
         //refresh token
         public async Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenDto dto)

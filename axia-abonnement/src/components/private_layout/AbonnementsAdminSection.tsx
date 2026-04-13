@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search } from "lucide-react";
+import ExportButton from "./../common/ExportButton";
+import { formatDateFR } from "../../utils/exportUtils";
 
 interface Abonnement {
   id: string;
@@ -52,27 +54,28 @@ export default function AbonnementsAdminSection() {
     fetchData();
   }, []);
 
-  const formatDate = (date: string) => new Date(date).toLocaleDateString("fr-FR");
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString("fr-FR");
 
   const filtered = abonnements.filter(
     (a) =>
       a.clientUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.clientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.intituleOffre?.toLowerCase().includes(searchTerm.toLowerCase())
+      a.intituleOffre?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const demandesEnAttenteIds = new Set(
     demandes
       .filter((d) => d.statut === "en_attente")
-      .map((d) => d.abonnementId)
+      .map((d) => d.abonnementId),
   );
 
   const actifs = filtered.filter(
-    (a) => a.statut === "actif" && !demandesEnAttenteIds.has(a.id)
+    (a) => a.statut === "actif" && !demandesEnAttenteIds.has(a.id),
   );
 
   const enDemandeRenouvellement = filtered.filter((a) =>
-    demandesEnAttenteIds.has(a.id)
+    demandesEnAttenteIds.has(a.id),
   );
 
   const expires = filtered.filter((a) => a.statut === "expiré");
@@ -95,7 +98,8 @@ export default function AbonnementsAdminSection() {
           </div>
 
           <p className="text-sm text-gray-600">
-            Offre : <span className="font-medium text-gray-900">{a.intituleOffre}</span>
+            Offre :{" "}
+            <span className="font-medium text-gray-900">{a.intituleOffre}</span>
           </p>
 
           <p className="text-sm text-gray-600">
@@ -109,7 +113,9 @@ export default function AbonnementsAdminSection() {
           </p>
         </div>
 
-        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}`}>
+        <span
+          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
+        >
           {badgeLabel}
         </span>
       </div>
@@ -121,14 +127,45 @@ export default function AbonnementsAdminSection() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Abonnements</h1>
         <p className="text-gray-500 text-sm mt-1">
-          {actifs.length} actif(s) · {enDemandeRenouvellement.length} en demande de
-          renouvellement · {expires.length} expiré(s)
+          {actifs.length} actif(s) · {enDemandeRenouvellement.length} en demande
+          de renouvellement · {expires.length} expiré(s)
         </p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={filtered}
+          columns={[
+            { key: "clientUsername", label: "Client" },
+            { key: "clientEmail", label: "Email" },
+            { key: "intituleOffre", label: "Offre / Service" },
+            { key: "type", label: "Type" },
+            { key: "montant", label: "Montant (TND)" },
+            {
+              key: "dateDebut",
+              label: "Date début",
+              format: (v) => formatDateFR(v),
+            },
+            {
+              key: "dateFin",
+              label: "Date fin",
+              format: (v) => formatDateFR(v),
+            },
+            { key: "statut", label: "Statut" },
+          ]}
+          filename="abonnements"
+          label="Exporter abonnements"
+          sheetName="Abonnements"
+          pdfTitle="Liste des abonnements"
+        />
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Rechercher par client, email ou offre..."
@@ -150,7 +187,9 @@ export default function AbonnementsAdminSection() {
           <div className="w-8 h-8 border-4 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm">Aucun abonnement trouvé</div>
+        <div className="text-center py-16 text-gray-400 text-sm">
+          Aucun abonnement trouvé
+        </div>
       ) : (
         <div className="space-y-8">
           {actifs.length > 0 && (
@@ -177,7 +216,9 @@ export default function AbonnementsAdminSection() {
           {enDemandeRenouvellement.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">En demande de renouvellement</h2>
+                <h2 className="text-lg font-semibold text-gray-700">
+                  En demande de renouvellement
+                </h2>
                 <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                   {enDemandeRenouvellement.length}
                 </span>
