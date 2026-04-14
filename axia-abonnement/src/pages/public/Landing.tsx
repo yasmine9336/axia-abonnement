@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/public_layout/Navbar";
 import Footer from "../../components/public_layout/Footer";
 import { useAuth } from "../../context/AuthContext";
+import { API_URL } from "../../api/config";
 
 interface Service {
   id: string;
@@ -132,13 +133,13 @@ export default function Landing() {
 
   useEffect(() => {
     axios
-      .get("https://localhost:7000/api/services/public")
+      .get(`${API_URL}/api/services/public`)
       .then((res) => setServices(res.data))
       .catch(() => console.error("Erreur chargement services publics"))
       .finally(() => setServicesLoading(false));
 
     axios
-      .get("https://localhost:7000/api/offres/public")
+      .get(`${API_URL}/api/offres/public`)
       .then((res) => setOffres(res.data))
       .catch(() => console.error("Erreur chargement offres publics"))
       .finally(() => setOffresLoading(false));

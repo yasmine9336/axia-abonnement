@@ -9,12 +9,19 @@
         public decimal ParAnnee { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Nommage cohérent
         public string CreePar { get; set; } = string.Empty;
-        public DateTime? CbModification { get; set; }
-        public string? CbModificateur { get; set; }
+        public DateTime? ModifieLe { get; set; }
+        public string? ModifiePar { get; set; }
+
+        // Navigation
         public ICollection<ServiceOffre> ServiceOffres { get; set; } = new List<ServiceOffre>();
+
+        // Navigation manquante ajoutée
+        public ICollection<Abonnement> Abonnements { get; set; } = new List<Abonnement>();
+
         public Guid? ResponsableId { get; set; }
         public User? Responsable { get; set; }
     }
-
 }

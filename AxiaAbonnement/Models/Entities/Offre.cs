@@ -10,8 +10,10 @@
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string CreePar { get; set; } = string.Empty;
-        public DateTime? CbModification { get; set; }
-        public string? CbModificateur { get; set; }
-        public ICollection<ServiceOffre> ServiceOffres { get; set; } = new List<ServiceOffre>();
+
+        public DateTime? ModifieLe { get; set; }
+        public string? ModifiePar { get; set; }
+
+        public ICollection<ServiceOffre> ServiceOffres { get; set; } = [];
     }
 }

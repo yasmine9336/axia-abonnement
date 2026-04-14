@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_URL } from './config';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://localhost:7000/api',
+  baseURL: `${API_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,19 +26,16 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
 
-      // ✅ Chercher dans les deux storages
       const refreshToken = localStorage.getItem('refreshToken') 
                         || sessionStorage.getItem('refreshToken');
 
       if (refreshToken) {
         try {
-          // ✅ Utiliser axios brut pour éviter la boucle infinie
-          const response = await axios.post('https://localhost:7000/api/auth/refresh', { refreshToken });
+          const response = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken });
           const { accessToken, refreshToken: newRefreshToken } = response.data;
 
           localStorage.setItem('accessToken', accessToken);
 
-          // ✅ Sauvegarder dans le bon storage selon rememberMe
           const remember = localStorage.getItem('rememberMe');
           if (remember) {
             localStorage.setItem('refreshToken', newRefreshToken);
@@ -45,12 +43,10 @@ axiosInstance.interceptors.response.use(
             sessionStorage.setItem('refreshToken', newRefreshToken);
           }
 
-          // Relancer la requête originale
           error.config.headers.Authorization = `Bearer ${accessToken}`;
           return axiosInstance(error.config);
 
         } catch {
-          // Refresh token expiré → déconnecter
           localStorage.clear();
           sessionStorage.clear();
           window.location.href = '/login';

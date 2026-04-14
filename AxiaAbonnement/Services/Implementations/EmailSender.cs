@@ -1,7 +1,7 @@
-﻿using System.Net;
-using System.Net.Mail;
-using AxiaAbonnement.Models.Email;
+﻿using AxiaAbonnement.Models.Email;
 using AxiaAbonnement.Services.Interfaces;
+using System.Net;
+using System.Net.Mail;
 
 namespace AxiaAbonnement.Services.Implementations
 {
@@ -9,16 +9,17 @@ namespace AxiaAbonnement.Services.Implementations
     {
         private readonly EmailConfiguration _config;
 
-        public EmailSender(EmailConfiguration config) 
+        public EmailSender(EmailConfiguration config)
         {
             _config = config;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body) 
+        public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
             var client = new SmtpClient(_config.SmtpServer, _config.Port)
             {
-                Credentials = new NetworkCredential(_config.Username, _config.Password), EnableSsl = true
+                Credentials = new NetworkCredential(_config.Username, _config.Password),
+                EnableSsl = true
             };
 
             var mailMessage = new MailMessage

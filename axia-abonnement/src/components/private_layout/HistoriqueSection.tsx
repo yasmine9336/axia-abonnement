@@ -10,14 +10,31 @@ interface Paiement {
   typeAbonnement: string;
 }
 
+// ✅ Fonction de traduction des statuts
+const formatStatut = (statut: string): string => {
+  if (statut === "completed" || statut === "succeeded") return "Complété";
+  if (statut === "pending") return "En cours";
+  return "Échoué";
+};
+
+const statutBadge = (statut: string): string => {
+  if (statut === "completed" || statut === "succeeded")
+    return "bg-green-100 text-green-700";
+  if (statut === "pending") return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-700";
+};
+
 export default function HistoriqueSection() {
   const [paiements, setPaiements] = useState<Paiement[]>([]);
   const [loading, setLoading] = useState(true);
+  // ✅ Gestion d'erreur
+  const [error, setError] = useState("");
 
   useEffect(() => {
     axiosInstance
       .get("/payment/history")
       .then((r) => setPaiements(r.data))
+      .catch(() => setError("Erreur lors du chargement des transactions."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -29,13 +46,6 @@ export default function HistoriqueSection() {
       hour: "2-digit",
       minute: "2-digit",
     });
-
-  const statutBadge = (statut: string) => {
-    if (statut === "completed" || statut === "succeeded")
-      return "bg-green-100 text-green-700";
-    if (statut === "pending") return "bg-yellow-100 text-yellow-700";
-    return "bg-red-100 text-red-700";
-  };
 
   return (
     <div className="p-6 lg:p-8">
@@ -52,6 +62,8 @@ export default function HistoriqueSection() {
         <div className="flex items-center justify-center min-h-40">
           <div className="w-8 h-8 border-4 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
         </div>
+      ) : error ? (
+        <div className="text-center py-16 text-red-500 text-sm">{error}</div>
       ) : paiements.length === 0 ? (
         <div className="text-center py-16 text-gray-400 text-sm">
           Aucune transaction
@@ -84,10 +96,9 @@ export default function HistoriqueSection() {
                     {p.montant} TND
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statutBadge(p.statut)}`}
-                    >
-                      {p.statut}
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statutBadge(p.statut)}`}>
+                      {/* ✅ Statut traduit */}
+                      {formatStatut(p.statut)}
                     </span>
                   </td>
                 </tr>

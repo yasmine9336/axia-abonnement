@@ -7,6 +7,7 @@ import SubscriptionsSection from "../../components/private_layout/MesAbonnements
 import HistoriqueSection from "../../components/private_layout/HistoriqueSection";
 import axiosInstance from "../../api/axiosInstance";
 import { useNotifications } from "../../context/NotificationContext";
+import ClientChat from "../../components/chat/ClientChat";
 
 type Section =
   | "dashboard"
@@ -101,6 +102,7 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
   if (section === "profile") return <ProfileSection />;
   if (section === "payment") return <PaymentSection />;
   if (section === "subscriptions") return <SubscriptionsSection />;
+  if (section === "chat") return <ClientChat />;
   if (section === "history") return <HistoriqueSection />;
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import axios from "axios";
+import { API_URL } from "../../api/config";
 
 interface Offre {
   id: string;
@@ -35,7 +36,7 @@ export default function PaymentSection() {
     const loadData = async () => {
       const [offresRes, servicesRes] = await Promise.all([
         axiosInstance.get("/offres/public"),
-        axios.get("https://localhost:7000/api/services/public"),
+        axios.get(`${API_URL}/api/services/public`),
       ]);
       const offresData: Offre[] = offresRes.data;
       const servicesData: Service[] = servicesRes.data;

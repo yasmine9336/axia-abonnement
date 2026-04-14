@@ -50,6 +50,11 @@ namespace AxiaAbonnement.Migrations
                     b.Property<Guid?>("ServiceId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("StripeSessionId")
                         .HasColumnType("nvarchar(max)");
 
@@ -71,7 +76,76 @@ namespace AxiaAbonnement.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Abonnements");
+                    b.ToTable("Abonnements", t =>
+                        {
+                            t.HasCheckConstraint("CK_Abonnement_OffreOrService", "(OffreId IS NOT NULL AND ServiceId IS NULL) OR (OffreId IS NULL AND ServiceId IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.ChatConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssignedResponsableId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedResponsableId");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("ChatConversations");
+                });
+
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("SenderUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.DemandeRenouvellement", b =>
@@ -173,12 +247,6 @@ namespace AxiaAbonnement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CbModificateur")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("CbModification")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -196,6 +264,12 @@ namespace AxiaAbonnement.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifieLe")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiePar")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ParAnnee")
                         .HasPrecision(18, 2)
@@ -255,12 +329,6 @@ namespace AxiaAbonnement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CbModificateur")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("CbModification")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -278,6 +346,12 @@ namespace AxiaAbonnement.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifieLe")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiePar")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ParAnnee")
                         .HasPrecision(18, 2)
@@ -332,7 +406,7 @@ namespace AxiaAbonnement.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -356,11 +430,11 @@ namespace AxiaAbonnement.Migrations
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RefreshTokenHash")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("nvarchar(max)");
@@ -370,7 +444,8 @@ namespace AxiaAbonnement.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("SecteurActivite")
                         .HasColumnType("nvarchar(max)");
@@ -386,6 +461,9 @@ namespace AxiaAbonnement.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
@@ -396,11 +474,12 @@ namespace AxiaAbonnement.Migrations
                         .HasForeignKey("OffreId");
 
                     b.HasOne("AxiaAbonnement.Models.Entities.Service", "Service")
-                        .WithMany()
-                        .HasForeignKey("ServiceId");
+                        .WithMany("Abonnements")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("AxiaAbonnement.Models.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("Abonnements")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -410,6 +489,42 @@ namespace AxiaAbonnement.Migrations
                     b.Navigation("Service");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.ChatConversation", b =>
+                {
+                    b.HasOne("AxiaAbonnement.Models.Entities.User", "AssignedResponsable")
+                        .WithMany()
+                        .HasForeignKey("AssignedResponsableId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AxiaAbonnement.Models.Entities.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedResponsable");
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.ChatMessage", b =>
+                {
+                    b.HasOne("AxiaAbonnement.Models.Entities.ChatConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AxiaAbonnement.Models.Entities.User", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("SenderUser");
                 });
 
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.DemandeRenouvellement", b =>
@@ -507,6 +622,11 @@ namespace AxiaAbonnement.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.ChatConversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.Offre", b =>
                 {
                     b.Navigation("ServiceOffres");
@@ -514,7 +634,14 @@ namespace AxiaAbonnement.Migrations
 
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.Service", b =>
                 {
+                    b.Navigation("Abonnements");
+
                     b.Navigation("ServiceOffres");
+                });
+
+            modelBuilder.Entity("AxiaAbonnement.Models.Entities.User", b =>
+                {
+                    b.Navigation("Abonnements");
                 });
 #pragma warning restore 612, 618
         }

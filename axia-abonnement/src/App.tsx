@@ -33,6 +33,15 @@ function App() {
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentCancel />} />
 
+      <Route
+        path="/payment/responsable-account/success"
+        element={<PaymentSuccess />}
+      />
+      <Route
+        path="/payment/responsable-account/cancel"
+        element={<PaymentCancel />}
+      />
+
       {/* Dashboard Client */}
       <Route
         path="/dashboard/client"
@@ -49,7 +58,7 @@ function App() {
           element={<ClientDashboard section="subscriptions" />}
         />
         <Route path="history" element={<ClientDashboard section="history" />} />
-        <Route path="chat" element={<ClientDashboard section="dashboard" />} />
+        <Route path="chat" element={<ClientDashboard section="chat" />} />
         <Route path="profile" element={<ClientDashboard section="profile" />} />
       </Route>
 
@@ -90,6 +99,10 @@ function App() {
         <Route
           path="transactions"
           element={<ResponsableDashboard section="transactions" />}
+        />
+        <Route
+          path="messages"
+          element={<ResponsableDashboard section="messages" />}
         />
       </Route>
 

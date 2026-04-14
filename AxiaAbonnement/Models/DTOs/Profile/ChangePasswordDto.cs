@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-namespace AxiaAbonnement.Models.DTOs.Profile 
+namespace AxiaAbonnement.Models.DTOs.Profile
 {
     public class ChangePasswordDto
     {
@@ -11,6 +11,6 @@ namespace AxiaAbonnement.Models.DTOs.Profile
 
         [Required]
         [Compare("NewPassword", ErrorMessage = "Les mots de passe ne correspondent pas.")]
-        public string ConfirmPassword { get; set;} = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

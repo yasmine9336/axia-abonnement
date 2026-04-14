@@ -10,6 +10,6 @@ namespace AxiaAbonnement.Services.Interfaces
         Task<bool> UpdateResponsableAsync(Guid id, UpdateResponsableDto dto);
         Task<bool?> ToggleResponsableAsync(Guid id);
         Task<bool> DeleteResponsableAsync(Guid id);
-        Task<List<UserDto>> GetClientsAsync ();
+        Task<List<UserDto>> GetClientsAsync();
     }
 }

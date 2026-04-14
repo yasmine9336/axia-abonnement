@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-namespace AxiaAbonnement.Models.DTOs.Services
+﻿namespace AxiaAbonnement.Models.DTOs.Services
 {
     public class UpdateServiceDto
     {

@@ -1,8 +1,12 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import NotificationBell from "./NotificationBell";
+import ClientChat from "../chat/ClientChat";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardLayout() {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
@@ -12,6 +16,7 @@ export default function DashboardLayout() {
         </div>
         <Outlet />
       </main>
+      {user?.role === "Client" && <ClientChat />}
     </div>
   );
 }

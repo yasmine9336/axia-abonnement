@@ -1,15 +1,13 @@
 ﻿using AxiaAbonnement.Models.DTOs.Offres;
+using AxiaAbonnement.Models.Enums;
 
 namespace AxiaAbonnement.Services.Interfaces
 {
     public interface IOffreService
     {
-        // back-office: si Responsable => offres liées à ses services
-        Task<List<OffreDto>> GetAllOffresAsync(Guid currentUserId, string role);
-
-        // public client: toutes les offres actives
+        // UserRole au lieu de string
+        Task<List<OffreDto>> GetAllOffresAsync(Guid currentUserId, UserRole role);
         Task<List<PublicOffreDto>> GetPublicOffresAsync();
-
         Task<OffreDto?> GetOffreByIdAsync(Guid id);
         Task<OffreDto> CreateOffreAsync(Guid responsableId, CreateOffreDto dto);
         Task<bool> UpdateOffreAsync(Guid id, Guid responsableId, UpdateOffreDto dto);

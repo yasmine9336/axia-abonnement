@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
+import { API_URL } from "../../api/config";
 
 interface ProfileData {
   id: string;
@@ -113,7 +114,7 @@ export default function ProfileSection() {
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
     if (photoPath.startsWith("http")) return photoPath;
-    return `https://localhost:7000${photoPath}`;
+    return `${API_URL}${photoPath}`;
   };
 
   if (loading) {

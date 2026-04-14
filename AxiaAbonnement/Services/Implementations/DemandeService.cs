@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Abonnements;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,6 @@ namespace AxiaAbonnement.Services.Implementations
                 .FirstOrDefaultAsync(a => a.Id == abonnementId && a.UserId == clientId);
             if (abonnement == null) return false;
 
-            // Vérifier qu'il n'y a pas déjà une demande en attente
             var existante = await _db.DemandesRenouvellement
                 .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "en_attente");
             if (existante) return false;
@@ -36,16 +36,36 @@ namespace AxiaAbonnement.Services.Implementations
             });
             await _db.SaveChangesAsync();
 
-            // Notifier tous les responsables
-            var responsables = await _db.Users
-                .Where(u => u.Role == "Responsable" && u.IsActive)
-                .ToListAsync();
+            // ✅ Notifier uniquement les responsables du service/offre concerné
+            var responsableIds = new List<Guid>();
 
-            foreach (var resp in responsables)
+            if (abonnement.ServiceId != null)
+            {
+                var service = await _db.Services.FindAsync(abonnement.ServiceId.Value);
+                if (service?.ResponsableId != null)
+                    responsableIds.Add(service.ResponsableId.Value);
+            }
+            else if (abonnement.OffreId != null)
+            {
+                var ids = await _db.ServiceOffres
+                    .Where(so => so.OffreId == abonnement.OffreId)
+                    .Select(so => so.ServiceId)
+                    .ToListAsync();
+
+                var respIds = await _db.Services
+                    .Where(s => ids.Contains(s.Id) && s.ResponsableId != null)
+                    .Select(s => s.ResponsableId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                responsableIds.AddRange(respIds);
+            }
+
+            foreach (var respId in responsableIds)
             {
                 await _notifService.SendAsync(
-                    resp.Id,
-                    $"Nouvelle demande de renouvellement d'abonnement en attente.",
+                    respId,
+                    "Nouvelle demande de renouvellement d'abonnement en attente.",
                     "info"
                 );
             }
@@ -66,7 +86,11 @@ namespace AxiaAbonnement.Services.Implementations
                     AbonnementId = d.AbonnementId,
                     ClientUsername = d.Client.Username,
                     ClientEmail = d.Client.Email,
-                    IntituleOffre = d.Abonnement.Offre != null ? d.Abonnement.Offre.IntituleOffre : d.Abonnement.Service != null ? d.Abonnement.Service.IntituleService : "",
+                    IntituleOffre = d.Abonnement.Offre != null
+                        ? d.Abonnement.Offre.IntituleOffre
+                        : d.Abonnement.Service != null
+                            ? d.Abonnement.Service.IntituleService
+                            : "",
                     Type = d.Abonnement.Type,
                     Montant = d.Abonnement.Montant,
                     Statut = d.Statut,
@@ -86,6 +110,8 @@ namespace AxiaAbonnement.Services.Implementations
             demande.TraiteeAt = DateTime.UtcNow;
 
             demande.Abonnement.IsActive = true;
+            // ✅ Mettre à jour le statut explicite
+            demande.Abonnement.Statut = StatutAbonnement.Actif;
             demande.Abonnement.DateDebut = DateTime.UtcNow;
             demande.Abonnement.DateFin = demande.Abonnement.Type == "annuel"
                 ? DateTime.UtcNow.AddYears(1)

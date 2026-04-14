@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Services;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,7 @@ namespace AxiaAbonnement.Services.Implementations
     {
         private readonly AppDbContext _ctx;
 
-        public ServiceManager(AppDbContext ctx)
-        {
-            _ctx = ctx;
-        }
+        public ServiceManager(AppDbContext ctx) => _ctx = ctx;
 
         private static ServiceResponsableDto MapToDto(Service s) => new()
         {
@@ -27,18 +25,20 @@ namespace AxiaAbonnement.Services.Implementations
             IsActive = s.IsActive,
             CreatedAt = s.CreatedAt,
             CreePar = s.CreePar,
-            CbModification = s.CbModification,
-            CbModificateur = s.CbModificateur
+            // ✅ Nommage corrigé
+            ModifieLe = s.ModifieLe,
+            ModifiePar = s.ModifiePar
         };
 
-        // IMPORTANT: adapter aussi l'interface IServiceManager
-        public async Task<List<ServiceResponsableDto>> GetAllServicesAsync(Guid currentUserId, string role)
+        public async Task<List<ServiceResponsableDto>> GetAllServicesAsync(
+            Guid currentUserId, UserRole role)
         {
             var query = _ctx.Services
                 .Include(s => s.ServiceOffres)
                 .AsQueryable();
 
-            if (role == "Responsable")
+            // ✅ Enum au lieu de string
+            if (role == UserRole.Responsable)
                 query = query.Where(s => s.ResponsableId == currentUserId);
 
             return await query
@@ -49,13 +49,14 @@ namespace AxiaAbonnement.Services.Implementations
                     Description = s.Description,
                     ParMois = s.ParMois,
                     ParAnnee = s.ParAnnee,
-                    NbAbonnes = _ctx.Abonnements.Count(a => a.ServiceId == s.Id && a.IsActive),
+                    NbAbonnes = _ctx.Abonnements
+                        .Count(a => a.ServiceId == s.Id && a.IsActive),
                     NbOffres = s.ServiceOffres.Count,
                     IsActive = s.IsActive,
                     CreatedAt = s.CreatedAt,
                     CreePar = s.CreePar,
-                    CbModification = s.CbModification,
-                    CbModificateur = s.CbModificateur
+                    ModifieLe = s.ModifieLe,
+                    ModifiePar = s.ModifiePar
                 })
                 .ToListAsync();
         }
@@ -69,7 +70,8 @@ namespace AxiaAbonnement.Services.Implementations
             return service == null ? null : MapToDto(service);
         }
 
-        public async Task<ServiceResponsableDto> CreateServiceAsync(Guid responsableId, CreateServiceDto dto)
+        public async Task<ServiceResponsableDto> CreateServiceAsync(
+            Guid responsableId, CreateServiceDto dto)
         {
             var responsable = await _ctx.Users.FindAsync(responsableId);
 
@@ -87,11 +89,11 @@ namespace AxiaAbonnement.Services.Implementations
 
             _ctx.Services.Add(service);
             await _ctx.SaveChangesAsync();
-
             return MapToDto(service);
         }
 
-        public async Task<bool> UpdateServiceAsync(Guid id, Guid responsableId, UpdateServiceDto dto)
+        public async Task<bool> UpdateServiceAsync(
+            Guid id, Guid responsableId, UpdateServiceDto dto)
         {
             var service = await _ctx.Services.FindAsync(id);
             if (service == null) return false;
@@ -99,8 +101,8 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return false;
 
-            // Cloisonnement
-            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+            // ✅ Cloisonnement avec enum
+            if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return false;
 
             if (!string.IsNullOrWhiteSpace(dto.IntituleService))
@@ -115,8 +117,9 @@ namespace AxiaAbonnement.Services.Implementations
             if (dto.ParAnnee.HasValue)
                 service.ParAnnee = dto.ParAnnee.Value;
 
-            service.CbModification = DateTime.UtcNow;
-            service.CbModificateur = user.Username;
+            // ✅ Nommage corrigé
+            service.ModifieLe = DateTime.UtcNow;
+            service.ModifiePar = user.Username;
 
             await _ctx.SaveChangesAsync();
             return true;
@@ -130,8 +133,8 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return false;
 
-            // Cloisonnement
-            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+            // ✅ Cloisonnement avec enum
+            if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return false;
 
             _ctx.Services.Remove(service);
@@ -147,19 +150,19 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return null;
 
-            // Cloisonnement
-            if (user.Role == "Responsable" && service.ResponsableId != responsableId)
+            // ✅ Cloisonnement avec enum
+            if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return null;
 
             service.IsActive = !service.IsActive;
-            service.CbModification = DateTime.UtcNow;
-            service.CbModificateur = user.Username;
+            // ✅ Nommage corrigé
+            service.ModifieLe = DateTime.UtcNow;
+            service.ModifiePar = user.Username;
 
             await _ctx.SaveChangesAsync();
             return service.IsActive;
         }
 
-        // Public client => tout actif
         public async Task<List<PublicServiceDto>> GetPublicServicesAsync()
         {
             return await _ctx.Services

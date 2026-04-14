@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Users;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,9 @@ namespace AxiaAbonnement.Services.Implementations
 
         public UserService(AppDbContext ctx) => _ctx = ctx;
 
-        // Liste tous les responsables
         public async Task<List<UserDto>> GetResponsablesAsync() =>
             await _ctx.Users
-                .Where(u => u.Role == "Responsable")
+                .Where(u => u.Role == UserRole.Responsable)
                 .OrderByDescending(u => u.CreatedAt)
                 .Select(u => new UserDto
                 {
@@ -29,17 +29,18 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
 
-        // Créer un responsable
         public async Task<User?> CreateResponsableAsync(CreateResponsableDto dto)
         {
             if (await _ctx.Users.AnyAsync(u => u.Email == dto.Email)) return null;
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 Username = dto.Username,
                 Email = dto.Email,
-                Role = "Responsable",
-                IsActive = true
+                Role = UserRole.Responsable,
+                IsActive = true,
+                Statut = StatutCompte.Active
             };
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.Password);
             _ctx.Users.Add(user);
@@ -47,13 +48,11 @@ namespace AxiaAbonnement.Services.Implementations
             return user;
         }
 
-        // Modifier un responsable
         public async Task<bool> UpdateResponsableAsync(Guid id, UpdateResponsableDto dto)
         {
             var user = await _ctx.Users.FindAsync(id);
-            if (user is null || user.Role != "Responsable") return false;
+            if (user is null || user.Role != UserRole.Responsable) return false;
 
-            // Met à jour seulement si la valeur est fournie
             if (!string.IsNullOrWhiteSpace(dto.Username))
                 user.Username = dto.Username;
 
@@ -67,26 +66,28 @@ namespace AxiaAbonnement.Services.Implementations
             return true;
         }
 
-        // Activer / Désactiver
         public async Task<bool?> ToggleResponsableAsync(Guid id)
         {
             var user = await _ctx.Users.FindAsync(id);
-            if (user is null || user.Role != "Responsable") return null;
+            if (user is null || user.Role != UserRole.Responsable) return null;
+
             user.IsActive = !user.IsActive;
+
+            // ✅ RefreshTokenHash au lieu de RefreshToken
             if (!user.IsActive)
             {
-                user.RefreshToken = null;
+                user.RefreshTokenHash = null;
                 user.RefreshTokenExpiryTime = null;
             }
+
             await _ctx.SaveChangesAsync();
             return user.IsActive;
         }
 
-        // Supprimer
         public async Task<bool> DeleteResponsableAsync(Guid id)
         {
             var user = await _ctx.Users.FindAsync(id);
-            if (user is null || user.Role != "Responsable") return false;
+            if (user is null || user.Role != UserRole.Responsable) return false;
             _ctx.Users.Remove(user);
             await _ctx.SaveChangesAsync();
             return true;
@@ -96,7 +97,7 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var now = DateTime.UtcNow;
             return await _ctx.Users
-                .Where(u => u.Role == "Client")
+                .Where(u => u.Role == UserRole.Client)
                 .OrderByDescending(u => u.CreatedAt)
                 .Select(u => new UserDto
                 {

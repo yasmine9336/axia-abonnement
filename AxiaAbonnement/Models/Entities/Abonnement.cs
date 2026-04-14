@@ -1,4 +1,6 @@
-﻿namespace AxiaAbonnement.Models.Entities
+﻿using AxiaAbonnement.Models.Enums;
+
+namespace AxiaAbonnement.Models.Entities
 {
     public class Abonnement
     {
@@ -9,11 +11,15 @@
         public Offre? Offre { get; set; }
         public Guid? ServiceId { get; set; }
         public Service? Service { get; set; }
-        public string Type { get; set; } = "mensuel"; // ou "annuel"
+        public string Type { get; set; } = "mensuel";
         public decimal Montant { get; set; }
         public DateTime DateDebut { get; set; } = DateTime.UtcNow;
         public DateTime DateFin { get; set; }
         public bool IsActive { get; set; } = true;
+
+        // ✅ Statut explicite
+        public StatutAbonnement Statut { get; set; } = StatutAbonnement.Actif;
+
         public string? StripeSessionId { get; set; }
         public string? StripeSubscriptionId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

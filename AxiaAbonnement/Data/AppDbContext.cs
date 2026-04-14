@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using AxiaAbonnement.Models.Entities;
+﻿using AxiaAbonnement.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace AxiaAbonnement.Data
 {
@@ -16,11 +16,14 @@ namespace AxiaAbonnement.Data
         public DbSet<DemandeRenouvellement> DemandesRenouvellement { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // ServiceOffre
             modelBuilder.Entity<ServiceOffre>(entity =>
             {
                 entity.HasKey(so => new { so.ServiceId, so.OffreId });
@@ -34,26 +37,43 @@ namespace AxiaAbonnement.Data
                     .HasForeignKey(so => so.OffreId);
             });
 
+            // Offre
             modelBuilder.Entity<Offre>(entity =>
             {
                 entity.Property(o => o.ParMois).HasPrecision(18, 2);
                 entity.Property(o => o.ParAnnee).HasPrecision(18, 2);
             });
 
+            // Service
             modelBuilder.Entity<Service>(entity =>
             {
-                entity.Property(o => o.ParMois).HasPrecision(18, 2);
+                entity.Property(s => s.ParMois).HasPrecision(18, 2);
                 entity.Property(s => s.ParAnnee).HasPrecision(18, 2);
+
                 entity.HasOne(s => s.Responsable)
-                .WithMany()
-                .HasForeignKey(s => s.ResponsableId)
-                .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany()
+                    .HasForeignKey(s => s.ResponsableId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
+
+                // Navigation vers Abonnements
+                entity.HasMany(s => s.Abonnements)
+                    .WithOne(a => a.Service)
+                    .HasForeignKey(a => a.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
             });
 
+            // Abonnement
             modelBuilder.Entity<Abonnement>(entity =>
             {
+                entity.ToTable(t => t.HasCheckConstraint(
+                    "CK_Abonnement_OffreOrService",
+                    "(OffreId IS NOT NULL AND ServiceId IS NULL) OR (OffreId IS NULL AND ServiceId IS NOT NULL)"
+                ));
+
                 entity.HasOne(a => a.User)
-                    .WithMany()
+                    .WithMany(u => u.Abonnements)
                     .HasForeignKey(a => a.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
 
@@ -63,20 +83,25 @@ namespace AxiaAbonnement.Data
                     .IsRequired(false);
 
                 entity.HasOne(a => a.Service)
-                    .WithMany()
+                    .WithMany(s => s.Abonnements)
                     .HasForeignKey(a => a.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(false);
 
-
                 entity.Property(a => a.Montant).HasPrecision(18, 2);
+
+                entity.Property(a => a.Statut)
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
             });
 
+            // Paiement
             modelBuilder.Entity<Paiement>(entity =>
             {
                 entity.HasOne(p => p.Abonnement)
                     .WithMany()
                     .HasForeignKey(p => p.AbonnementId)
-                    .IsRequired(false); // paiement responsable sans abonnement
+                    .IsRequired(false);
 
                 entity.HasOne(p => p.User)
                     .WithMany()
@@ -86,6 +111,7 @@ namespace AxiaAbonnement.Data
                 entity.Property(p => p.Montant).HasPrecision(18, 2);
             });
 
+            // DemandeRenouvellement
             modelBuilder.Entity<DemandeRenouvellement>(entity =>
             {
                 entity.HasOne(d => d.Client)
@@ -94,6 +120,7 @@ namespace AxiaAbonnement.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // Feedback
             modelBuilder.Entity<Feedback>(entity =>
             {
                 entity.HasOne(f => f.Client)
@@ -107,11 +134,58 @@ namespace AxiaAbonnement.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<User>()
-                .Property(u => u.Statut)
-                .HasConversion<string>()
-                .HasMaxLength(20);
+            // User
+            modelBuilder.Entity<User>(entity =>
+            {
+                // StatutCompte comme string
+                entity.Property(u => u.Statut)
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
 
+                // UserRole comme string
+                entity.Property(u => u.Role)
+                    .HasConversion<string>()
+                    .HasMaxLength(20);
+
+                // Index unique sur Email
+                entity.HasIndex(u => u.Email)
+                    .IsUnique();
+
+                // Navigation Abonnements
+                entity.HasMany(u => u.Abonnements)
+                    .WithOne(a => a.User)
+                    .HasForeignKey(a => a.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ChatConversation 
+            modelBuilder.Entity<ChatConversation>(entity =>
+            {
+                entity.HasOne(c => c.Client)
+                    .WithMany()
+                    .HasForeignKey(c => c.ClientId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.AssignedResponsable)
+                    .WithMany()
+                    .HasForeignKey(c => c.AssignedResponsableId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
+            });
+
+            // ChatMessage
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.HasOne(m => m.Conversation)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(m => m.ConversationId);
+
+                entity.HasOne(m => m.SenderUser)
+                    .WithMany()
+                    .HasForeignKey(m => m.SenderUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
+            });
         }
     }
 }

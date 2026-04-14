@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
-using AxiaAbonnement.Models.DTOs.Auth;
+﻿using AxiaAbonnement.Models.DTOs.Auth;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AxiaAbonnement.Controllers
 {
@@ -22,7 +23,7 @@ namespace AxiaAbonnement.Controllers
             if (user is null)
                 return BadRequest(new { Message = "Cet email est déjà utilisé ou les informations professionnelles sont incomplètes." });
 
-            if (user.Role == "Responsable")
+            if (user.Role == UserRole.Responsable)
             {
                 return Ok(new
                 {
@@ -85,7 +86,7 @@ namespace AxiaAbonnement.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto) 
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             await _auth.ForgotPasswordAsync(dto);

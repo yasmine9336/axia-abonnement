@@ -7,7 +7,6 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Fermer en cliquant dehors
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node))
@@ -16,6 +15,12 @@ export default function NotificationBell() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // ✅ Fermer le dropdown après markAllAsRead
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
+    setOpen(false);
+  };
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleString("fr-FR", {
@@ -65,7 +70,7 @@ export default function NotificationBell() {
             </span>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-xs text-[#4F46E5] hover:underline"
               >
                 Tout marquer comme lu

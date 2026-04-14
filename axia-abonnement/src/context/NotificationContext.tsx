@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import * as signalR from "@microsoft/signalr";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAuth } from "./AuthContext";
+import { useSignalR } from "../hooks/useSignalR";
 
 interface Notification {
   id: string;
@@ -14,15 +15,24 @@ interface Notification {
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  // ✅ Chat badges
+  unreadMessages: number;
+  unreadChat: number;
+  resetUnreadMessages: () => void;
+  resetUnreadChat: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
   unreadCount: 0,
-  markAsRead: () => {},
-  markAllAsRead: () => {},
+  markAsRead: async () => {},
+  markAllAsRead: async () => {},
+  unreadMessages: 0,
+  unreadChat: 0,
+  resetUnreadMessages: () => {},
+  resetUnreadChat: () => {},
 });
 
 export function NotificationProvider({
@@ -32,47 +42,37 @@ export function NotificationProvider({
 }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadChat, setUnreadChat] = useState(0);
 
-  // Charger les notifs non lues au démarrage
   useEffect(() => {
     if (!user) return;
-
     axiosInstance.get("/notifications").then((r) => {
       setNotifications(r.data);
     });
   }, [user]);
 
-  // Connexion SignalR
-  useEffect(() => {
-    if (!user) return;
-
-    const token =
-      localStorage.getItem("accessToken") ||
-      sessionStorage.getItem("accessToken");
-
-    if (!token) return; // ← AJOUTER cette vérification
-
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7000/hubs/notifications", {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.None) // ← supprimer les logs console
-      .build();
-
-    connection.on("ReceiveNotification", (notif: Notification) => {
-      setNotifications((prev) => [notif, ...prev]);
-    });
-
-    connection.start().catch(() => {}); // ← ignorer l'erreur silencieusement
-
-    connectionRef.current = connection;
-
-    return () => {
-      connection.stop();
-    };
-  }, [user]);
+  // ✅ Une seule connexion SignalR pour tout
+  useSignalR(
+    {
+      ReceiveNotification: (notif: unknown) => {
+        setNotifications((prev) => [notif as Notification, ...prev]);
+      },
+      // ✅ Seulement pour le responsable
+      NewConversationMessage: () => {
+        if (user?.role === "Responsable") {
+          setUnreadMessages((n) => n + 1);
+        }
+      },
+      // ✅ Seulement pour le client
+      StaffReplied: () => {
+        if (user?.role === "Client") {
+          setUnreadChat((n) => n + 1);
+        }
+      },
+    },
+    { enabled: !!user },
+  );
 
   const markAsRead = async (id: string) => {
     await axiosInstance.patch(`/notifications/${id}/read`);
@@ -93,12 +93,15 @@ export function NotificationProvider({
         unreadCount: notifications.filter((n) => !n.isRead).length,
         markAsRead,
         markAllAsRead,
+        unreadMessages,
+        unreadChat,
+        resetUnreadMessages: () => setUnreadMessages(0),
+        resetUnreadChat: () => setUnreadChat(0),
       }}
     >
       {children}
     </NotificationContext.Provider>
   );
 }
-/* eslint-disable react-refresh/only-export-components */
 
 export const useNotifications = () => useContext(NotificationContext);

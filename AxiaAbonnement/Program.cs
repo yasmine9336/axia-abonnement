@@ -1,14 +1,14 @@
 using AxiaAbonnement.Data;
+using AxiaAbonnement.Hubs;
 using AxiaAbonnement.Models.Email;
+using AxiaAbonnement.Services.Implementations;
+using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;             // ← UI de test
-using System.Text;
 using System.Security.Claims;
-using AxiaAbonnement.Services.Implementations;
-using AxiaAbonnement.Services.Interfaces;
-using AxiaAbonnement.Hubs;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +24,10 @@ builder.Services.AddOpenApi();
 // 3. CORS — autoriser React
 var allowedOrigins = builder.Configuration
     .GetSection("AllowedOrigins").Get<string[]>()!;
-builder.Services.AddCors(options => {
-    options.AddPolicy("ReactPolicy", policy => {
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", policy =>
+    {
         policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
@@ -68,7 +70,8 @@ builder.Services.AddSingleton(emailConfig!);
 // 6. Authentification JWT Bearer
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
+    .AddJwtBearer(options =>
+    {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -115,7 +118,8 @@ builder.Services
     });
 
 // 7. Politiques d'autorisation par rôle
-builder.Services.AddAuthorization(options => {
+builder.Services.AddAuthorization(options =>
+{
     options.AddPolicy("ClientOnly", p => p.RequireRole("Client"));
     options.AddPolicy("ResponsableOnly", p => p.RequireRole("Responsable"));
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));

@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Offres;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,10 +11,7 @@ namespace AxiaAbonnement.Services.Implementations
     {
         private readonly AppDbContext _ctx;
 
-        public OffreService(AppDbContext ctx)
-        {
-            _ctx = ctx;
-        }
+        public OffreService(AppDbContext ctx) => _ctx = ctx;
 
         private static OffreDto MapToDto(Offre o) => new()
         {
@@ -26,21 +24,21 @@ namespace AxiaAbonnement.Services.Implementations
             IsActive = o.IsActive,
             CreatedAt = o.CreatedAt,
             CreePar = o.CreePar,
-            CbModification = o.CbModification,
-            CbModificateur = o.CbModificateur,
+            // ✅ Nommage corrigé
+            ModifieLe = o.ModifieLe,
+            ModifiePar = o.ModifiePar,
             Services = o.ServiceOffres.Select(so => so.Service.IntituleService).ToList()
         };
 
-        // IMPORTANT: adapter aussi l'interface IOffreService
-        public async Task<List<OffreDto>> GetAllOffresAsync(Guid currentUserId, string role)
+        public async Task<List<OffreDto>> GetAllOffresAsync(Guid currentUserId, UserRole role)
         {
             var query = _ctx.Offres
                 .Include(o => o.ServiceOffres)
                     .ThenInclude(so => so.Service)
                 .AsQueryable();
 
-            // Cloisonnement responsable: offres liées à ses services
-            if (role == "Responsable")
+            // ✅ UserRole.Responsable au lieu de "Responsable"
+            if (role == UserRole.Responsable)
             {
                 query = query.Where(o =>
                     o.ServiceOffres.Any(so => so.Service.ResponsableId == currentUserId));
@@ -54,13 +52,15 @@ namespace AxiaAbonnement.Services.Implementations
                     Description = o.Description,
                     ParMois = o.ParMois,
                     ParAnnee = o.ParAnnee,
-                    NbAbonnes = _ctx.Abonnements.Count(a => a.OffreId == o.Id && a.IsActive),
+                    NbAbonnes = _ctx.Abonnements
+                        .Count(a => a.OffreId == o.Id && a.IsActive),
                     IsActive = o.IsActive,
                     CreatedAt = o.CreatedAt,
                     CreePar = o.CreePar,
-                    CbModification = o.CbModification,
-                    CbModificateur = o.CbModificateur,
-                    Services = o.ServiceOffres.Select(so => so.Service.IntituleService).ToList()
+                    ModifieLe = o.ModifieLe,
+                    ModifiePar = o.ModifiePar,
+                    Services = o.ServiceOffres
+                        .Select(so => so.Service.IntituleService).ToList()
                 })
                 .ToListAsync();
         }
@@ -78,7 +78,8 @@ namespace AxiaAbonnement.Services.Implementations
                     Description = o.Description,
                     ParMois = o.ParMois,
                     ParAnnee = o.ParAnnee,
-                    Services = o.ServiceOffres.Select(so => so.Service.IntituleService).ToList()
+                    Services = o.ServiceOffres
+                        .Select(so => so.Service.IntituleService).ToList()
                 })
                 .ToListAsync();
         }
@@ -98,13 +99,16 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) throw new Exception("Utilisateur introuvable.");
 
-            if (user.Role == "Responsable")
+            // ✅ UserRole.Responsable
+            if (user.Role == UserRole.Responsable)
             {
                 var ownedCount = await _ctx.Services
-                    .CountAsync(s => dto.ServiceIds.Contains(s.Id) && s.ResponsableId == responsableId);
+                    .CountAsync(s => dto.ServiceIds.Contains(s.Id)
+                                  && s.ResponsableId == responsableId);
 
                 if (ownedCount != dto.ServiceIds.Count)
-                    throw new UnauthorizedAccessException("Un ou plusieurs services ne vous appartiennent pas.");
+                    throw new UnauthorizedAccessException(
+                        "Un ou plusieurs services ne vous appartiennent pas.");
             }
 
             var offre = new Offre
@@ -139,12 +143,12 @@ namespace AxiaAbonnement.Services.Implementations
             return MapToDto(offre);
         }
 
-        public async Task<bool> UpdateOffreAsync(Guid id, Guid responsableId, UpdateOffreDto dto)
+        public async Task<bool> UpdateOffreAsync(
+            Guid id, Guid responsableId, UpdateOffreDto dto)
         {
             var offre = await _ctx.Offres
                 .Include(o => o.ServiceOffres)
                 .FirstOrDefaultAsync(o => o.Id == id);
-
             if (offre is null) return false;
 
             var user = await _ctx.Users.FindAsync(responsableId);
@@ -164,13 +168,14 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (dto.ServiceIds != null)
             {
-                if (user.Role == "Responsable")
+                // ✅ UserRole.Responsable
+                if (user.Role == UserRole.Responsable)
                 {
                     var ownedCount = await _ctx.Services
-                        .CountAsync(s => dto.ServiceIds.Contains(s.Id) && s.ResponsableId == responsableId);
+                        .CountAsync(s => dto.ServiceIds.Contains(s.Id)
+                                      && s.ResponsableId == responsableId);
 
-                    if (ownedCount != dto.ServiceIds.Count)
-                        return false;
+                    if (ownedCount != dto.ServiceIds.Count) return false;
                 }
 
                 offre.ServiceOffres.Clear();
@@ -185,8 +190,9 @@ namespace AxiaAbonnement.Services.Implementations
                 }
             }
 
-            offre.CbModification = DateTime.UtcNow;
-            offre.CbModificateur = user.Username;
+            // ✅ Nommage corrigé
+            offre.ModifieLe = DateTime.UtcNow;
+            offre.ModifiePar = user.Username;
 
             await _ctx.SaveChangesAsync();
             return true;
@@ -196,7 +202,6 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var offre = await _ctx.Offres.FindAsync(id);
             if (offre == null) return false;
-
             _ctx.Offres.Remove(offre);
             await _ctx.SaveChangesAsync();
             return true;
@@ -210,8 +215,9 @@ namespace AxiaAbonnement.Services.Implementations
             var responsable = await _ctx.Users.FindAsync(responsableId);
 
             offre.IsActive = !offre.IsActive;
-            offre.CbModification = DateTime.UtcNow;
-            offre.CbModificateur = responsable?.Username ?? "";
+            // ✅ Nommage corrigé
+            offre.ModifieLe = DateTime.UtcNow;
+            offre.ModifiePar = responsable?.Username ?? "";
 
             await _ctx.SaveChangesAsync();
             return offre.IsActive;

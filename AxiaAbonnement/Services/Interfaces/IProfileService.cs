@@ -1,5 +1,4 @@
 ﻿using AxiaAbonnement.Models.DTOs.Profile;
-using AxiaAbonnement.Models.Entities;
 
 namespace AxiaAbonnement.Services.Interfaces
 {

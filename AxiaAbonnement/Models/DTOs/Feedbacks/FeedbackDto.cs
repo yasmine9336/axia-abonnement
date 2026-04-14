@@ -8,7 +8,7 @@
         public string ClientEmail { get; set; } = string.Empty;
 
         public Guid AbonnementId { get; set; }
-        public string OffreIntitule { get; set; } = string.Empty ;
+        public string OffreIntitule { get; set; } = string.Empty;
 
         public string Message { get; set; } = string.Empty;
         public int Note { get; set; }

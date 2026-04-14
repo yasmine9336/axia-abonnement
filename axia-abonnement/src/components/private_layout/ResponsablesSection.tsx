@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
+import { API_URL } from "../../api/config";
 import {
   Plus, Edit2, Trash2, Search, Mail, Phone, Power, X, Eye, EyeOff,
   Building2, FileText, MapPin, Briefcase, CheckCircle2, XCircle, Clock,
@@ -200,7 +201,7 @@ export default function ResponsablesSection() {
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
     if (photoPath.startsWith("http")) return photoPath;
-    return `https://localhost:7000${photoPath}`;
+    return `${API_URL}${photoPath}`;
   };
 
   return (

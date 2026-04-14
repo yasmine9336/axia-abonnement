@@ -16,8 +16,7 @@ type Section =
   | "abonnements"
   | "catalogue"
   | "archive"
-  | "profile"
-  | "demandes-responsables";
+  | "profile";
 
 interface Props {
   section?: Section;

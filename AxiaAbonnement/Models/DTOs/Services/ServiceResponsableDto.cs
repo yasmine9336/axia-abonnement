@@ -11,8 +11,10 @@
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public string CreePar { get; set; } = string.Empty;
-        public DateTime? CbModification { get; set; }
-        public string? CbModificateur { get; set; }
+
+        public DateTime? ModifieLe { get; set; }
+        public string? ModifiePar { get; set; }
+
         public int NbOffres { get; set; }
     }
 }

@@ -9,6 +9,7 @@ import AbonnementsSection from "../../components/private_layout/GestionAbonnemen
 import ArchiveSection from "../../components/private_layout/ArchiveSection";
 import axiosInstance from "../../api/axiosInstance";
 import TransactionsAdminSection from "../../components/private_layout/TransactionsAdminSection";
+import StaffInbox from "../../components/chat/StaffInbox";
 
 type Section =
   | "dashboard"
@@ -19,7 +20,9 @@ type Section =
   | "profile"
   | "services"
   | "offres"
-  | "suivi-clients";
+  | "suivi-clients"
+  | "messages"
+  ;
 
 interface Props {
   section?: Section;
@@ -78,6 +81,7 @@ export default function ResponsableDashboard({ section = "dashboard" }: Props) {
   if (section === "subscriptions") return <AbonnementsSection />;
   if (section === "clients") return <ArchiveSection />;
   if (section === "transactions") return <TransactionsAdminSection />;
+  if (section === "messages") return <StaffInbox />;
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString("fr-FR");
 

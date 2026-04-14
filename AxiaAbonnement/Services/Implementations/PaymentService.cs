@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Payment;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
@@ -31,7 +32,6 @@ namespace AxiaAbonnement.Services.Implementations
             _stripeClient = new StripeClient(_config["Stripe:SecretKey"]);
         }
 
-        // Paiement abonnement client
         public async Task<string?> CreateCheckoutSessionAsync(Guid userId, CreateSessionDto dto)
         {
             if (dto.OffreId == null && dto.ServiceId == null) return null;
@@ -84,7 +84,7 @@ namespace AxiaAbonnement.Services.Implementations
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
-                            Currency = "tnd",
+                            Currency = "eur",
                             UnitAmount = (long)(montant * 100),
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
@@ -106,11 +106,13 @@ namespace AxiaAbonnement.Services.Implementations
             return session.Url;
         }
 
-        // Paiement compte responsable
-        public async Task<string?> CreateResponsableAccountSessionAsync(CreateResponsableAccountSessionDto dto)
+        public async Task<string?> CreateResponsableAccountSessionAsync(
+            CreateResponsableAccountSessionDto dto)
         {
             var user = await _ctx.Users.FindAsync(dto.UserId);
-            if (user == null || user.Role != "Responsable") return null;
+
+            // ✅ Enum au lieu de string
+            if (user == null || user.Role != UserRole.Responsable) return null;
 
             var metadata = new Dictionary<string, string>
             {
@@ -127,7 +129,7 @@ namespace AxiaAbonnement.Services.Implementations
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
-                            Currency = "tnd",
+                            Currency = "eur",
                             UnitAmount = (long)(ResponsableAccountFee * 100),
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
@@ -149,7 +151,8 @@ namespace AxiaAbonnement.Services.Implementations
             return session.Url;
         }
 
-        public async Task HandleWebhookAsync(string json, string stripeSignature, string webhookSecret)
+        public async Task HandleWebhookAsync(
+            string json, string stripeSignature, string webhookSecret)
         {
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
 
@@ -161,13 +164,9 @@ namespace AxiaAbonnement.Services.Implementations
                 : "subscription";
 
             if (paymentType == "responsable-account")
-            {
                 await HandleResponsableAccountPaymentAsync(session);
-            }
             else
-            {
                 await HandleSubscriptionPaymentAsync(session);
-            }
         }
 
         private async Task HandleSubscriptionPaymentAsync(Session session)
@@ -179,12 +178,10 @@ namespace AxiaAbonnement.Services.Implementations
             if (user == null) return;
 
             Guid? offreId = session.Metadata.TryGetValue("offreId", out var rawOffre)
-                ? Guid.Parse(rawOffre)
-                : null;
+                ? Guid.Parse(rawOffre) : null;
 
             Guid? serviceId = session.Metadata.TryGetValue("serviceId", out var rawService)
-                ? Guid.Parse(rawService)
-                : null;
+                ? Guid.Parse(rawService) : null;
 
             string productName;
             decimal montant;
@@ -193,7 +190,6 @@ namespace AxiaAbonnement.Services.Implementations
             {
                 var offre = await _ctx.Offres.FindAsync(offreId.Value);
                 if (offre == null) return;
-
                 productName = offre.IntituleOffre;
                 montant = type == "annuel" ? offre.ParAnnee : offre.ParMois;
             }
@@ -201,7 +197,6 @@ namespace AxiaAbonnement.Services.Implementations
             {
                 var service = await _ctx.Services.FindAsync(serviceId.Value);
                 if (service == null) return;
-
                 productName = service.IntituleService;
                 montant = type == "annuel" ? service.ParAnnee : service.ParMois;
             }
@@ -222,19 +217,19 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = dateDebut,
                 DateFin = dateFin,
                 StripeSessionId = session.Id,
-                IsActive = true
+                IsActive = true,
+                // ✅ Statut explicite
+                Statut = StatutAbonnement.Actif
             };
             _ctx.Abonnements.Add(abonnement);
 
-            // NOTE: si Paiement n'a pas encore UserId/PaymentType, retire ces 2 champs
             var paiement = new Paiement
             {
                 AbonnementId = abonnement.Id,
+                UserId = userId,
                 Montant = montant,
                 Statut = "completed",
                 StripePaymentIntentId = session.PaymentIntentId
-                // UserId = userId,
-                // PaymentType = "subscription"
             };
             _ctx.Paiements.Add(paiement);
 
@@ -243,26 +238,50 @@ namespace AxiaAbonnement.Services.Implementations
             await _emailSender.SendEmailAsync(
                 user.Email,
                 "Confirmation de votre abonnement - AxiaAbonnement",
-                $@"Bonjour {user.Username},
-                   <p>Votre abonnement <strong>{productName}</strong> est maintenant actif.</p>
-                   <p>Type : {type} | Montant : {montant} TND</p>
-                   <p>Valable jusqu'au : {dateFin:dd/MM/yyyy}</p>");
+                $"<p>Bonjour {user.Username},</p>" +
+                $"<p>Votre abonnement <strong>{productName}</strong> est maintenant actif.</p>" +
+                $"<p>Type : {type} | Montant : {montant} TND</p>" +
+                $"<p>Valable jusqu'au : {dateFin:dd/MM/yyyy}</p>"
+            );
 
             await _notifService.SendAsync(
                 user.Id,
                 $"Votre abonnement \"{productName}\" est maintenant actif.",
-                "success");
+                "success"
+            );
 
-            var responsables = await _ctx.Users
-                .Where(u => u.Role == "Responsable" && u.IsActive)
-                .ToListAsync();
+            // ✅ Notifier uniquement les responsables du service souscrit
+            var responsableIds = new List<Guid>();
 
-            foreach (var resp in responsables)
+            if (serviceId != null)
+            {
+                var service = await _ctx.Services.FindAsync(serviceId.Value);
+                if (service?.ResponsableId != null)
+                    responsableIds.Add(service.ResponsableId.Value);
+            }
+            else if (offreId != null)
+            {
+                var serviceIds = await _ctx.ServiceOffres
+                    .Where(so => so.OffreId == offreId)
+                    .Select(so => so.ServiceId)
+                    .ToListAsync();
+
+                var respIds = await _ctx.Services
+                    .Where(s => serviceIds.Contains(s.Id) && s.ResponsableId != null)
+                    .Select(s => s.ResponsableId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                responsableIds.AddRange(respIds);
+            }
+
+            foreach (var respId in responsableIds)
             {
                 await _notifService.SendAsync(
-                    resp.Id,
+                    respId,
                     $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\" ({montant} TND - {type}).",
-                    "info");
+                    "info"
+                );
             }
         }
 
@@ -270,31 +289,28 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var userId = Guid.Parse(session.Metadata["userId"]);
             var user = await _ctx.Users.FindAsync(userId);
-            if (user == null || user.Role != "Responsable") return;
 
-            // Nécessite ces champs dans User:
-            // - StatutCompte (string)
-            // - DatePaiementCompte (DateTime?)
+            // ✅ Enum au lieu de string
+            if (user == null || user.Role != UserRole.Responsable) return;
+
             user.Statut = StatutCompte.Active;
             user.DatePaiementCompte = DateTime.UtcNow;
             user.IsActive = true;
 
-            // Optionnel selon ton modèle Paiement actuel
             var paiement = new Paiement
             {
-                // AbonnementId = null, // si nullable dans ton modèle
+                UserId = userId,
                 Montant = ResponsableAccountFee,
                 Statut = "completed",
                 StripePaymentIntentId = session.PaymentIntentId
-                // UserId = userId,
-                // PaymentType = "responsable-account"
             };
             _ctx.Paiements.Add(paiement);
 
             await _ctx.SaveChangesAsync();
 
+            // ✅ Enum au lieu de string
             var admins = await _ctx.Users
-                .Where(u => u.Role == "Admin" && u.IsActive)
+                .Where(u => u.Role == UserRole.Admin && u.IsActive)
                 .ToListAsync();
 
             foreach (var admin in admins)
@@ -302,7 +318,8 @@ namespace AxiaAbonnement.Services.Implementations
                 await _notifService.SendAsync(
                     admin.Id,
                     $"Nouveau responsable actif : {user.Username}.",
-                    "info");
+                    "info"
+                );
             }
         }
 

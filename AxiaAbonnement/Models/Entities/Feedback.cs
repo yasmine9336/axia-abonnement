@@ -22,7 +22,7 @@ namespace AxiaAbonnement.Models.Entities
         public string Message { get; set; } = string.Empty;
 
         [Range(1, 5)]
-        public int Note {  get; set; }
+        public int Note { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
