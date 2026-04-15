@@ -7,7 +7,8 @@ namespace AxiaAbonnement.Services.Interfaces
         Task<List<AbonnementDto>> GetMyAbonnementsAsync(Guid userId);
         Task<StatsDto> GetStatsAsync();
         Task<List<AbonnementDto>> GetAllAbonnementsAsync();
-        Task<bool> DesactiverAsync(Guid abonnementId);
-        Task<bool> ActiverAsync(Guid abonnementId);
+        Task<bool> DesactiverAsync(Guid abonnementId, Guid responsableId);
+        Task<bool> ActiverAsync(Guid abonnementId, Guid responsableId);
+
     }
 }

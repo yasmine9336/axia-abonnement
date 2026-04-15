@@ -47,24 +47,23 @@ namespace AxiaAbonnement.Controllers
             return Ok(result);
         }
 
-        // Responsable → activer
         [HttpPatch("{id}/activer")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Activer(Guid id)
         {
-            var ok = await _abonnementService.ActiverAsync(id);
+            var ok = await _abonnementService.ActiverAsync(id, GetUserId());
             if (!ok) return BadRequest("Impossible d'activer.");
             return Ok(new { Message = "Abonnement activé." });
         }
 
-        // Responsable → désactiver
         [HttpPatch("{id}/desactiver")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Desactiver(Guid id)
         {
-            var ok = await _abonnementService.DesactiverAsync(id);
+            var ok = await _abonnementService.DesactiverAsync(id, GetUserId());
             if (!ok) return BadRequest("Impossible de désactiver.");
             return Ok(new { Message = "Abonnement désactivé." });
         }
+
     }
 }

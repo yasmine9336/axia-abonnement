@@ -68,10 +68,11 @@ namespace AxiaAbonnement.Controllers
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await offreService.DeleteOffreAsync(id);
+            var result = await offreService.DeleteOffreAsync(id, GetUserId());
             if (!result) return NotFound("Offre introuvable.");
             return Ok(new { Message = "Offre supprimée." });
         }
+
 
         [HttpPatch("{id}/toggle")]
         [Authorize(Policy = "ResponsableOnly")]

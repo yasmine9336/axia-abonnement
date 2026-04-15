@@ -11,7 +11,7 @@ namespace AxiaAbonnement.Services.Interfaces
         Task<OffreDto?> GetOffreByIdAsync(Guid id);
         Task<OffreDto> CreateOffreAsync(Guid responsableId, CreateOffreDto dto);
         Task<bool> UpdateOffreAsync(Guid id, Guid responsableId, UpdateOffreDto dto);
-        Task<bool> DeleteOffreAsync(Guid id);
+        Task<bool> DeleteOffreAsync(Guid id, Guid responsableId);
         Task<bool?> ToggleOffreAsync(Guid id, Guid responsableId);
     }
 }

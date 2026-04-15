@@ -99,54 +99,71 @@ namespace AxiaAbonnement.Services.Implementations
                 .ToListAsync();
         }
 
-        public async Task<bool> AccepterAsync(Guid demandeId)
+        public async Task<bool> AccepterAsync(Guid demandeId, Guid responsableId)
         {
             var demande = await _db.DemandesRenouvellement
                 .Include(d => d.Abonnement)
+                    .ThenInclude(a => a.Service)
+                .Include(d => d.Abonnement)
+                    .ThenInclude(a => a.Offre)
+                        .ThenInclude(o => o!.ServiceOffres)
+                            .ThenInclude(so => so.Service!)
                 .FirstOrDefaultAsync(d => d.Id == demandeId);
+
             if (demande == null || demande.Statut != "en_attente") return false;
+
+            // Vérifier la propriété
+            bool owns = false;
+            var a = demande.Abonnement;
+            if (a.ServiceId != null)
+                owns = a.Service?.ResponsableId == responsableId;
+            else if (a.OffreId != null)
+                owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
+
+            if (!owns) return false;
 
             demande.Statut = "acceptée";
             demande.TraiteeAt = DateTime.UtcNow;
-
-            demande.Abonnement.IsActive = true;
-            // ✅ Mettre à jour le statut explicite
-            demande.Abonnement.Statut = StatutAbonnement.Actif;
-            demande.Abonnement.DateDebut = DateTime.UtcNow;
-            demande.Abonnement.DateFin = demande.Abonnement.Type == "annuel"
-                ? DateTime.UtcNow.AddYears(1)
-                : DateTime.UtcNow.AddMonths(1);
+            a.IsActive = true;
+            a.Statut = StatutAbonnement.Actif;
+            a.DateDebut = DateTime.UtcNow;
+            a.DateFin = a.Type == "annuel" ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1);
 
             await _db.SaveChangesAsync();
-
-            await _notifService.SendAsync(
-                demande.Abonnement.UserId,
-                "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.",
-                "success"
-            );
-
+            await _notifService.SendAsync(a.UserId, "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.", "success");
             return true;
         }
 
-        public async Task<bool> RefuserAsync(Guid demandeId)
+        public async Task<bool> RefuserAsync(Guid demandeId, Guid responsableId)
         {
             var demande = await _db.DemandesRenouvellement
+                .Include(d => d.Abonnement)
+                    .ThenInclude(a => a.Service)
+                .Include(d => d.Abonnement)
+                    .ThenInclude(a => a.Offre)
+                        .ThenInclude(o => o!.ServiceOffres)
+                            .ThenInclude(so => so.Service!)
                 .FirstOrDefaultAsync(d => d.Id == demandeId);
+
             if (demande == null || demande.Statut != "en_attente") return false;
+
+            bool owns = false;
+            var a = demande.Abonnement;
+            if (a.ServiceId != null)
+                owns = a.Service?.ResponsableId == responsableId;
+            else if (a.OffreId != null)
+                owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
+
+            if (!owns) return false;
 
             demande.Statut = "refusée";
             demande.TraiteeAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
-
-            await _notifService.SendAsync(
-                demande.ClientId,
-                "Votre demande de renouvellement a été refusée.",
-                "warning"
-            );
-
+            await _notifService.SendAsync(demande.ClientId, "Votre demande de renouvellement a été refusée.", "warning");
             return true;
         }
+
 
         public async Task<string?> GetStatutDemandeAsync(Guid abonnementId, Guid clientId)
         {

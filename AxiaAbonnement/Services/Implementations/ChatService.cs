@@ -1,0 +1,401 @@
+﻿using AxiaAbonnement.Data;
+using AxiaAbonnement.Hubs;
+using AxiaAbonnement.Models.Common;
+using AxiaAbonnement.Models.DTOs.Chat;
+using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
+using AxiaAbonnement.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using static AxiaAbonnement.Models.Enums.SenderType;
+using static AxiaAbonnement.Models.Enums.ConversationStatut;
+
+namespace AxiaAbonnement.Services.Implementations;
+
+public class ChatService(
+    AppDbContext ctx,
+    IHubContext<NotificationHub> hub,
+    INotificationService notifService) : IChatService
+{
+    private readonly AppDbContext _ctx = ctx;
+    private readonly IHubContext<NotificationHub> _hub = hub;
+    private readonly INotificationService _notifService = notifService;
+
+    // ── Helpers privés ────────────────────────────────────────────
+
+    private async Task NotifierResponsable(Guid respId, ChatConversation conv, ChatMessage msg)
+    {
+        await _hub.Clients.Group(respId.ToString())
+            .SendAsync("NewConversationMessage", new
+            {
+                conversationId = conv.Id,
+                clientId = conv.ClientId,
+                content = msg.Content,
+                createdAt = msg.CreatedAt
+            });
+
+        await _notifService.SendAsync(
+            respId,
+            $"Nouveau message : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"",
+            "info"
+        );
+    }
+
+    private async Task<bool> ResponsableOwnsClientAsync(Guid responsableId, Guid clientId)
+    {
+        var mesServiceIds = await _ctx.Services
+            .Where(s => s.ResponsableId == responsableId && s.IsActive)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        return await _ctx.Abonnements
+            .AnyAsync(a => a.UserId == clientId && a.IsActive && (
+                (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+            ));
+    }
+
+    // ── Client ───────────────────────────────────────────────────
+
+    public async Task<ConversationDto> GetOrCreateConversationAsync(Guid clientId)
+    {
+        var convo = await _ctx.ChatConversations
+            .FirstOrDefaultAsync(c => c.ClientId == clientId && c.Statut == nameof(Open));
+
+        if (convo == null)
+        {
+            convo = new ChatConversation
+            {
+                ClientId = clientId,
+                Statut = nameof(Open),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _ctx.ChatConversations.Add(convo);
+            await _ctx.SaveChangesAsync();
+        }
+
+        return new ConversationDto
+        {
+            Id = convo.Id,
+            ClientId = convo.ClientId,
+            AssignedResponsableId = convo.AssignedResponsableId,
+            Statut = convo.Statut,
+            CreatedAt = convo.CreatedAt,
+            UpdatedAt = convo.UpdatedAt
+        };
+    }
+
+    public async Task<List<ChatMessageDto>> GetClientMessagesAsync(Guid clientId)
+    {
+        var convo = await _ctx.ChatConversations
+            .Include(c => c.Messages.OrderBy(m => m.CreatedAt))
+            .FirstOrDefaultAsync(c => c.ClientId == clientId && c.Statut == nameof(Open));
+
+        if (convo == null) return [];
+
+        return convo.Messages.Select(m => new ChatMessageDto
+        {
+            Id = m.Id,
+            Content = m.Content,
+            SenderType = m.SenderType,
+            SenderUserId = m.SenderUserId,
+            IsRead = m.IsRead,
+            CreatedAt = m.CreatedAt
+        }).ToList();
+    }
+
+    public async Task<SentMessageDto> SendClientMessageAsync(Guid clientId, string content)
+    {
+        using var tx = await _ctx.Database.BeginTransactionAsync();
+        try
+        {
+            var convo = await _ctx.ChatConversations
+                .FirstOrDefaultAsync(c => c.ClientId == clientId && c.Statut == nameof(Open));
+
+            if (convo == null)
+            {
+                convo = new ChatConversation
+                {
+                    ClientId = clientId,
+                    Statut = nameof(Open),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _ctx.ChatConversations.Add(convo);
+                await _ctx.SaveChangesAsync();
+            }
+
+            var msg = new ChatMessage
+            {
+                ConversationId = convo.Id,
+                SenderType = nameof(Client),
+                SenderUserId = clientId,
+                Content = content.Trim(),
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            convo.UpdatedAt = DateTime.UtcNow;
+            _ctx.ChatMessages.Add(msg);
+            await _ctx.SaveChangesAsync();
+
+            // Routing intelligent
+            if (!convo.AssignedResponsableId.HasValue)
+            {
+                var abonnements = await _ctx.Abonnements
+                    .Include(a => a.Service)
+                    .Include(a => a.Offre)
+                        .ThenInclude(o => o!.ServiceOffres)
+                            .ThenInclude(so => so.Service)
+                    .Where(a => a.UserId == clientId && a.IsActive)
+                    .ToListAsync();
+
+                var serviceResponsableMap = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var ab in abonnements)
+                {
+                    if (ab.Service?.ResponsableId != null)
+                        serviceResponsableMap.TryAdd(
+                            ab.Service.IntituleService.ToLower(),
+                            ab.Service.ResponsableId.Value);
+
+                    if (ab.Offre != null)
+                        foreach (var so in ab.Offre.ServiceOffres)
+                            if (so.Service?.ResponsableId != null)
+                                serviceResponsableMap.TryAdd(
+                                    so.Service.IntituleService.ToLower(),
+                                    so.Service.ResponsableId.Value);
+                }
+
+                var contentLower = content.ToLower();
+                var matchedEntry = serviceResponsableMap
+                    .FirstOrDefault(kv => contentLower.Contains(kv.Key));
+
+                if (matchedEntry.Key != null)
+                {
+                    convo.AssignedResponsableId = matchedEntry.Value;
+                    await _ctx.SaveChangesAsync();
+                }
+            }
+
+            await tx.CommitAsync();
+
+            // ── SignalR hors transaction ──────────────────────────
+            await _hub.Clients.Group($"chat_{convo.Id}")
+                .SendAsync("ReceiveMessage", new
+                {
+                    id = msg.Id,
+                    content = msg.Content,
+                    senderType = msg.SenderType,
+                    senderUserId = msg.SenderUserId,
+                    createdAt = msg.CreatedAt,
+                    isRead = msg.IsRead
+                });
+
+            if (convo.AssignedResponsableId.HasValue)
+            {
+                await NotifierResponsable(convo.AssignedResponsableId.Value, convo, msg);
+            }
+            else
+            {
+                var responsableIds = await _ctx.Users
+                    .Where(u => u.Role == UserRole.Responsable && u.IsActive)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                foreach (var respId in responsableIds)
+                    await NotifierResponsable(respId, convo, msg);
+            }
+
+            return new SentMessageDto { Id = msg.Id, Content = msg.Content, CreatedAt = msg.CreatedAt };
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
+
+    // ── Responsable ──────────────────────────────────────────────
+
+    public async Task<List<ConversationSummaryDto>> GetConversationsAsync(Guid responsableId)
+    {
+        var mesServiceIds = await _ctx.Services
+            .Where(s => s.ResponsableId == responsableId && s.IsActive)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        var mesClientIds = await _ctx.Abonnements
+            .Where(a => a.IsActive && (
+                (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+            ))
+            .Select(a => a.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        return await _ctx.ChatConversations
+            .Include(c => c.Client)
+            .Include(c => c.Messages)
+            .Where(c =>
+                c.AssignedResponsableId == responsableId ||
+                (c.AssignedResponsableId == null && mesClientIds.Contains(c.ClientId))
+            )
+            .OrderByDescending(c => c.UpdatedAt)
+            .Select(c => new ConversationSummaryDto
+            {
+                Id = c.Id,
+                ClientId = c.ClientId,
+                ClientName = c.Client.Username,
+                ClientEmail = c.Client.Email,
+                AssignedResponsableId = c.AssignedResponsableId,
+                Statut = c.Statut,
+                UpdatedAt = c.UpdatedAt,
+                UnreadCount = c.Messages.Count(m => !m.IsRead && m.SenderType == nameof(Client)),
+                LastMessage = c.Messages
+                    .OrderByDescending(m => m.CreatedAt)
+                    .Select(m => new LastMessageDto
+                    {
+                        Content = m.Content,
+                        SenderType = m.SenderType,
+                        CreatedAt = m.CreatedAt
+                    })
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+    }
+
+    public async Task<ServiceResult<List<ChatMessageDto>>> GetConversationMessagesAsync(
+        Guid conversationId, Guid responsableId)
+    {
+        var convo = await _ctx.ChatConversations
+            .Include(c => c.Messages.OrderBy(m => m.CreatedAt))
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+        if (convo == null)
+            return ServiceResult<List<ChatMessageDto>>.NotFound("Conversation introuvable.");
+
+        if (convo.AssignedResponsableId.HasValue && convo.AssignedResponsableId != responsableId)
+            return ServiceResult<List<ChatMessageDto>>.Forbidden();
+
+        if (!convo.AssignedResponsableId.HasValue &&
+            !await ResponsableOwnsClientAsync(responsableId, convo.ClientId))
+            return ServiceResult<List<ChatMessageDto>>.Forbidden();
+
+        var messages = convo.Messages.Select(m => new ChatMessageDto
+        {
+            Id = m.Id,
+            Content = m.Content,
+            SenderType = m.SenderType,
+            SenderUserId = m.SenderUserId,
+            IsRead = m.IsRead,
+            CreatedAt = m.CreatedAt
+        }).ToList();
+
+        foreach (var m in convo.Messages.Where(m => m.SenderType == nameof(Client) && !m.IsRead))
+            m.IsRead = true;
+
+        await _ctx.SaveChangesAsync();
+
+        return ServiceResult<List<ChatMessageDto>>.Ok(messages);
+    }
+
+    public async Task<ServiceResult<SentMessageDto>> SendStaffMessageAsync(
+        Guid conversationId, Guid senderId, string content)
+    {
+        using var tx = await _ctx.Database.BeginTransactionAsync();
+        try
+        {
+            var convo = await _ctx.ChatConversations
+                .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+            if (convo == null)
+                return ServiceResult<SentMessageDto>.NotFound("Conversation introuvable.");
+
+            if (convo.Statut != nameof(Open))
+                return ServiceResult<SentMessageDto>.BadRequest("Conversation fermée.");
+
+            if (convo.AssignedResponsableId == null)
+            {
+                if (!await ResponsableOwnsClientAsync(senderId, convo.ClientId))
+                    return ServiceResult<SentMessageDto>.Forbidden();
+
+                convo.AssignedResponsableId = senderId;
+            }
+            else if (convo.AssignedResponsableId != senderId)
+                return ServiceResult<SentMessageDto>.Forbidden();
+
+            var msg = new ChatMessage
+            {
+                ConversationId = convo.Id,
+                SenderType = nameof(Responsable),
+                SenderUserId = senderId,
+                Content = content.Trim(),
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            convo.UpdatedAt = DateTime.UtcNow;
+            _ctx.ChatMessages.Add(msg);
+            await _ctx.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            // ── SignalR hors transaction ──────────────────────────
+            await _hub.Clients.Group($"chat_{convo.Id}")
+                .SendAsync("ReceiveMessage", new
+                {
+                    id = msg.Id,
+                    content = msg.Content,
+                    senderType = msg.SenderType,
+                    senderUserId = msg.SenderUserId,
+                    createdAt = msg.CreatedAt,
+                    isRead = msg.IsRead
+                });
+
+            await _hub.Clients.Group(convo.ClientId.ToString())
+                .SendAsync("StaffReplied", new
+                {
+                    conversationId = convo.Id,
+                    content = msg.Content,
+                    createdAt = msg.CreatedAt
+                });
+
+            await _notifService.SendAsync(
+                convo.ClientId,
+                $"Nouveau message du support : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"",
+                "info"
+            );
+
+            return ServiceResult<SentMessageDto>.Ok(new SentMessageDto
+            {
+                Id = msg.Id,
+                Content = msg.Content,
+                CreatedAt = msg.CreatedAt
+            });
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<ServiceResult<bool>> CloseConversationAsync(Guid conversationId, Guid responsableId)
+    {
+        var convo = await _ctx.ChatConversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+        if (convo == null)
+            return ServiceResult<bool>.NotFound("Conversation introuvable.");
+
+        if (convo.AssignedResponsableId.HasValue && convo.AssignedResponsableId != responsableId)
+            return ServiceResult<bool>.Forbidden();
+
+        convo.Statut = nameof(Closed);
+        convo.UpdatedAt = DateTime.UtcNow;
+        await _ctx.SaveChangesAsync();
+
+        return ServiceResult<bool>.Ok(true);
+    }
+}

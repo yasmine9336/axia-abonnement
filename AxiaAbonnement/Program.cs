@@ -1,9 +1,11 @@
 using AxiaAbonnement.Data;
 using AxiaAbonnement.Hubs;
+using AxiaAbonnement.Middleware;
 using AxiaAbonnement.Models.Email;
 using AxiaAbonnement.Services.Implementations;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;             // ← UI de test
@@ -14,6 +16,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Contrôleurs API (JSON uniquement)
 builder.Services.AddControllers();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("AuthPolicy", o =>
+    {
+        o.Window = TimeSpan.FromMinutes(1);
+        o.PermitLimit = 10;
+        o.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = 429;
+});
+
 
 builder.Services.AddSignalR();
 
@@ -61,6 +75,9 @@ builder.Services.AddScoped<IDemandeService, DemandeService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddScoped<IChatService, ChatService>();
+
 
 var emailConfig = builder.Configuration
     .GetSection("EmailConfiguration")
@@ -151,8 +168,10 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();  // ← UI de test sur /scalar/v1
 }
 
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("ReactPolicy");   // ← AVANT Authentication
+app.UseRateLimiter();
 app.UseAuthentication();       // ← Lire et valider le JWT
 app.UseAuthorization();        // ← Appliquer les [Authorize]
 app.UseStaticFiles();

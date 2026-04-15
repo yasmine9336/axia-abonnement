@@ -43,33 +43,31 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var now = DateTime.UtcNow;
 
-            var totalAbonnes = await _db.Abonnements
-                .Where(a => a.IsActive && a.DateFin > now)
-                .Select(a => a.UserId)
-                .Distinct()
-                .CountAsync();
-
-            var revenuMensuel = await _db.Abonnements
-                .Where(a => a.IsActive && a.DateFin > now && a.Type == "mensuel")
-                .SumAsync(a => a.Montant);
-
-            var servicesActifs = await _db.Services
-                .CountAsync(s => s.IsActive);
-
-            var demandesEnAttente = await _db.DemandesRenouvellement
-                .CountAsync(d => d.Statut == "en_attente");
+            var stats = await _db.Abonnements
+                .GroupBy(_ => 1)
+                .Select(g => new
+                {
+                    TotalAbonnes = g.Where(a => a.IsActive && a.DateFin > now)
+                                    .Select(a => a.UserId).Distinct().Count(),
+                    RevenuMensuel = g.Where(a => a.IsActive && a.DateFin > now && a.Type == "mensuel")
+                                     .Sum(a => (decimal?)a.Montant) ?? 0m,
+                    DemandesEnAttente = _db.DemandesRenouvellement
+                                            .Count(d => d.Statut == "en_attente"),
+                    ServicesActifs = _db.Services.Count(s => s.IsActive),
+                })
+                .FirstOrDefaultAsync();
 
             var abonnementsRecents = await _db.Abonnements
                 .Include(a => a.Offre)
                 .Include(a => a.Service)
                 .Include(a => a.User)
-
                 .OrderByDescending(a => a.CreatedAt)
                 .Take(5)
                 .Select(a => new AbonnementDto
                 {
                     Id = a.Id,
-                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre : a.Service != null ? a.Service.IntituleService : "",
+                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre
+                                  : a.Service != null ? a.Service.IntituleService : "",
                     Type = a.Type,
                     Montant = a.Montant,
                     DateDebut = a.DateDebut,
@@ -83,13 +81,14 @@ namespace AxiaAbonnement.Services.Implementations
 
             return new StatsDto
             {
-                TotalAbonnes = totalAbonnes,
-                RevenuMensuel = revenuMensuel,
-                ServicesActifs = servicesActifs,
-                DemandesEnAttente = demandesEnAttente,
+                TotalAbonnes = stats?.TotalAbonnes ?? 0,
+                RevenuMensuel = stats?.RevenuMensuel ?? 0m,
+                ServicesActifs = stats?.ServicesActifs ?? 0,
+                DemandesEnAttente = stats?.DemandesEnAttente ?? 0,
                 AbonnementsRecents = abonnementsRecents
             };
         }
+
 
         public async Task<List<AbonnementDto>> GetAllAbonnementsAsync()
         {
@@ -117,38 +116,52 @@ namespace AxiaAbonnement.Services.Implementations
                 .ToListAsync();
         }
 
-        public async Task<bool> DesactiverAsync(Guid abonnementId)
-        {
-            var a = await _db.Abonnements.FindAsync(abonnementId);
-            if (a == null || !a.IsActive) return false;
-            a.IsActive = false;
-            await _db.SaveChangesAsync();
+public async Task<bool> DesactiverAsync(Guid abonnementId, Guid responsableId)
+{
+    var a = await _db.Abonnements
+        .Include(a => a.Service)
+        .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres).ThenInclude(so => so.Service!)
+        .FirstOrDefaultAsync(a => a.Id == abonnementId);
 
-            await _notifService.SendAsync(
-                a.UserId,
-                "Votre abonnement a été désactivé.",
-                "warning"
-                );
+    if (a == null || !a.IsActive) return false;
 
-            return true;
+    // Vérifier que le responsable possède ce service/offre
+    bool owns = false;
+    if (a.ServiceId != null)
+        owns = a.Service?.ResponsableId == responsableId;
+    else if (a.OffreId != null)
+                owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
 
-        }
+            if (!owns) return false;
 
-        public async Task<bool> ActiverAsync(Guid abonnementId)
-        {
-            var a = await _db.Abonnements.FindAsync(abonnementId);
-            if (a == null || a.IsActive) return false;
-            a.IsActive = true;
-            await _db.SaveChangesAsync();
+    a.IsActive = false;
+    await _db.SaveChangesAsync();
+    await _notifService.SendAsync(a.UserId, "Votre abonnement a été désactivé.", "warning");
+    return true;
+}
 
-            await _notifService.SendAsync(
-                a.UserId,
-                $"Votre abonnement a été activé.",
-                "success"
-                );
+public async Task<bool> ActiverAsync(Guid abonnementId, Guid responsableId)
+{
+    var a = await _db.Abonnements
+        .Include(a => a.Service)
+        .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres).ThenInclude(so => so.Service!)
+        .FirstOrDefaultAsync(a => a.Id == abonnementId);
 
-            return true;
+    if (a == null || a.IsActive) return false;
 
-        }
+    bool owns = false;
+    if (a.ServiceId != null)
+        owns = a.Service?.ResponsableId == responsableId;
+    else if (a.OffreId != null)
+        owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
+
+    if (!owns) return false;
+
+    a.IsActive = true;
+    await _db.SaveChangesAsync();
+    await _notifService.SendAsync(a.UserId, "Votre abonnement a été activé.", "success");
+    return true;
+}
+
     }
 }

@@ -43,24 +43,23 @@ namespace AxiaAbonnement.Controllers
             return Ok(demandes);
         }
 
-        // Responsable — accepter
         [HttpPatch("{id}/accepter")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Accepter(Guid id)
         {
-            var ok = await _demandeService.AccepterAsync(id);
+            var ok = await _demandeService.AccepterAsync(id, GetUserId());
             if (!ok) return BadRequest("Impossible d'accepter.");
             return Ok(new { Message = "Demande acceptée." });
         }
 
-        // Responsable — refuser
         [HttpPatch("{id}/refuser")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Refuser(Guid id)
         {
-            var ok = await _demandeService.RefuserAsync(id);
+            var ok = await _demandeService.RefuserAsync(id, GetUserId());
             if (!ok) return BadRequest("Impossible de refuser.");
             return Ok(new { Message = "Demande refusée." });
         }
+
     }
 }

@@ -25,13 +25,14 @@ public class NotificationController(INotificationService notifService) : Control
             createdAt = n.CreatedAt
         }));
     }
-
     [HttpPatch("{id}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
-        var success = await _notifService.MarkAsReadAsync(id);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var success = await _notifService.MarkAsReadAsync(id, userId);
         return success ? NoContent() : NotFound();
     }
+
 
     [HttpPatch("read-all")]
     public async Task<IActionResult> MarkAllAsRead()

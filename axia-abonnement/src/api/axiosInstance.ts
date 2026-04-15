@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from './config';
+import { getToken, getRefreshToken, clearTokens } from '../utils/auth';
 
 const axiosInstance = axios.create({
   baseURL: `${API_URL}/api`,
@@ -11,7 +12,7 @@ const axiosInstance = axios.create({
 // Intercepteur REQUEST : ajoute le token JWT automatiquement
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,8 +27,7 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
 
-      const refreshToken = localStorage.getItem('refreshToken') 
-                        || sessionStorage.getItem('refreshToken');
+      const refreshToken = getRefreshToken();
 
       if (refreshToken) {
         try {
@@ -47,13 +47,11 @@ axiosInstance.interceptors.response.use(
           return axiosInstance(error.config);
 
         } catch {
-          localStorage.clear();
-          sessionStorage.clear();
+          clearTokens();
           window.location.href = '/login';
         }
       } else {
-        localStorage.clear();
-        sessionStorage.clear();
+        clearTokens();
         window.location.href = '/login';
       }
     }

@@ -1,14 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { HUB_URL } from "../api/config";
-
-function getToken(): string {
-  return (
-    localStorage.getItem("accessToken") ||
-    sessionStorage.getItem("accessToken") ||
-    ""
-  );
-}
+import { getToken } from '../utils/auth';
 
 type EventHandlers = Record<string, (...args: unknown[]) => void>;
 
@@ -28,7 +21,7 @@ export function useSignalR(
     if (!enabled) return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL, { accessTokenFactory: () => getToken() })
+      .withUrl(HUB_URL, { accessTokenFactory: () => getToken() ?? "" })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.None)
       .build();

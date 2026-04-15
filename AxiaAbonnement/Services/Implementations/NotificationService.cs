@@ -4,13 +4,16 @@ using AxiaAbonnement.Models.Entities;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 
 namespace AxiaAbonnement.Services.Implementations;
 
-public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> hub) : INotificationService
+public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> hub, ILogger<NotificationService> logger) : INotificationService
 {
     private readonly AppDbContext _ctx = ctx;
     private readonly IHubContext<NotificationHub> _hub = hub;
+    private readonly ILogger<NotificationService> _logger = logger;
 
     public async Task SendAsync(Guid userId, string message, string type = "info")
     {
@@ -36,7 +39,10 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
                     createdAt = notif.CreatedAt
                 });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Impossible d'envoyer la notification temps réel à {UserId}", userId);
+        }
 
     }
 
@@ -48,14 +54,15 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
             .ToListAsync();
     }
 
-    public async Task<bool> MarkAsReadAsync(Guid notificationId)
+    public async Task<bool> MarkAsReadAsync(Guid notificationId, Guid userId)
     {
         var notif = await _ctx.Notifications.FindAsync(notificationId);
-        if (notif == null) return false;
+        if (notif == null || notif.UserId != userId) return false;
         notif.IsRead = true;
         await _ctx.SaveChangesAsync();
         return true;
     }
+
 
 
     public async Task MarkAllAsReadAsync(Guid userId)

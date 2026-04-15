@@ -198,29 +198,47 @@ namespace AxiaAbonnement.Services.Implementations
             return true;
         }
 
-        public async Task<bool> DeleteOffreAsync(Guid id)
+        public async Task<bool> DeleteOffreAsync(Guid id, Guid responsableId)
         {
-            var offre = await _ctx.Offres.FindAsync(id);
+            var offre = await _ctx.Offres
+                .Include(o => o.ServiceOffres)
+                    .ThenInclude(so => so.Service)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
             if (offre == null) return false;
+
+            // Vérifier que au moins un des services de l'offre appartient au responsable
+            var owns = offre.ServiceOffres.Any(so => so.Service.ResponsableId == responsableId);
+            if (!owns) return false;
+
             _ctx.Offres.Remove(offre);
             await _ctx.SaveChangesAsync();
             return true;
         }
 
+
         public async Task<bool?> ToggleOffreAsync(Guid id, Guid responsableId)
         {
-            var offre = await _ctx.Offres.FindAsync(id);
+            var offre = await _ctx.Offres
+                .Include(o => o.ServiceOffres)
+                    .ThenInclude(so => so.Service)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
             if (offre == null) return null;
+
+            // Vérifier que le responsable possède l'offre
+            var owns = offre.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId);
+            if (!owns) return null;
 
             var responsable = await _ctx.Users.FindAsync(responsableId);
 
             offre.IsActive = !offre.IsActive;
-            // ✅ Nommage corrigé
             offre.ModifieLe = DateTime.UtcNow;
             offre.ModifiePar = responsable?.Username ?? "";
 
             await _ctx.SaveChangesAsync();
             return offre.IsActive;
         }
+
     }
 }

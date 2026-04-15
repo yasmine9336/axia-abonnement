@@ -4,6 +4,7 @@ using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace AxiaAbonnement.Controllers
 {
@@ -14,6 +15,7 @@ namespace AxiaAbonnement.Controllers
         private readonly IAuthService _auth;
         public AuthController(IAuthService auth) => _auth = auth;
 
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -39,6 +41,7 @@ namespace AxiaAbonnement.Controllers
         }
 
 
+        [EnableRateLimiting("AuthPolicy")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {

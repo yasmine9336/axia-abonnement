@@ -16,13 +16,13 @@ namespace AxiaAbonnement.Services.Implementations
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
-            var client = new SmtpClient(_config.SmtpServer, _config.Port)
+            using var client = new SmtpClient(_config.SmtpServer, _config.Port)
             {
                 Credentials = new NetworkCredential(_config.Username, _config.Password),
                 EnableSsl = true
             };
 
-            var mailMessage = new MailMessage
+            using var mailMessage = new MailMessage
             {
                 From = new MailAddress(_config.From),
                 Subject = subject,
@@ -32,7 +32,7 @@ namespace AxiaAbonnement.Services.Implementations
             mailMessage.To.Add(toEmail);
 
             await client.SendMailAsync(mailMessage);
-
         }
+
     }
 }

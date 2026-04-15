@@ -222,7 +222,6 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null)
             {
-                Console.WriteLine("USER NULL");
                 return false;
             }
 
