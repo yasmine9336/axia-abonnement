@@ -3,21 +3,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAuth } from "./AuthContext";
 import { useSignalR } from "../hooks/useSignalR";
-
-interface Notification {
-  id: string;
-  message: string;
-  type: string;
-  createdAt: string;
-  isRead: boolean;
-}
+import type { NotificationItem } from "../types";
 
 interface NotificationContextType {
-  notifications: Notification[];
+  notifications: NotificationItem[];
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  // ✅ Chat badges
   unreadMessages: number;
   unreadChat: number;
   resetUnreadMessages: () => void;
@@ -41,7 +33,7 @@ export function NotificationProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
 
@@ -56,7 +48,7 @@ export function NotificationProvider({
   useSignalR(
     {
       ReceiveNotification: (notif: unknown) => {
-        setNotifications((prev) => [notif as Notification, ...prev]);
+        setNotifications((prev) => [notif as NotificationItem, ...prev]);
       },
       // ✅ Seulement pour le responsable
       NewConversationMessage: () => {

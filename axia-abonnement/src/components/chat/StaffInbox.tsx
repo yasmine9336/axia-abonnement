@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useStaffChat } from "../../hooks/useChat";
 import { Send, Loader2, MessageSquare, X, Clock } from "lucide-react";
 import axiosInstance from "../../api/axiosInstance";
-import { type ChatMessage } from "../../hooks/useChat";
+import type { ChatMessage } from "../../types";
 
 export default function StaffInbox() {
   const {

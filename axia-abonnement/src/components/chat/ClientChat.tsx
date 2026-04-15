@@ -1,26 +1,29 @@
 import { useState } from "react";
 import { useClientChat } from "../../hooks/useChat";
+import { useNotifications } from "../../context/NotificationContext";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 
 export default function ClientChat() {
   const [open, setOpenState] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, unread, sending, loadMessages, sendMessage, setOpen } =
-    useClientChat();
+  const { messages, sending, loadMessages, sendMessage } = useClientChat();
+  const { unreadChat, resetUnreadChat } = useNotifications();
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     const next = !open;
     setOpenState(next);
-    setOpen(next);
-    if (next) loadMessages();
+
+    if (next) {
+      await loadMessages();
+      resetUnreadChat();
+    }
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
     await sendMessage(input);
     setInput("");
-    // ✅ Recharger les messages comme fallback si SignalR est lent
-    await loadMessages();
+    await loadMessages(); // fallback
   };
 
   const formatTime = (d: string) =>
@@ -91,14 +94,14 @@ export default function ClientChat() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  void handleSend();
                 }
               }}
               placeholder="Écrivez un message..."
               className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4F46E5]"
             />
             <button
-              onClick={handleSend}
+              onClick={() => void handleSend()}
               disabled={!input.trim() || sending}
               className="p-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50 transition-colors"
             >
@@ -113,13 +116,13 @@ export default function ClientChat() {
       )}
 
       <button
-        onClick={handleToggle}
+        onClick={() => void handleToggle()}
         className="w-14 h-14 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-full shadow-lg flex items-center justify-center transition-all relative"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
-        {!open && unread > 0 && (
+        {!open && unreadChat > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-            {unread > 9 ? "9+" : unread}
+            {unreadChat > 9 ? "9+" : unreadChat}
           </span>
         )}
       </button>
