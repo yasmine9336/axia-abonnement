@@ -1,20 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
-import ProfileSection from "../../components/private_layout/ProfileSection";
-import PaymentSection from "../../components/private_layout/PaymentSection";
-import SubscriptionsSection from "../../components/private_layout/MesAbonnementsSection";
-import HistoriqueSection from "../../components/private_layout/HistoriqueSection";
+import { useAuth } from "../../hooks/useAuth";
+import ProfileSection from "../../components/sections/ProfileSection";
+import PaymentSection from "../../components/sections/PaymentSection";
+import SubscriptionsSection from "../../components/sections/MesAbonnementsSection";
+import HistoriqueSection from "../../components/sections/HistoriqueSection";
 import axiosInstance from "../../api/axiosInstance";
-import { useNotifications } from "../../context/useNotifications";
-import ClientChat from "../../components/chat/ClientChat";
+import { useNotifications } from "../../hooks/useNotifications";
 
 type Section =
   | "dashboard"
   | "payment"
   | "subscriptions"
   | "history"
-  | "chat"
   | "profile";
 
 interface Props {
@@ -102,7 +100,6 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
   if (section === "profile") return <ProfileSection />;
   if (section === "payment") return <PaymentSection />;
   if (section === "subscriptions") return <SubscriptionsSection />;
-  if (section === "chat") return <ClientChat />;
   if (section === "history") return <HistoriqueSection />;
 
   return (
@@ -365,11 +362,6 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
                 label: "Gérer les abonnements",
                 path: "/dashboard/client/subscriptions",
                 icon: "📦",
-              },
-              {
-                label: "Contacter le support",
-                path: "/dashboard/client/chat",
-                icon: "💬",
               },
               { label: "Explorer les offres", path: "/", icon: "🔍" },
             ].map((action) => (

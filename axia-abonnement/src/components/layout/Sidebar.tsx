@@ -1,9 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { API_URL } from "../../api/config";
-import { useNotifications } from "../../context/useNotifications";
+import { useNotifications } from "../../hooks/useNotifications";
 
 interface NavItem {
   label: string;
@@ -45,15 +45,6 @@ const clientNav: NavItem[] = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Discussion",
-    path: "/dashboard/client/chat",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
     ),
   },

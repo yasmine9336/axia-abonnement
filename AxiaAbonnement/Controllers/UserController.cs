@@ -2,6 +2,7 @@
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AxiaAbonnement.Controllers
 {
@@ -22,9 +23,14 @@ namespace AxiaAbonnement.Controllers
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetClients()
         {
-            var clients = await _userService.GetClientsAsync();
-            return Ok(clients);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Responsable")
+                return Ok(await _userService.GetClientsByResponsableAsync(
+                    Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)));
+
+            return Ok(await _userService.GetClientsAsync());
         }
+
 
         // Admin → liste responsables
         [HttpGet("responsables")]

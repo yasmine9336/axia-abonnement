@@ -15,19 +15,18 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
     private readonly IHubContext<NotificationHub> _hub = hub;
     private readonly ILogger<NotificationService> _logger = logger;
 
-    public async Task SendAsync(Guid userId, string message, string type = "info")
+    public async Task SendAsync(Guid userId, string message, string type = "info", string? route = null)
     {
-        // Persister en base
         var notif = new Notification
         {
             UserId = userId,
             Message = message,
-            Type = type
+            Type = type,
+            Route = route
         };
         _ctx.Notifications.Add(notif);
         await _ctx.SaveChangesAsync();
 
-        // Envoyer en temps réel si l'utilisateur est connecté
         try
         {
             await _hub.Clients.Group(userId.ToString())
@@ -36,15 +35,13 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
                     id = notif.Id,
                     message = notif.Message,
                     type = notif.Type,
+                    route = notif.Route,
                     createdAt = notif.CreatedAt
                 });
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Impossible d'envoyer la notification temps réel à {UserId}", userId);
-        }
-
+        catch { }
     }
+
 
     public async Task<List<Notification>> GetUnreadAsync(Guid userId)
     {

@@ -4,7 +4,7 @@ namespace AxiaAbonnement.Services.Interfaces;
 
 public interface INotificationService
 {
-    Task SendAsync(Guid userId, string message, string type = "info");
+    Task SendAsync(Guid userId, string message, string type = "info", string? route = null);
     Task<List<Notification>> GetUnreadAsync(Guid userId);
     Task<bool> MarkAsReadAsync(Guid notificationId, Guid userId);
     Task MarkAllAsReadAsync(Guid userId);

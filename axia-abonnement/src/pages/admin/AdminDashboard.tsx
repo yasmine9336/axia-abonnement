@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
-import ProfileSection from "../../components/private_layout/ProfileSection";
-import ResponsablesSection from "../../components/private_layout/ResponsablesSection";
-import AbonnementsAdminSection from "../../components/private_layout/AbonnementsAdminSection";
-import CatalogueAdminSection from "../../components/private_layout/CatalogueAdminSection";
-import ArchiveAdminSection from "../../components/private_layout/ArchiveAdminSection";
-import TransactionsAdminSection from "../../components/private_layout/TransactionsAdminSection";
+import { useAuth } from "../../hooks/useAuth";
+import ProfileSection from "../../components/sections/ProfileSection";
+import ResponsablesSection from "../../components/sections/ResponsablesSection";
+import AbonnementsAdminSection from "../../components/sections/AbonnementsAdminSection";
+import CatalogueAdminSection from "../../components/sections/CatalogueAdminSection";
+import ArchiveAdminSection from "../../components/sections/ArchiveAdminSection";
+import TransactionsAdminSection from "../../components/sections/TransactionsAdminSection";
 import axiosInstance from "../../api/axiosInstance";
 
 type Section =

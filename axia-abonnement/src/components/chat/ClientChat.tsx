@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useAutoScroll } from "../../hooks/useAutoScroll";
 import { useClientChat } from "../../hooks/useChat";
-import { useNotifications } from "../../context/useNotifications";
+import { useNotifications } from "../../hooks/useNotifications";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 
 export default function ClientChat() {
@@ -8,11 +9,12 @@ export default function ClientChat() {
   const [input, setInput] = useState("");
   const { messages, sending, loadMessages, sendMessage } = useClientChat();
   const { unreadChat, resetUnreadChat } = useNotifications();
+  const bottomRef = useAutoScroll(messages);
+
 
   const handleToggle = async () => {
     const next = !open;
     setOpenState(next);
-
     if (next) {
       await loadMessages();
       resetUnreadChat();
@@ -23,7 +25,7 @@ export default function ClientChat() {
     if (!input.trim()) return;
     await sendMessage(input);
     setInput("");
-    await loadMessages(); // fallback
+    // SignalR ajoute le message via ReceiveMessage
   };
 
   const formatTime = (d: string) =>
@@ -44,7 +46,7 @@ export default function ClientChat() {
               <p className="text-indigo-200 text-xs">Nous répondons rapidement</p>
             </div>
             <button
-              onClick={handleToggle}
+              onClick={() => void handleToggle()}
               className="text-indigo-200 hover:text-white"
             >
               <X size={18} />
@@ -85,6 +87,7 @@ export default function ClientChat() {
                 </div>
               </div>
             ))}
+            <div ref={bottomRef} />
           </div>
 
           <div className="p-3 border-t border-gray-100 bg-white flex gap-2">

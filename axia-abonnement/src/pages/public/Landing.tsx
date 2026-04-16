@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/public_layout/Navbar";
-import Footer from "../../components/public_layout/Footer";
-import { useAuth } from "../../context/useAuth";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/layout/Footer";
+import { useAuth } from "../../hooks/useAuth";
 import { API_URL } from "../../api/config";
 
 interface Service {

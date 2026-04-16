@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
-import ExportButton from "./../common/ExportButton";
+import ExportButton from "../common/ExportButton";
 
 interface ServiceItem {
   id: string;

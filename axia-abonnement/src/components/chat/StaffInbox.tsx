@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useAutoScroll } from "../../hooks/useAutoScroll";
 import { Send, Loader2, MessageSquare, X, Clock } from "lucide-react";
-import axiosInstance from "../../api/axiosInstance";
 import type { ChatMessage, Conversation } from "../../types";
 import { useStaffChat } from "../../hooks/useChat";
-import { useNotifications } from "../../context/useNotifications";
+import { useNotifications } from "../../hooks/useNotifications";
 
 export default function StaffInbox() {
   const {
@@ -19,30 +19,19 @@ export default function StaffInbox() {
   } = useStaffChat();
 
   const { resetUnreadMessages } = useNotifications();
-
   const [input, setInput] = useState("");
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+  const bottomRef = useAutoScroll(messages);
 
-  const displayMessages = localMessages.length > 0 ? localMessages : messages;
+
 
   const handleSend = async () => {
     if (!input.trim()) return;
     await sendMessage(input);
     setInput("");
-
-    if (selected) {
-      const res = await axiosInstance.get(
-        `/chat/conversations/${selected.id}/messages`
-      );
-      setLocalMessages(res.data);
-    }
   };
 
   const handleOpenConversation = async (conv: Conversation) => {
-    setLocalMessages([]);
     await openConversation(conv);
-
-    // ✅ badge disparaît seulement après ouverture réelle d'une conversation
     resetUnreadMessages();
   };
 
@@ -85,7 +74,7 @@ export default function StaffInbox() {
             conversations.map((conv: Conversation) => (
               <button
                 key={conv.id}
-                onClick={() => handleOpenConversation(conv)}
+                onClick={() => void handleOpenConversation(conv)}
                 className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                   selected?.id === conv.id
                     ? "bg-indigo-50 border-l-2 border-l-[#4F46E5]"
@@ -139,13 +128,11 @@ export default function StaffInbox() {
                   <p className="font-semibold text-gray-900">
                     {selected.clientName}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {selected.clientEmail}
-                  </p>
+                  <p className="text-xs text-gray-400">{selected.clientEmail}</p>
                 </div>
                 {selected.statut === "Open" && (
                   <button
-                    onClick={handleClose}
+                    onClick={() => void handleClose()}
                     className="flex items-center gap-1.5 text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
                   >
                     <X size={13} /> Fermer
@@ -154,7 +141,7 @@ export default function StaffInbox() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                {displayMessages.map((msg: ChatMessage) => (
+                {messages.map((msg: ChatMessage) => (
                   <div
                     key={msg.id}
                     className={`flex ${
@@ -191,6 +178,7 @@ export default function StaffInbox() {
                     </div>
                   </div>
                 ))}
+                <div ref={bottomRef} />
               </div>
 
               {selected.statut === "Open" ? (

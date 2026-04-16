@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search } from "lucide-react";
-import ExportButton from "./../common/ExportButton";
+import ExportButton from "../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
 
 interface Abonnement {

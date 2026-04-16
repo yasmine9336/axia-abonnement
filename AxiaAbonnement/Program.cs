@@ -14,8 +14,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Contrôleurs API (JSON uniquement)
-builder.Services.AddControllers();
+// 1. Contrôleurs API 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.AddRateLimiter(options =>
 {

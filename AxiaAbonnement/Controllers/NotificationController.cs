@@ -22,6 +22,8 @@ public class NotificationController(INotificationService notifService) : Control
             id = n.Id,
             message = n.Message,
             type = n.Type,
+            route = n.Route,
+            isRead = n.IsRead,
             createdAt = n.CreatedAt
         }));
     }

@@ -57,9 +57,19 @@ namespace AxiaAbonnement.Controllers
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetAllPaiements()
         {
-            var paiements = await _paymentService.GetAllPaiementsAsync();
-            return Ok(paiements);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            if (role == "Responsable")
+            {
+                var paiements = await _paymentService.GetPaiementsByResponsableAsync(GetUserId());
+                return Ok(paiements);
+            }
+
+            // Admin → tout voir
+            var all = await _paymentService.GetAllPaiementsAsync();
+            return Ok(all);
         }
+
 
         [AllowAnonymous]
         [HttpPost("create-responsable-account-session")]

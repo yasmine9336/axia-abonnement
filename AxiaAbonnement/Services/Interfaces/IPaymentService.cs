@@ -8,5 +8,6 @@ namespace AxiaAbonnement.Services.Interfaces
         Task HandleWebhookAsync(string json, string stripeSignature, string webhookSecret);
         Task<List<PaiementDto>> GetMyPaiementsAsync(Guid userId);
         Task<List<PaiementDto>> GetAllPaiementsAsync();
+        Task<List<PaiementDto>> GetPaiementsByResponsableAsync(Guid responsableId);
     }
 }

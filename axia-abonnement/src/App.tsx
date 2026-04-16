@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import DashboardLayout from "./components/private_layout/Dashboard";
+import DashboardLayout from "./components/layout/Dashboard";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -46,7 +46,6 @@ function App() {
         <Route path="payment" element={<ClientDashboard section="payment" />} />
         <Route path="subscriptions" element={<ClientDashboard section="subscriptions" />} />
         <Route path="history" element={<ClientDashboard section="history" />} />
-        <Route path="chat" element={<ClientDashboard section="chat" />} />
         <Route path="profile" element={<ClientDashboard section="profile" />} />
       </Route>
 

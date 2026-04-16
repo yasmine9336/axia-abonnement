@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/useAuth";
-import ProfileSection from "../../components/private_layout/ProfileSection";
-import ServicesSection from "../../components/private_layout/ServicesSection";
-import OffresSection from "../../components/private_layout/OffresSection";
-import SuiviClientsSection from "../../components/private_layout/SuiviClientsSection";
-import AbonnementsSection from "../../components/private_layout/GestionAbonnementsSection";
-import ArchiveSection from "../../components/private_layout/ArchiveSection";
+import { useAuth } from "../../hooks/useAuth";
+import ProfileSection from "../../components/sections/ProfileSection";
+import ServicesSection from "../../components/sections/ServicesSection";
+import OffresSection from "../../components/sections/OffresSection";
+import SuiviClientsSection from "../../components/sections/SuiviClientsSection";
+import AbonnementsSection from "../../components/sections/GestionAbonnementsSection";
+import ArchiveSection from "../../components/sections/ArchiveSection";
 import axiosInstance from "../../api/axiosInstance";
-import TransactionsAdminSection from "../../components/private_layout/TransactionsAdminSection";
+import TransactionsAdminSection from "../../components/sections/TransactionsAdminSection";
 import StaffInbox from "../../components/chat/StaffInbox";
 
 type Section =

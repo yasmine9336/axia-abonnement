@@ -34,11 +34,9 @@ public class ChatService(
                 createdAt = msg.CreatedAt
             });
 
-        await _notifService.SendAsync(
-            respId,
-            $"Nouveau message : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"",
-            "info"
-        );
+        await _notifService.SendAsync(respId,
+            $"Nouveau message : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"", "info",
+            "/dashboard/responsable/messages");
     }
 
     private async Task<bool> ResponsableOwnsClientAsync(Guid responsableId, Guid clientId)
@@ -361,11 +359,9 @@ public class ChatService(
                     createdAt = msg.CreatedAt
                 });
 
-            await _notifService.SendAsync(
-                convo.ClientId,
-                $"Nouveau message du support : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"",
-                "info"
-            );
+            await _notifService.SendAsync(convo.ClientId,
+                $"Nouveau message du support : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"", "info",
+                "/dashboard/client/chat");
 
             return ServiceResult<SentMessageDto>.Ok(new SentMessageDto
             {

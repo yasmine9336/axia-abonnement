@@ -36,7 +36,7 @@ namespace AxiaAbonnement.Services.Implementations
             });
             await _db.SaveChangesAsync();
 
-            // ✅ Notifier uniquement les responsables du service/offre concerné
+            // Notifier uniquement les responsables du service/offre concerné
             var responsableIds = new List<Guid>();
 
             if (abonnement.ServiceId != null)
@@ -66,8 +66,10 @@ namespace AxiaAbonnement.Services.Implementations
                 await _notifService.SendAsync(
                     respId,
                     "Nouvelle demande de renouvellement d'abonnement en attente.",
-                    "info"
+                    "info",
+                    "/dashboard/responsable/suivi-clients"
                 );
+
             }
 
             return true;
@@ -130,7 +132,12 @@ namespace AxiaAbonnement.Services.Implementations
             a.DateFin = a.Type == "annuel" ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1);
 
             await _db.SaveChangesAsync();
-            await _notifService.SendAsync(a.UserId, "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.", "success");
+            await _notifService.SendAsync(
+                demande.Abonnement.UserId,
+                "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.",
+                "success",
+                "/dashboard/client/subscriptions"
+            );
             return true;
         }
 
@@ -160,7 +167,12 @@ namespace AxiaAbonnement.Services.Implementations
             demande.TraiteeAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
-            await _notifService.SendAsync(demande.ClientId, "Votre demande de renouvellement a été refusée.", "warning");
+            await _notifService.SendAsync(
+                demande.ClientId,
+                "Votre demande de renouvellement a été refusée.",
+                "warning",
+                "/dashboard/client/subscriptions"
+            );
             return true;
         }
 

@@ -244,11 +244,9 @@ namespace AxiaAbonnement.Services.Implementations
                 $"<p>Valable jusqu'au : {dateFin:dd/MM/yyyy}</p>"
             );
 
-            await _notifService.SendAsync(
-                user.Id,
-                $"Votre abonnement \"{productName}\" est maintenant actif.",
-                "success"
-            );
+            await _notifService.SendAsync(user.Id,
+                $"Votre abonnement \"{productName}\" est maintenant actif.", "success",
+                "/dashboard/client/subscriptions");
 
             // ✅ Notifier uniquement les responsables du service souscrit
             var responsableIds = new List<Guid>();
@@ -277,11 +275,9 @@ namespace AxiaAbonnement.Services.Implementations
 
             foreach (var respId in responsableIds)
             {
-                await _notifService.SendAsync(
-                    respId,
-                    $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\" ({montant} TND - {type}).",
-                    "info"
-                );
+                await _notifService.SendAsync(respId,
+                    $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\"...", "info",
+                    "/dashboard/responsable/transactions");
             }
         }
 
@@ -315,11 +311,9 @@ namespace AxiaAbonnement.Services.Implementations
 
             foreach (var admin in admins)
             {
-                await _notifService.SendAsync(
-                    admin.Id,
-                    $"Nouveau responsable actif : {user.Username}.",
-                    "info"
-                );
+                await _notifService.SendAsync(admin.Id,
+                    $"Nouveau responsable actif : {user.Username}.", "info",
+                    "/dashboard/admin/responsables");
             }
         }
 
@@ -374,5 +368,44 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
         }
+        public async Task<List<PaiementDto>> GetPaiementsByResponsableAsync(Guid responsableId)
+        {
+            var mesServiceIds = await _ctx.Services
+                .Where(s => s.ResponsableId == responsableId)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var mesAbonnementIds = await _ctx.Abonnements
+                .Where(a =>
+                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                    (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                )
+                .Select(a => a.Id)
+                .ToListAsync();
+
+            return await _ctx.Paiements
+                .Include(p => p.Abonnement).ThenInclude(a => a!.Offre)
+                .Include(p => p.Abonnement).ThenInclude(a => a!.Service)
+                .Include(p => p.User)
+                .Where(p => p.AbonnementId.HasValue && mesAbonnementIds.Contains(p.AbonnementId.Value))
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PaiementDto
+                {
+                    Id = p.Id,
+                    Montant = p.Montant,
+                    Statut = p.Statut,
+                    CreatedAt = p.CreatedAt,
+                    IntituleOffre = p.Abonnement != null && p.Abonnement.Offre != null
+                        ? p.Abonnement.Offre.IntituleOffre
+                        : p.Abonnement != null && p.Abonnement.Service != null
+                            ? p.Abonnement.Service.IntituleService
+                            : "",
+                    TypeAbonnement = p.Abonnement != null ? p.Abonnement.Type : "",
+                    ClientUsername = p.User.Username,
+                    ClientEmail = p.User.Email
+                })
+                .ToListAsync();
+        }
+
     }
 }

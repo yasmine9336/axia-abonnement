@@ -74,4 +74,5 @@ export interface NotificationItem {
   type: string;
   isRead: boolean;
   createdAt: string;
+  route?: string; 
 }

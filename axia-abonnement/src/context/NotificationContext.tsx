@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { useAuth } from "./useAuth";
-import { useSignalR } from "../hooks/useSignalR";
+import { useAuth } from "../hooks/useAuth";
+import { SignalRService } from "../services/SignalRService";
 import type { NotificationItem } from "../types";
 
 interface NotificationContextType {
@@ -14,6 +14,9 @@ interface NotificationContextType {
   unreadChat: number;
   resetUnreadMessages: () => void;
   resetUnreadChat: () => void;
+  badgeCount: number;
+  dismissBadge: () => void;
+  signalRService: SignalRService | null;
 }
 
 export const NotificationContext = createContext<NotificationContextType>({
@@ -25,6 +28,9 @@ export const NotificationContext = createContext<NotificationContextType>({
   unreadChat: 0,
   resetUnreadMessages: () => {},
   resetUnreadChat: () => {},
+  badgeCount: 0,
+  dismissBadge: () => {},
+  signalRService: null,
 });
 
 export function NotificationProvider({
@@ -36,75 +42,85 @@ export function NotificationProvider({
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [badgeCount, setBadgeCount] = useState(0);
+  const [signalRService, setSignalRService] = useState<SignalRService | null>(
+    null,
+  );
 
-  // Charger les notifications (non lues)
+  // Charger les notifications
   useEffect(() => {
     if (!user) return;
     axiosInstance
       .get("/notifications")
       .then((r) => {
-        setNotifications(r.data);
+        const data = (r.data ?? []) as NotificationItem[];
+        setNotifications(data);
+        setBadgeCount(data.filter((n) => !n.isRead).length);
       })
       .catch(() => {
         setNotifications([]);
+        setBadgeCount(0);
       });
   }, [user]);
 
   // Initialiser le compteur "Messages" pour le responsable
   useEffect(() => {
     if (!user || user.role !== "Responsable") return;
-
     axiosInstance
       .get("/chat/conversations")
       .then((r) => {
         const total = (r.data as Array<{ unreadCount: number }>).reduce(
           (sum, c) => sum + (c.unreadCount ?? 0),
-          0
+          0,
         );
         setUnreadMessages(total);
       })
-      .catch(() => {
-        setUnreadMessages(0);
-      });
+      .catch(() => setUnreadMessages(0));
   }, [user]);
 
-  // Une seule connexion SignalR pour tout
-  useSignalR(
-    {
-      ReceiveNotification: (notif: unknown) => {
-        setNotifications((prev) => [
-          { ...(notif as NotificationItem), isRead: false },
-          ...prev,
-        ]);
-      },
+  // Démarrer SignalR après login (comme le tutoriel : startSignalRConnection après login)
+  useEffect(() => {
+    if (!user) return;
 
-      // Responsable : nouveau message client
-      NewConversationMessage: () => {
-        if (user?.role === "Responsable") {
-          setUnreadMessages((n) => n + 1);
-        }
-      },
+    const service = new SignalRService();
 
-      // Client : réponse staff
-      StaffReplied: () => {
-        if (user?.role === "Client") {
-          setUnreadChat((n) => n + 1);
-        }
+    service.createConnection({
+      onNotification: (notif) => {
+        setNotifications((prev) => [notif, ...prev]);
+        setBadgeCount((c) => c + 1);
       },
-    },
-    { enabled: !!user }
-  );
+      onNewMessage: () => {
+        if (user.role === "Responsable") setUnreadMessages((n) => n + 1);
+      },
+      onStaffReplied: () => {
+        if (user.role === "Client") setUnreadChat((n) => n + 1);
+      },
+    });
+
+    service.startConnection().then(() => {
+      setSignalRService(service);
+    });
+
+    // Arrêter la connexion au logout
+    return () => {
+      service.stopConnection();
+      setSignalRService(null);
+    };
+  }, [user]);
 
   const markAsRead = async (id: string) => {
     await axiosInstance.patch(`/notifications/${id}/read`);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+    setNotifications((prev) => {
+      const target = prev.find((n) => n.id === id);
+      if (target && !target.isRead) setBadgeCount((c) => Math.max(0, c - 1));
+      return prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+    });
   };
 
   const markAllAsRead = async () => {
     await axiosInstance.patch("/notifications/read-all");
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setBadgeCount(0);
   };
 
   return (
@@ -118,6 +134,9 @@ export function NotificationProvider({
         unreadChat,
         resetUnreadMessages: () => setUnreadMessages(0),
         resetUnreadChat: () => setUnreadChat(0),
+        badgeCount,
+        dismissBadge: () => setBadgeCount(0),
+        signalRService,
       }}
     >
       {children}

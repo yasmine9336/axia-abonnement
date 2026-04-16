@@ -110,5 +110,38 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
         }
+        public async Task<List<UserDto>> GetClientsByResponsableAsync(Guid responsableId)
+        {
+            var now = DateTime.UtcNow;
+
+            var mesServiceIds = await _ctx.Services
+                .Where(s => s.ResponsableId == responsableId)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var mesClientIds = await _ctx.Abonnements
+                .Where(a =>
+                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                    (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                )
+                .Select(a => a.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            return await _ctx.Users
+                .Where(u => mesClientIds.Contains(u.Id))
+                .OrderByDescending(u => u.CreatedAt)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    IsActive = _ctx.Abonnements
+                        .Any(a => a.UserId == u.Id && a.IsActive && a.DateFin > now)
+                })
+                .ToListAsync();
+        }
+
     }
 }

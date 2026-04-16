@@ -1,15 +1,51 @@
-import { useEffect, useState, type ReactNode } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useEffect, useState, type ReactNode } from "react";
 import axiosInstance from "../api/axiosInstance";
-import {
-  AuthContext,
-  type User,
-  type RegisterData,
-  type RegisterResult,
-  type LoginOutcome,
-} from "./AuthContextStore";
 
-export type { RegisterData, RegisterResult, LoginOutcome };
+// ─── Types ───────────────────────────────────────────────────
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+}
 
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  role: "Client" | "Responsable";
+  phoneNumber?: string;
+  nomEntreprise?: string;
+  matriculeFiscal?: string;
+  secteurActivite?: string;
+  adresseProfessionnelle?: string;
+}
+
+export interface RegisterResult {
+  role: string;
+  statut?: string;
+  message?: string;
+}
+
+export type LoginOutcome =
+  | { kind: "success"; role: string }
+  | { kind: "pending"; message: string }
+  | { kind: "payment_required"; message: string; userId: string }
+  | { kind: "rejected"; message: string }
+  | { kind: "invalid"; message: string };
+
+interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string, remember: boolean) => Promise<LoginOutcome>;
+  logout: () => void;
+  register: (data: RegisterData) => Promise<RegisterResult>;
+  loading: boolean;
+}
+
+export const AuthContext = createContext<AuthContextType | null>(null);
+
+// ─── Provider ────────────────────────────────────────────────
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,14 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("accessToken", accessToken);
         if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("rememberMe", "true");
-
         sessionStorage.removeItem("accessToken");
         sessionStorage.removeItem("refreshToken");
         sessionStorage.removeItem("user");
       } else {
         sessionStorage.setItem("accessToken", accessToken);
         if (refreshToken) sessionStorage.setItem("refreshToken", refreshToken);
-
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
@@ -134,11 +168,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     localStorage.removeItem("rememberMe");
-
     sessionStorage.removeItem("accessToken");
     sessionStorage.removeItem("refreshToken");
     sessionStorage.removeItem("user");
-
     setUser(null);
   };
 

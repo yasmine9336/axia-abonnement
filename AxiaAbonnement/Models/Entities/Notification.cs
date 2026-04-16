@@ -9,4 +9,5 @@ public class Notification
     public string Type { get; set; } = "info"; // "info", "success", "warning"
     public bool IsRead { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? Route { get; set; } // ex: "/dashboard/client/subscriptions"
 }

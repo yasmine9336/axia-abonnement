@@ -29,23 +29,28 @@ namespace AxiaAbonnement.Controllers
             return Ok(result);
         }
 
-        // Staff → tous les abonnements
         [HttpGet("all")]
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _abonnementService.GetAllAbonnementsAsync();
-            return Ok(result);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Responsable")
+                return Ok(await _abonnementService.GetAbonnementsByResponsableAsync(GetUserId()));
+
+            return Ok(await _abonnementService.GetAllAbonnementsAsync());
         }
 
-        // Staff → statistiques
         [HttpGet("stats")]
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetStats()
         {
-            var result = await _abonnementService.GetStatsAsync();
-            return Ok(result);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Responsable")
+                return Ok(await _abonnementService.GetStatsByResponsableAsync(GetUserId()));
+
+            return Ok(await _abonnementService.GetStatsAsync());
         }
+
 
         [HttpPatch("{id}/activer")]
         [Authorize(Policy = "ResponsableOnly")]

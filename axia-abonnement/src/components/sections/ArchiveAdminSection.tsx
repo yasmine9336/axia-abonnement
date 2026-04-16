@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search } from "lucide-react";
-import ExportButton from "./../common/ExportButton";
+import ExportButton from "../common/ExportButton";
 
 interface Client {
   id: string;
