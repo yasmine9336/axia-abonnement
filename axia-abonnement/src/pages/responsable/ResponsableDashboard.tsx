@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import ProfileSection from "../../components/private_layout/ProfileSection";
 import ServicesSection from "../../components/private_layout/ServicesSection";
 import OffresSection from "../../components/private_layout/OffresSection";

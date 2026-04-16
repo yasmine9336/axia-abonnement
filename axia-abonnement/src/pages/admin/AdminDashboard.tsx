@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import ProfileSection from "../../components/private_layout/ProfileSection";
 import ResponsablesSection from "../../components/private_layout/ResponsablesSection";
 import AbonnementsAdminSection from "../../components/private_layout/AbonnementsAdminSection";

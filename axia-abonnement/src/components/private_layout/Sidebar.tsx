@@ -1,9 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { API_URL } from "../../api/config";
-import { useNotifications } from "../../context/NotificationContext";
+import { useNotifications } from "../../context/useNotifications";
 
 interface NavItem {
   label: string;
@@ -227,7 +227,7 @@ export default function Sidebar() {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   // ✅ Utiliser NotificationContext au lieu de useSignalR direct
-  const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } =
+  const { unreadMessages, unreadChat, resetUnreadChat } =
     useNotifications();
 
   const getPhotoUrl = (photoPath?: string | null) => {
@@ -288,7 +288,7 @@ export default function Sidebar() {
               onClick={() => {
                 navigate(item.path);
                 // ✅ Reset badge au clic via context
-                if (isMessages) resetUnreadMessages();
+
                 if (isChat) resetUnreadChat();
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${

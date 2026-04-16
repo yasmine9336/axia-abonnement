@@ -1,25 +1,29 @@
 import { useState, useRef, useEffect } from "react";
-import { useNotifications } from "../../context/NotificationContext";
+import { useNotifications } from "../../context/useNotifications";
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } =
-    useNotifications();
+  const { notifications, unreadCount, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ✅ Fermer le dropdown après markAllAsRead
-  const handleMarkAllAsRead = async () => {
-    await markAllAsRead();
-    setOpen(false);
+  const handleToggle = async () => {
+    const next = !open;
+    setOpen(next);
+
+    // ✅ ouverture du panneau => tout marquer comme lu
+    if (next && unreadCount > 0) {
+      await markAllAsRead();
+    }
   };
 
   const formatDate = (d: string) =>
@@ -39,7 +43,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => void handleToggle()}
         className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
       >
         <svg
@@ -68,14 +72,6 @@ export default function NotificationBell() {
             <span className="font-semibold text-gray-900 text-sm">
               Notifications
             </span>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllAsRead}
-                className="text-xs text-[#4F46E5] hover:underline"
-              >
-                Tout marquer comme lu
-              </button>
-            )}
           </div>
 
           <div className="max-h-80 overflow-y-auto">
@@ -87,10 +83,9 @@ export default function NotificationBell() {
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`px-4 py-3 mx-2 my-1 rounded-xl cursor-pointer ${
+                  className={`px-4 py-3 mx-2 my-1 rounded-xl ${
                     n.isRead ? "bg-gray-50 opacity-60" : typeColor(n.type)
                   }`}
-                  onClick={() => !n.isRead && markAsRead(n.id)}
                 >
                   <p className="text-sm text-gray-800">{n.message}</p>
                   <p className="text-xs text-gray-400 mt-1">

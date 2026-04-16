@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/public_layout/Navbar";
 import Footer from "../../components/public_layout/Footer";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { API_URL } from "../../api/config";
 
 interface Service {

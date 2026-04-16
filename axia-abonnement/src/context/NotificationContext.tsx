@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 import { useSignalR } from "../hooks/useSignalR";
 import type { NotificationItem } from "../types";
 
@@ -16,7 +16,7 @@ interface NotificationContextType {
   resetUnreadChat: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
+export const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
   unreadCount: 0,
   markAsRead: async () => {},
@@ -37,39 +37,68 @@ export function NotificationProvider({
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
 
+  // Charger les notifications (non lues)
   useEffect(() => {
     if (!user) return;
-    axiosInstance.get("/notifications").then((r) => {
-      setNotifications(r.data);
-    });
+    axiosInstance
+      .get("/notifications")
+      .then((r) => {
+        setNotifications(r.data);
+      })
+      .catch(() => {
+        setNotifications([]);
+      });
   }, [user]);
 
-  // ✅ Une seule connexion SignalR pour tout
+  // Initialiser le compteur "Messages" pour le responsable
+  useEffect(() => {
+    if (!user || user.role !== "Responsable") return;
+
+    axiosInstance
+      .get("/chat/conversations")
+      .then((r) => {
+        const total = (r.data as Array<{ unreadCount: number }>).reduce(
+          (sum, c) => sum + (c.unreadCount ?? 0),
+          0
+        );
+        setUnreadMessages(total);
+      })
+      .catch(() => {
+        setUnreadMessages(0);
+      });
+  }, [user]);
+
+  // Une seule connexion SignalR pour tout
   useSignalR(
     {
       ReceiveNotification: (notif: unknown) => {
-        setNotifications((prev) => [notif as NotificationItem, ...prev]);
+        setNotifications((prev) => [
+          { ...(notif as NotificationItem), isRead: false },
+          ...prev,
+        ]);
       },
-      // ✅ Seulement pour le responsable
+
+      // Responsable : nouveau message client
       NewConversationMessage: () => {
         if (user?.role === "Responsable") {
           setUnreadMessages((n) => n + 1);
         }
       },
-      // ✅ Seulement pour le client
+
+      // Client : réponse staff
       StaffReplied: () => {
         if (user?.role === "Client") {
           setUnreadChat((n) => n + 1);
         }
       },
     },
-    { enabled: !!user },
+    { enabled: !!user }
   );
 
   const markAsRead = async (id: string) => {
     await axiosInstance.patch(`/notifications/${id}/read`);
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     );
   };
 
@@ -95,5 +124,3 @@ export function NotificationProvider({
     </NotificationContext.Provider>
   );
 }
-
-export const useNotifications = () => useContext(NotificationContext);

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import ProfileSection from "../../components/private_layout/ProfileSection";
 import PaymentSection from "../../components/private_layout/PaymentSection";
 import SubscriptionsSection from "../../components/private_layout/MesAbonnementsSection";
 import HistoriqueSection from "../../components/private_layout/HistoriqueSection";
 import axiosInstance from "../../api/axiosInstance";
-import { useNotifications } from "../../context/NotificationContext";
+import { useNotifications } from "../../context/useNotifications";
 import ClientChat from "../../components/chat/ClientChat";
 
 type Section =

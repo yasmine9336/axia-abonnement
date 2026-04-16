@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { HUB_URL } from "../api/config";
-import { getToken } from '../utils/auth';
+import { getToken } from "../utils/auth";
 
 type EventHandlers = Record<string, (...args: unknown[]) => void>;
 
@@ -16,33 +16,74 @@ export function useSignalR(
 ) {
   const { enabled = true, onConnected } = options;
   const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const handlersRef = useRef<EventHandlers>(handlers);
+  const registeredEventsRef = useRef<string[]>([]);
+
+  // Toujours garder les handlers à jour (sans recréer la connexion)
+  useEffect(() => {
+    handlersRef.current = handlers;
+  }, [handlers]);
 
   useEffect(() => {
     if (!enabled) return;
 
+    let disposed = false;
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL, { accessTokenFactory: () => getToken() ?? "" })
       .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.None)
+      .configureLogging(signalR.LogLevel.Warning)
       .build();
-
-    Object.entries(handlers).forEach(([event, handler]) => {
-      connection.on(event, handler);
-    });
-
-    connection
-      .start()
-      .then(() => onConnected?.(connection))
-      .catch(() => {});
 
     connectionRef.current = connection;
 
+    const eventNames = Object.keys(handlersRef.current);
+    registeredEventsRef.current = eventNames;
+
+    for (const eventName of eventNames) {
+      connection.on(eventName, (...args: unknown[]) => {
+        const fn = handlersRef.current[eventName];
+        if (fn) fn(...args);
+      });
+    }
+
+    (async () => {
+      try {
+        await connection.start();
+
+        if (disposed) {
+          await connection.stop();
+          return;
+        }
+
+        onConnected?.(connection);
+      } catch (err) {
+        const msg = String((err as Error)?.message ?? "");
+        const isExpectedAbort =
+          msg.includes("stopped during negotiation") ||
+          msg.includes("before the hub handshake could complete") ||
+          msg.includes("AbortError");
+
+        // On ignore les aborts attendus pendant cleanup/remount
+        if (!isExpectedAbort && !disposed) {
+          console.error("[SignalR] start failed:", err);
+        }
+      }
+    })();
+
     return () => {
-      connection.stop();
+      disposed = true;
+
+      // Nettoyage listeners
+      for (const eventName of registeredEventsRef.current) {
+        connection.off(eventName);
+      }
+      registeredEventsRef.current = [];
+
+      void connection.stop();
       connectionRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+  }, [enabled, onConnected]);
 
   return connectionRef;
 }

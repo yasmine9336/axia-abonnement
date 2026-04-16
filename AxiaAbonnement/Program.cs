@@ -155,9 +155,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"ERREUR SEED: {ex.Message}");
-        Console.WriteLine(ex.StackTrace);
-        Console.ReadLine();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erreur lors du seed initial de la base.");
     }
 }
 

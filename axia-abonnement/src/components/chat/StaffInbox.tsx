@@ -1,25 +1,35 @@
 import { useState } from "react";
-import { useStaffChat } from "../../hooks/useChat";
 import { Send, Loader2, MessageSquare, X, Clock } from "lucide-react";
 import axiosInstance from "../../api/axiosInstance";
-import type { ChatMessage } from "../../types";
+import type { ChatMessage, Conversation } from "../../types";
+import { useStaffChat } from "../../hooks/useChat";
+import { useNotifications } from "../../context/useNotifications";
 
 export default function StaffInbox() {
   const {
-    conversations, selected, messages, sending,
-    loading, totalUnread, openConversation, sendMessage, closeConversation,
+    conversations,
+    selected,
+    messages,
+    sending,
+    loading,
+    totalUnread,
+    openConversation,
+    sendMessage,
+    closeConversation,
   } = useStaffChat();
+
+  const { resetUnreadMessages } = useNotifications();
+
   const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
 
-  // ✅ Sync localMessages avec messages du hook
   const displayMessages = localMessages.length > 0 ? localMessages : messages;
 
   const handleSend = async () => {
     if (!input.trim()) return;
     await sendMessage(input);
     setInput("");
-    // ✅ Recharger les messages après envoi
+
     if (selected) {
       const res = await axiosInstance.get(
         `/chat/conversations/${selected.id}/messages`
@@ -28,9 +38,12 @@ export default function StaffInbox() {
     }
   };
 
-  const handleOpenConversation = async (conv: Parameters<typeof openConversation>[0]) => {
+  const handleOpenConversation = async (conv: Conversation) => {
     setLocalMessages([]);
     await openConversation(conv);
+
+    // ✅ badge disparaît seulement après ouverture réelle d'une conversation
+    resetUnreadMessages();
   };
 
   const handleClose = async () => {
@@ -40,8 +53,10 @@ export default function StaffInbox() {
 
   const formatTime = (d: string) =>
     new Date(d).toLocaleString("fr-FR", {
-      day: "2-digit", month: "2-digit",
-      hour: "2-digit", minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
   return (
@@ -67,12 +82,14 @@ export default function StaffInbox() {
               <p className="text-sm">Aucune conversation</p>
             </div>
           ) : (
-            conversations.map((conv) => (
+            conversations.map((conv: Conversation) => (
               <button
                 key={conv.id}
                 onClick={() => handleOpenConversation(conv)}
                 className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  selected?.id === conv.id ? "bg-indigo-50 border-l-2 border-l-[#4F46E5]" : ""
+                  selected?.id === conv.id
+                    ? "bg-indigo-50 border-l-2 border-l-[#4F46E5]"
+                    : ""
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -92,7 +109,9 @@ export default function StaffInbox() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-xs text-gray-400">{formatTime(conv.updatedAt)}</span>
+                    <span className="text-xs text-gray-400">
+                      {formatTime(conv.updatedAt)}
+                    </span>
                     {conv.unreadCount > 0 && (
                       <span className="w-5 h-5 bg-[#4F46E5] text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {conv.unreadCount}
@@ -117,8 +136,12 @@ export default function StaffInbox() {
             <>
               <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-gray-900">{selected.clientName}</p>
-                  <p className="text-xs text-gray-400">{selected.clientEmail}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selected.clientName}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {selected.clientEmail}
+                  </p>
                 </div>
                 {selected.statut === "Open" && (
                   <button
@@ -131,10 +154,14 @@ export default function StaffInbox() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                {displayMessages.map((msg) => (
+                {displayMessages.map((msg: ChatMessage) => (
                   <div
                     key={msg.id}
-                    className={`flex ${msg.senderType === "Client" ? "justify-start" : "justify-end"}`}
+                    className={`flex ${
+                      msg.senderType === "Client"
+                        ? "justify-start"
+                        : "justify-end"
+                    }`}
                   >
                     <div
                       className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
@@ -144,12 +171,21 @@ export default function StaffInbox() {
                       }`}
                     >
                       {msg.senderType !== "Client" && (
-                        <p className="text-xs text-indigo-200 mb-1">{msg.senderType}</p>
+                        <p className="text-xs text-indigo-200 mb-1">
+                          {msg.senderType}
+                        </p>
                       )}
                       <p>{msg.content}</p>
-                      <p className={`text-xs mt-1 ${msg.senderType === "Client" ? "text-gray-400" : "text-indigo-200"}`}>
+                      <p
+                        className={`text-xs mt-1 ${
+                          msg.senderType === "Client"
+                            ? "text-gray-400"
+                            : "text-indigo-200"
+                        }`}
+                      >
                         {new Date(msg.createdAt).toLocaleTimeString("fr-FR", {
-                          hour: "2-digit", minute: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </div>
@@ -165,18 +201,22 @@ export default function StaffInbox() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        handleSend();
+                        void handleSend();
                       }
                     }}
                     placeholder="Répondre au client..."
                     className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4F46E5]"
                   />
                   <button
-                    onClick={handleSend}
+                    onClick={() => void handleSend()}
                     disabled={!input.trim() || sending}
                     className="p-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50"
                   >
-                    {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    {sending ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Send size={16} />
+                    )}
                   </button>
                 </div>
               ) : (

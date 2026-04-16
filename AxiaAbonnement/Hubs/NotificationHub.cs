@@ -4,19 +4,21 @@ using Microsoft.AspNetCore.SignalR;
 namespace AxiaAbonnement.Hubs;
 
 [Authorize]
-public class NotificationHub : Hub
+public class NotificationHub(ILogger<NotificationHub> logger) : Hub
 {
-    // Dans NotificationHub.cs
+    private readonly ILogger<NotificationHub> _logger = logger;
+
     public override async Task OnConnectedAsync()
     {
         var userId = Context.UserIdentifier;
-        Console.WriteLine($"=== HUB CONNECTED: userId={userId} ===");
+        _logger.LogInformation("Hub connected: userId={UserId}", userId);
+
         if (userId != null)
             await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+
         await base.OnConnectedAsync();
     }
 
-    //rejoidre une salle dec conversation
     public async Task JoinConversation(string conversationId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"chat_{conversationId}");

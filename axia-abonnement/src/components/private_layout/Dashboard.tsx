@@ -1,11 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import NotificationBell from "./NotificationBell";
 import ClientChat from "../chat/ClientChat";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 export default function DashboardLayout() {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const hideFloatingChat = location.pathname === "/dashboard/client/chat";
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -16,7 +19,7 @@ export default function DashboardLayout() {
         </div>
         <Outlet />
       </main>
-      {user?.role === "Client" && <ClientChat />}
+      {user?.role === "Client" && !hideFloatingChat && <ClientChat />}
     </div>
   );
 }

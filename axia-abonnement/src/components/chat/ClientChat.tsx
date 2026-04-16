@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useClientChat } from "../../hooks/useChat";
-import { useNotifications } from "../../context/NotificationContext";
+import { useNotifications } from "../../context/useNotifications";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 
 export default function ClientChat() {

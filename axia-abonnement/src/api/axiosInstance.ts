@@ -1,11 +1,11 @@
-import axios from 'axios';
-import { API_URL } from './config';
-import { getToken, getRefreshToken, clearTokens } from '../utils/auth';
+import axios from "axios";
+import { API_URL } from "./config";
+import { getToken, getRefreshToken, clearTokens } from "../utils/auth";
 
 const axiosInstance = axios.create({
   baseURL: `${API_URL}/api`,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -26,35 +26,38 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-
       const refreshToken = getRefreshToken();
 
       if (refreshToken) {
         try {
-          const response = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken });
+          const response = await axios.post(`${API_URL}/api/auth/refresh`, {
+            refreshToken,
+          });
+
           const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-          localStorage.setItem('accessToken', accessToken);
+          const remember = localStorage.getItem("rememberMe") === "true";
 
-          const remember = localStorage.getItem('rememberMe');
           if (remember) {
-            localStorage.setItem('refreshToken', newRefreshToken);
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refreshToken", newRefreshToken);
           } else {
-            sessionStorage.setItem('refreshToken', newRefreshToken);
+            sessionStorage.setItem("accessToken", accessToken);
+            sessionStorage.setItem("refreshToken", newRefreshToken);
           }
 
           error.config.headers.Authorization = `Bearer ${accessToken}`;
           return axiosInstance(error.config);
-
         } catch {
           clearTokens();
-          window.location.href = '/login';
+          window.location.href = "/login";
         }
       } else {
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   }
 );
