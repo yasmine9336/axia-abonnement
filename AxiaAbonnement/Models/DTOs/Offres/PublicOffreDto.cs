@@ -8,5 +8,6 @@
         public decimal ParMois { get; set; }
         public decimal ParAnnee { get; set; }
         public List<string> Services { get; set; } = new();
+        public double? MoyenneNote { get; set; }
     }
 }

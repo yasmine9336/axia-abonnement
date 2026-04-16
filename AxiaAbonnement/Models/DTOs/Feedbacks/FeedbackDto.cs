@@ -9,8 +9,6 @@
 
         public Guid AbonnementId { get; set; }
         public string OffreIntitule { get; set; } = string.Empty;
-
-        public string Message { get; set; } = string.Empty;
         public int Note { get; set; }
         public DateTime CreatedAt { get; set; }
     }

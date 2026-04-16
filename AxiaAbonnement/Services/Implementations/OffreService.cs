@@ -79,8 +79,13 @@ namespace AxiaAbonnement.Services.Implementations
                     ParMois = o.ParMois,
                     ParAnnee = o.ParAnnee,
                     Services = o.ServiceOffres
-                        .Select(so => so.Service.IntituleService).ToList()
+                    .Select(so => so.Service.IntituleService).ToList(),
+                    MoyenneNote = _ctx.Feedbacks
+                    .Where(f => f.Abonnement.OffreId == o.Id)
+                    .Select(f => (double?)f.Note)
+                    .Average()
                 })
+
                 .ToListAsync();
         }
 

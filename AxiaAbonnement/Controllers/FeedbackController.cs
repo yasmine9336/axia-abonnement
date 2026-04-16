@@ -37,5 +37,15 @@ namespace AxiaAbonnement.Controllers
             var feedbacks = await _feedbackService.GetAllFeedbacksAsync();
             return Ok(feedbacks);
         }
+
+        [HttpGet("{abonnementId}/exists")]
+        [Authorize(Policy = "ClientOnly")]
+        public async Task<IActionResult> Exists(Guid abonnementId)
+        {
+            var clientId = GetUserId();
+            var exists = await _feedbackService.ExistsAsync(clientId, abonnementId);
+            return Ok(new { exists });
+        }
+
     }
 }

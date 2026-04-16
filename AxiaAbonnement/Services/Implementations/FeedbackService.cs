@@ -44,7 +44,6 @@ namespace AxiaAbonnement.Services.Implementations
             {
                 ClientId = clientId,
                 AbonnementId = dto.AbonnementId,
-                Message = dto.Message.Trim(),
                 Note = dto.Note,
                 CreatedAt = DateTime.UtcNow
             };
@@ -110,11 +109,12 @@ namespace AxiaAbonnement.Services.Implementations
                         : f.Abonnement.Service != null
                             ? f.Abonnement.Service.IntituleService
                             : "",
-                    Message = f.Message,
                     Note = f.Note,
                     CreatedAt = f.CreatedAt
                 })
                 .ToListAsync();
         }
+        public async Task<bool> ExistsAsync(Guid clientId, Guid abonnementId) =>
+            await _db.Feedbacks.AnyAsync(f => f.ClientId == clientId && f.AbonnementId == abonnementId);
     }
 }

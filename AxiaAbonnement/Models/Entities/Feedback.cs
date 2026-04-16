@@ -18,9 +18,6 @@ namespace AxiaAbonnement.Models.Entities
         [ForeignKey(nameof(AbonnementId))]
         public Abonnement Abonnement { get; set; } = null!;
 
-        [Required, MaxLength(1000)]
-        public string Message { get; set; } = string.Empty;
-
         [Range(1, 5)]
         public int Note { get; set; }
 

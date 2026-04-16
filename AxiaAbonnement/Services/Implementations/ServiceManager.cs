@@ -175,7 +175,11 @@ namespace AxiaAbonnement.Services.Implementations
                     Description = s.Description,
                     ParMois = s.ParMois,
                     ParAnnee = s.ParAnnee,
-                    NbOffres = s.ServiceOffres.Count
+                    NbOffres = s.ServiceOffres.Count,
+                    MoyenneNote = _ctx.Feedbacks
+                    .Where(f => f.Abonnement.ServiceId == s.Id)
+                    .Select(f => (double?)f.Note)
+                    .Average()
                 })
                 .ToListAsync();
         }
