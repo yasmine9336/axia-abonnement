@@ -166,6 +166,101 @@ export default function OffresSection() {
     }
   };
 
+  const activeCount = offres.filter((o) => o.isActive).length;
+  const totalAbonnes = offres.reduce((sum, o) => sum + o.nbAbonnes, 0);
+  const totalServices = new Set(offres.flatMap((o) => o.services)).size;
+
+  const statCards = [
+    {
+      label: "Total offres",
+      value: offres.length,
+      sub: `${activeCount} active${activeCount !== 1 ? "s" : ""}`,
+      color: "text-[#4F46E5]",
+      bg: "bg-[#4F46E5]/10 text-[#4F46E5]",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Offres actives",
+      value: activeCount,
+      sub: `${offres.length - activeCount} inactive${offres.length - activeCount !== 1 ? "s" : ""}`,
+      color: "text-green-600",
+      bg: "bg-green-100 text-green-700",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Total abonnés",
+      value: totalAbonnes,
+      sub: "toutes offres confondues",
+      color: "text-emerald-600",
+      bg: "bg-emerald-100 text-emerald-600",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Services uniques",
+      value: totalServices,
+      sub: "utilisés dans les offres",
+      color: "text-indigo-600",
+      bg: "bg-indigo-100 text-indigo-600",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
@@ -204,6 +299,28 @@ export default function OffresSection() {
           </svg>
           Ajouter une offre
         </button>
+      </div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="bg-white rounded-2xl border border-gray-200 p-5"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">{card.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+              </div>
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}
+              >
+                {card.icon}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Search */}

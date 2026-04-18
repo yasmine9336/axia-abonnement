@@ -42,20 +42,22 @@ namespace AxiaAbonnement.Services.Implementations
         public async Task<StatsDto> GetStatsAsync()
         {
             var now = DateTime.UtcNow;
+            var culture = new System.Globalization.CultureInfo("fr-FR");
 
-            var stats = await _db.Abonnements
-                .GroupBy(_ => 1)
-                .Select(g => new
-                {
-                    TotalAbonnes = g.Where(a => a.IsActive && a.DateFin > now)
-                                    .Select(a => a.UserId).Distinct().Count(),
-                    RevenuMensuel = g.Where(a => a.IsActive && a.DateFin > now && a.Type == "mensuel")
-                                     .Sum(a => (decimal?)a.Montant) ?? 0m,
-                    DemandesEnAttente = _db.DemandesRenouvellement
-                                            .Count(d => d.Statut == "en_attente"),
-                    ServicesActifs = _db.Services.Count(s => s.IsActive),
-                })
-                .FirstOrDefaultAsync();
+            var totalAbonnes = await _db.Abonnements
+                .Where(a => a.IsActive && a.DateFin > now)
+                .Select(a => a.UserId)
+                .Distinct()
+                .CountAsync();
+
+            var revenuMensuel = await _db.Abonnements
+                .Where(a => a.IsActive && a.DateFin > now && a.Type == "mensuel")
+                .SumAsync(a => (decimal?)a.Montant) ?? 0;
+
+            var servicesActifs = await _db.Services.CountAsync(s => s.IsActive);
+
+            var demandesEnAttente = await _db.DemandesRenouvellement
+                .CountAsync(d => d.Statut == "en_attente");
 
             var abonnementsRecents = await _db.Abonnements
                 .Include(a => a.Offre)
@@ -66,8 +68,7 @@ namespace AxiaAbonnement.Services.Implementations
                 .Select(a => new AbonnementDto
                 {
                     Id = a.Id,
-                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre
-                                  : a.Service != null ? a.Service.IntituleService : "",
+                    IntituleOffre = a.Offre != null ? a.Offre.IntituleOffre : a.Service != null ? a.Service.IntituleService : "",
                     Type = a.Type,
                     Montant = a.Montant,
                     DateDebut = a.DateDebut,
@@ -79,15 +80,45 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
 
+            // Revenus 6 derniers mois
+            var revenuParMois = new List<RevenuMoisDto>();
+            for (int i = 5; i >= 0; i--)
+            {
+                var mois = now.AddMonths(-i);
+                var debut = new DateTime(mois.Year, mois.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var fin = debut.AddMonths(1);
+                var revenu = await _db.Paiements
+                    .Where(p => p.Statut == "completed"
+                        && p.PaymentType == "subscription"
+                        && p.CreatedAt >= debut
+                        && p.CreatedAt < fin)
+                    .SumAsync(p => (decimal?)p.Montant) ?? 0;
+                revenuParMois.Add(new RevenuMoisDto
+                {
+                    Mois = mois.ToString("MMM", culture),
+                    Revenu = revenu
+                });
+            }
+
+            // Répartition statuts
+            var abonnementsActifs = await _db.Abonnements.CountAsync(a => a.IsActive && a.DateFin > now);
+            var abonnementsExpires = await _db.Abonnements.CountAsync(a => a.DateFin <= now);
+            var abonnementsDesactives = await _db.Abonnements.CountAsync(a => !a.IsActive && a.DateFin > now);
+
             return new StatsDto
             {
-                TotalAbonnes = stats?.TotalAbonnes ?? 0,
-                RevenuMensuel = stats?.RevenuMensuel ?? 0m,
-                ServicesActifs = stats?.ServicesActifs ?? 0,
-                DemandesEnAttente = stats?.DemandesEnAttente ?? 0,
-                AbonnementsRecents = abonnementsRecents
+                TotalAbonnes = totalAbonnes,
+                RevenuMensuel = revenuMensuel,
+                ServicesActifs = servicesActifs,
+                DemandesEnAttente = demandesEnAttente,
+                AbonnementsRecents = abonnementsRecents,
+                RevenuParMois = revenuParMois,
+                AbonnementsActifs = abonnementsActifs,
+                AbonnementsExpires = abonnementsExpires,
+                AbonnementsDesactives = abonnementsDesactives
             };
         }
+
 
 
         public async Task<List<AbonnementDto>> GetAllAbonnementsAsync()
@@ -169,6 +200,28 @@ namespace AxiaAbonnement.Services.Implementations
                 )
                 .ToListAsync();
 
+            var mesAbonnementIds = mesAbonnements.Select(a => a.Id).ToList();
+
+            // Revenus 6 derniers mois
+            var culture = new System.Globalization.CultureInfo("fr-FR");
+            var revenuParMois = new List<RevenuMoisDto>();
+            for (int i = 5; i >= 0; i--)
+            {
+                var mois = now.AddMonths(-i);
+                var debut = new DateTime(mois.Year, mois.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var fin = debut.AddMonths(1);
+                var revenu = await _db.Paiements
+                    .Where(p => p.Statut == "completed"
+                        && p.PaymentType == "subscription"
+                        && p.AbonnementId.HasValue
+                        && mesAbonnementIds.Contains(p.AbonnementId.Value)
+                        && p.CreatedAt >= debut
+                        && p.CreatedAt < fin)
+                    .SumAsync(p => (decimal?)p.Montant) ?? 0;
+                revenuParMois.Add(new RevenuMoisDto { Mois = mois.ToString("MMM", culture), Revenu = revenu });
+            }
+
+
             var mesClientIds = mesAbonnements.Select(a => a.UserId).Distinct().ToList();
 
             var abonnementsRecents = await _db.Abonnements
@@ -209,8 +262,13 @@ namespace AxiaAbonnement.Services.Implementations
                     .CountAsync(s => s.ResponsableId == responsableId && s.IsActive),
                 DemandesEnAttente = await _db.DemandesRenouvellement
                     .CountAsync(d => d.Statut == "en_attente" && mesClientIds.Contains(d.ClientId)),
-                AbonnementsRecents = abonnementsRecents
+                AbonnementsRecents = abonnementsRecents,
+                RevenuParMois = revenuParMois,
+                AbonnementsActifs = mesAbonnements.Count(a => a.IsActive && a.DateFin > now),
+                AbonnementsExpires = mesAbonnements.Count(a => a.DateFin <= now),
+                AbonnementsDesactives = mesAbonnements.Count(a => !a.IsActive && a.DateFin > now)
             };
+
         }
 
 

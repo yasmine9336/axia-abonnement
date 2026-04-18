@@ -75,12 +75,128 @@ export default function CatalogueAdminSection() {
     );
   }
 
+  const activeServices = services.filter((s) => s.isActive).length;
+  const activeOffres = offres.filter((o) => o.isActive).length;
+
+  const statCards = [
+    {
+      label: "Total services",
+      value: services.length,
+      sub: `${activeServices} actif${activeServices !== 1 ? "s" : ""}`,
+      color: "text-[#4F46E5]",
+      bg: "bg-[#4F46E5]/10 text-[#4F46E5]",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Services actifs",
+      value: activeServices,
+      sub: `${services.length - activeServices} inactif${services.length - activeServices !== 1 ? "s" : ""}`,
+      color: "text-green-600",
+      bg: "bg-green-100 text-green-700",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Total offres",
+      value: offres.length,
+      sub: `${activeOffres} active${activeOffres !== 1 ? "s" : ""}`,
+      color: "text-indigo-600",
+      bg: "bg-indigo-100 text-indigo-600",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Offres actives",
+      value: activeOffres,
+      sub: `${offres.length - activeOffres} inactive${offres.length - activeOffres !== 1 ? "s" : ""}`,
+      color: "text-purple-600",
+      bg: "bg-purple-100 text-purple-600",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-gray-900">Catalogue</h1>
       <p className="text-sm text-gray-500 mt-1">
         {services.length} service(s) · {offres.length} offre(s)
       </p>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-2">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="bg-white rounded-2xl border border-gray-200 p-5"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">{card.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+              </div>
+              <div
+                className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}
+              >
+                {card.icon}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 

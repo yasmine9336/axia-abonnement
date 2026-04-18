@@ -17,31 +17,39 @@ interface Abonnement {
 
 function StarFeedback({ aboId, aDejaFeedback }: { aboId: string; aDejaFeedback?: boolean }) {
   const [hover, setHover] = useState(0);
-  const [sent, setSent] = useState(aDejaFeedback ?? false);
+  const [selected, setSelected] = useState(0);
 
-  const handleClick = async (note: number) => {
-    if (sent) return;
-    await axiosInstance.post("/feedbacks", { abonnementId: aboId, note });
-    setSent(true);
+  const alreadySent = (aDejaFeedback ?? false) || selected > 0;
+
+  const handleClick = async (n: number) => {
+    if (alreadySent) return;
+    await axiosInstance.post("/feedbacks", { abonnementId: aboId, note: n });
+    setSelected(n);
   };
+
+  const label = selected > 0
+    ? "Merci pour votre avis"
+    : aDejaFeedback
+    ? "Déjà noté"
+    : "Votre avis :";
 
   return (
     <div className="flex items-center gap-1 mt-4 pt-4 border-t border-gray-100">
-      <span className="text-xs text-gray-400 mr-2">
-        {sent ? "Merci pour votre avis" : "Votre avis :"}
-      </span>
+      <span className="text-xs text-gray-400 mr-2">{label}</span>
       {[1, 2, 3, 4, 5].map((i) => (
         <button
           key={i}
-          disabled={sent}
+          disabled={alreadySent}
           onClick={() => handleClick(i)}
-          onMouseEnter={() => !sent && setHover(i)}
+          onMouseEnter={() => !alreadySent && setHover(i)}
           onMouseLeave={() => setHover(0)}
           className="disabled:cursor-default"
         >
           <svg
             className={`w-5 h-5 transition-colors ${
-              sent ? "text-yellow-400" : i <= hover ? "text-yellow-400" : "text-gray-200"
+              selected > 0
+                ? i <= selected ? "text-yellow-400" : "text-gray-200"
+                : i <= hover ? "text-yellow-400" : "text-gray-200"
             }`}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -53,6 +61,9 @@ function StarFeedback({ aboId, aDejaFeedback }: { aboId: string; aDejaFeedback?:
     </div>
   );
 }
+
+
+
 
 const AbonnementCard = ({
   a,

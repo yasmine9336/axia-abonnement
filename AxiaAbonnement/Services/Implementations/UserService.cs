@@ -25,9 +25,13 @@ namespace AxiaAbonnement.Services.Implementations
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     IsActive = u.IsActive,
-                    ProfileImageUrl = u.ProfileImageUrl
+                    ProfileImageUrl = u.ProfileImageUrl,
+                    CreatedAt = u.CreatedAt,
+                    NombreAbonnes = _ctx.Abonnements
+                        .Count(a => a.IsActive && a.Service != null && a.Service.ResponsableId == u.Id)
                 })
                 .ToListAsync();
+
 
         public async Task<User?> CreateResponsableAsync(CreateResponsableDto dto)
         {

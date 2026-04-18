@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search, Power } from "lucide-react";
+import ExportButton from "./../common/ExportButton";
+import { formatDateFR } from "../../utils/exportUtils";
 
 interface Abonnement {
   id: string;
@@ -53,6 +55,61 @@ export default function AbonnementsSection() {
   const actifs = filtered.filter(a => a.statut === "actif");
   const desactives = filtered.filter(a => a.statut === "désactivé");
   const expires = filtered.filter(a => a.statut === "expiré");
+
+  const totalActifs = abonnements.filter(a => a.statut === "actif").length;
+  const totalDesactives = abonnements.filter(a => a.statut === "désactivé").length;
+  const totalExpires = abonnements.filter(a => a.statut === "expiré").length;
+
+  const statCards = [
+    {
+      label: "Total abonnements",
+      value: abonnements.length,
+      sub: "tous statuts confondus",
+      color: "text-[#4F46E5]",
+      bg: "bg-[#4F46E5]/10 text-[#4F46E5]",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Actifs",
+      value: totalActifs,
+      sub: "abonnements en cours",
+      color: "text-green-600",
+      bg: "bg-green-100 text-green-700",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Désactivés",
+      value: totalDesactives,
+      sub: "suspendus manuellement",
+      color: totalDesactives > 0 ? "text-orange-500" : "text-gray-400",
+      bg: totalDesactives > 0 ? "bg-orange-100 text-orange-500" : "bg-gray-100 text-gray-400",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+      ),
+    },
+    {
+      label: "Expirés",
+      value: totalExpires,
+      sub: "à renouveler",
+      color: totalExpires > 0 ? "text-red-600" : "text-gray-400",
+      bg: totalExpires > 0 ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+  ];
 
   const AbonnementCard = ({ a }: { a: Abonnement }) => (
     <div className="bg-white rounded-2xl border border-gray-200 p-5">
@@ -109,11 +166,50 @@ export default function AbonnementsSection() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des abonnements</h1>
         <p className="text-gray-500 text-sm mt-1">
-          {abonnements.filter(a => a.statut === "actif").length} actif(s) sur {abonnements.length} abonnement(s)
+          {totalActifs} actif(s) sur {abonnements.length} abonnement(s)
         </p>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {statCards.map((card) => (
+          <div key={card.label} className="bg-white rounded-2xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">{card.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+              </div>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}>
+                {card.icon}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Export */}
+      <div className="flex justify-end mb-4">
+        <ExportButton
+          data={abonnements}
+          columns={[
+            { key: "clientUsername", label: "Client" },
+            { key: "clientEmail", label: "Email" },
+            { key: "intituleOffre", label: "Offre" },
+            { key: "type", label: "Type" },
+            { key: "montant", label: "Montant (TND)" },
+            { key: "dateDebut", label: "Début", format: (v) => formatDateFR(v) },
+            { key: "dateFin", label: "Fin", format: (v) => formatDateFR(v) },
+            { key: "statut", label: "Statut" },
+          ]}
+          filename="abonnements"
+          label="Exporter"
+          sheetName="Abonnements"
+          pdfTitle="Liste des abonnements"
+        />
       </div>
 
       {/* Search */}
