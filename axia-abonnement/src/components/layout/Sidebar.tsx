@@ -216,10 +216,35 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-
-  // ✅ Utiliser NotificationContext au lieu de useSignalR direct
-  const { unreadMessages, unreadChat, resetUnreadChat } =
+  const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } =
     useNotifications();
+
+  const isAdmin = user?.role === "Admin";
+  const isClient = user?.role === "Client";
+
+  const accent =
+    isAdmin ? "#7c3aed" :
+    isClient ? "#0284c7" : "#4F46E5";
+
+  const accentBg = isAdmin
+    ? "bg-violet-100 text-violet-700"
+    : isClient
+    ? "bg-sky-100 text-sky-700"
+    : "bg-[#4F46E5]/10 text-[#4F46E5]";
+
+  const accentIcon = isAdmin
+    ? "text-violet-600"
+    : isClient ? "text-sky-600" : "text-[#4F46E5]";
+
+  const accentAvatar = isAdmin
+    ? "bg-violet-600"
+    : isClient ? "bg-sky-600" : "bg-[#4F46E5]";
+
+  const accentLogout = isAdmin
+    ? "border-violet-500 text-violet-600 hover:bg-violet-500 hover:text-white"
+    : isClient
+    ? "border-sky-500 text-sky-600 hover:bg-sky-500 hover:text-white"
+    : "border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white";
 
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
@@ -239,50 +264,11 @@ export default function Sidebar() {
     fetchProfilePhoto();
   }, []);
 
-  const navItems =
-    user?.role === "Admin"
-      ? adminNav
-      : user?.role === "Responsable"
-        ? responsableNav
-        : clientNav;
-
-  const portalLabel =
-    user?.role === "Admin"
-      ? "Admin · Pilotage plateforme"
-      : user?.role === "Responsable"
-        ? "Responsable · Opérations terrain"
-        : "Portail Client";
-
-  const roleTheme =
-    user?.role === "Admin"
-      ? {
-          brandText: "text-indigo-600",
-          activeItem: "bg-indigo-50 text-indigo-700",
-          activeIcon: "text-indigo-600",
-          logoutBorder: "border-indigo-600",
-          logoutText: "text-indigo-600",
-          logoutHover: "hover:bg-indigo-600",
-          avatarBg: "bg-indigo-600",
-        }
-      : user?.role === "Responsable"
-        ? {
-            brandText: "text-sky-600",
-            activeItem: "bg-sky-50 text-sky-700",
-            activeIcon: "text-sky-600",
-            logoutBorder: "border-sky-600",
-            logoutText: "text-sky-600",
-            logoutHover: "hover:bg-sky-600",
-            avatarBg: "bg-sky-600",
-          }
-        : {
-            brandText: "text-[#4F46E5]",
-            activeItem: "bg-[#4F46E5]/10 text-[#4F46E5]",
-            activeIcon: "text-[#4F46E5]",
-            logoutBorder: "border-[#4F46E5]",
-            logoutText: "text-[#4F46E5]",
-            logoutHover: "hover:bg-[#4F46E5]",
-            avatarBg: "bg-[#4F46E5]",
-          };
+  const navItems = isAdmin
+    ? adminNav
+    : user?.role === "Responsable"
+    ? responsableNav
+    : clientNav;
 
   const handleLogout = () => {
     logout();
@@ -294,8 +280,33 @@ export default function Sidebar() {
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-100">
-        <h1 className={`text-xl font-bold ${roleTheme.brandText}`}>AxiaAbonnement</h1>
-        <p className="text-xs text-gray-500 mt-1">{portalLabel}</p>
+        <h1 className="text-xl font-bold" style={{ color: accent }}>
+          AxiaAbonnement
+        </h1>
+        <div className="mt-2">
+          {isAdmin ? (
+            <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Portail Admin
+            </span>
+          ) : user?.role === "Responsable" ? (
+            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Portail Responsable
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 bg-sky-50 text-sky-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Portail Client
+            </span>
+          )}
+        </div>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
@@ -309,29 +320,23 @@ export default function Sidebar() {
               key={item.path}
               onClick={() => {
                 navigate(item.path);
-                // ✅ Reset badge au clic via context
-
+                if (isMessages) resetUnreadMessages();
                 if (isChat) resetUnreadChat();
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                isActive
-                  ? roleTheme.activeItem
-                  : "text-gray-600 hover:bg-gray-100"
+                isActive ? accentBg : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              <span className={isActive ? roleTheme.activeIcon : "text-gray-400"}>
+              <span className={isActive ? accentIcon : "text-gray-400"}>
                 {item.icon}
               </span>
               <span className="flex-1 text-left">{item.label}</span>
 
-              {/* ✅ Badge Messages responsable */}
               {isMessages && unreadMessages > 0 && (
                 <span className="w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                   {unreadMessages > 9 ? "9+" : unreadMessages}
                 </span>
               )}
-
-              {/* ✅ Badge Discussion client */}
               {isChat && unreadChat > 0 && (
                 <span className="w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                   {unreadChat > 9 ? "9+" : unreadChat}
@@ -351,7 +356,9 @@ export default function Sidebar() {
               className="w-10 h-10 rounded-full object-cover border border-gray-200"
             />
           ) : (
-            <div className={`w-10 h-10 ${roleTheme.avatarBg} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${accentAvatar}`}
+            >
               {getInitial()}
             </div>
           )}
@@ -364,7 +371,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center justify-center gap-2 border ${roleTheme.logoutBorder} ${roleTheme.logoutText} ${roleTheme.logoutHover} hover:text-white font-semibold py-2.5 rounded-xl transition-colors text-sm`}
+          className={`w-full flex items-center justify-center gap-2 border font-semibold py-2.5 rounded-xl transition-colors text-sm ${accentLogout}`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

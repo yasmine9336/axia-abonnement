@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
+import { useTheme } from "../../context/ThemeContext";
 
 interface ServiceItem {
   id: string;
@@ -25,6 +26,7 @@ interface OffreItem {
 }
 
 export default function CatalogueAdminSection() {
+  const { accent } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -70,7 +72,10 @@ export default function CatalogueAdminSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-40">
-        <div className="w-8 h-8 border-4 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+        <div
+          className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: accent, borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -83,8 +88,9 @@ export default function CatalogueAdminSection() {
       label: "Total services",
       value: services.length,
       sub: `${activeServices} actif${activeServices !== 1 ? "s" : ""}`,
-      color: "text-[#4F46E5]",
-      bg: "bg-[#4F46E5]/10 text-[#4F46E5]",
+      color: "",
+      bg: "",
+      useAccent: true,
       icon: (
         <svg
           className="w-5 h-5"
@@ -186,10 +192,20 @@ export default function CatalogueAdminSection() {
               <div>
                 <p className="text-xs text-gray-500 mb-1">{card.label}</p>
                 <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+                <p
+                  className={`text-xs mt-1 ${card.color}`}
+                  style={"useAccent" in card ? { color: accent } : undefined}
+                >
+                  {card.sub}
+                </p>
               </div>
               <div
                 className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}
+                style={
+                  "useAccent" in card
+                    ? { backgroundColor: `${accent}1a`, color: accent }
+                    : undefined
+                }
               >
                 {card.icon}
               </div>
@@ -254,7 +270,7 @@ export default function CatalogueAdminSection() {
                     {s.description}
                   </td>
                   <td className="px-5 py-3">
-                    <p className="text-sm font-bold text-[#4F46E5]">
+                    <p className="text-sm font-bold" style={{ color: accent }}>
                       {s.parMois} TND
                       <span className="text-xs text-gray-400 font-normal">
                         {" "}
