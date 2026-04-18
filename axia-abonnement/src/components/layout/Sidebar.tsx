@@ -248,10 +248,41 @@ export default function Sidebar() {
 
   const portalLabel =
     user?.role === "Admin"
-      ? "Portail Admin"
+      ? "Admin · Pilotage plateforme"
       : user?.role === "Responsable"
-        ? "Portail Responsable"
+        ? "Responsable · Opérations terrain"
         : "Portail Client";
+
+  const roleTheme =
+    user?.role === "Admin"
+      ? {
+          brandText: "text-indigo-600",
+          activeItem: "bg-indigo-50 text-indigo-700",
+          activeIcon: "text-indigo-600",
+          logoutBorder: "border-indigo-600",
+          logoutText: "text-indigo-600",
+          logoutHover: "hover:bg-indigo-600",
+          avatarBg: "bg-indigo-600",
+        }
+      : user?.role === "Responsable"
+        ? {
+            brandText: "text-sky-600",
+            activeItem: "bg-sky-50 text-sky-700",
+            activeIcon: "text-sky-600",
+            logoutBorder: "border-sky-600",
+            logoutText: "text-sky-600",
+            logoutHover: "hover:bg-sky-600",
+            avatarBg: "bg-sky-600",
+          }
+        : {
+            brandText: "text-[#4F46E5]",
+            activeItem: "bg-[#4F46E5]/10 text-[#4F46E5]",
+            activeIcon: "text-[#4F46E5]",
+            logoutBorder: "border-[#4F46E5]",
+            logoutText: "text-[#4F46E5]",
+            logoutHover: "hover:bg-[#4F46E5]",
+            avatarBg: "bg-[#4F46E5]",
+          };
 
   const handleLogout = () => {
     logout();
@@ -263,7 +294,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-100">
-        <h1 className="text-xl font-bold text-[#4F46E5]">AxiaAbonnement</h1>
+        <h1 className={`text-xl font-bold ${roleTheme.brandText}`}>AxiaAbonnement</h1>
         <p className="text-xs text-gray-500 mt-1">{portalLabel}</p>
       </div>
 
@@ -284,11 +315,11 @@ export default function Sidebar() {
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-[#4F46E5]/10 text-[#4F46E5]"
+                  ? roleTheme.activeItem
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              <span className={isActive ? "text-[#4F46E5]" : "text-gray-400"}>
+              <span className={isActive ? roleTheme.activeIcon : "text-gray-400"}>
                 {item.icon}
               </span>
               <span className="flex-1 text-left">{item.label}</span>
@@ -320,7 +351,7 @@ export default function Sidebar() {
               className="w-10 h-10 rounded-full object-cover border border-gray-200"
             />
           ) : (
-            <div className="w-10 h-10 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className={`w-10 h-10 ${roleTheme.avatarBg} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
               {getInitial()}
             </div>
           )}
@@ -333,7 +364,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 border border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
+          className={`w-full flex items-center justify-center gap-2 border ${roleTheme.logoutBorder} ${roleTheme.logoutText} ${roleTheme.logoutHover} hover:text-white font-semibold py-2.5 rounded-xl transition-colors text-sm`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -322,6 +322,7 @@ export default function OffresSection() {
           </div>
         ))}
       </div>
+      
 
       {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">

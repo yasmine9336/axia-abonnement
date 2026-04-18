@@ -214,9 +214,9 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   />
                 </svg>
               }
-              label="Revenu mensuel"
+              label="Revenu plateforme"
               value={`${stats.revenuMensuel} TND`}
-              sub="abonnements mensuels actifs"
+              sub="total mensuel consolidé"
               bg="bg-green-100"
               iconColor="text-green-600"
             />
@@ -232,13 +232,13 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
               }
-              label="Total abonnés"
+              label="Clients actifs globaux"
               value={stats.totalAbonnes}
-              sub="abonnés actifs"
+              sub="tous responsables confondus"
               bg="bg-blue-100"
               iconColor="text-blue-600"
             />
@@ -258,9 +258,9 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   />
                 </svg>
               }
-              label="Total clients"
-              value={clients.length}
-              sub={`${clients.filter((c) => c.isActive).length} actifs`}
+              label="Responsables actifs"
+              value={responsables.filter((r) => r.isActive).length}
+              sub={`sur ${responsables.length} total`}
               bg="bg-purple-100"
               iconColor="text-purple-600"
             />
@@ -280,9 +280,9 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   />
                 </svg>
               }
-              label="Demandes en attente"
+              label="Demandes en attente globales"
               value={stats.demandesEnAttente}
-              sub="à traiter"
+              sub="nécessitent validation"
               bg={stats.demandesEnAttente > 0 ? "bg-yellow-100" : "bg-gray-100"}
               iconColor={
                 stats.demandesEnAttente > 0
@@ -302,13 +302,13 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
               }
-              label="Responsables actifs"
-              value={responsables.filter((r) => r.isActive).length}
-              sub={`sur ${responsables.length} total`}
+              label="Affectations responsables"
+              value={responsables.length}
+              sub="à gérer"
               bg="bg-pink-100"
               iconColor="text-pink-600"
             />
@@ -336,7 +336,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
         {/* Bar chart */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="text-base font-bold text-gray-900 mb-4">
-            Revenus des 6 derniers mois
+            Évolution des revenus (plateforme)
           </h2>
           {loading ? (
             <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
@@ -372,7 +372,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
         {/* Pie chart */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="text-base font-bold text-gray-900 mb-4">
-            Répartition abonnements
+            Répartition abonnements (globale)
           </h2>
           {loading ? (
             <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
@@ -464,8 +464,9 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
         {/* Abonnements récents */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="text-base font-bold text-gray-900 mb-4">
-            Abonnements récents
+            Abonnements récents — plateforme
           </h2>
+          <p className="text-xs text-gray-400 mb-4">Périmètre: Plateforme entière</p>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
