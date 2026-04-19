@@ -83,6 +83,8 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 
+builder.Services.AddSingleton<ISignatureService, SignatureService>();
+
 
 var emailConfig = builder.Configuration
     .GetSection("EmailConfiguration")
