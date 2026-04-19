@@ -19,5 +19,6 @@
         // Remplis seulement pour le responsable
         public string? ClientUsername { get; set; }
         public string? ClientEmail { get; set; }
+        public string? ResponsableUsername { get; set; }
     }
 }

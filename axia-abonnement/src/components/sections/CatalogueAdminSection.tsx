@@ -254,7 +254,8 @@ export default function CatalogueAdminSection() {
               <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
                 <th className="px-5 py-3 font-medium">Intitulé</th>
                 <th className="px-5 py-3 font-medium">Description</th>
-                <th className="px-5 py-3 font-medium">Prix</th>
+                <th className="px-5 py-3 font-medium">Prix/mois</th>
+                <th className="px-5 py-3 font-medium">Prix/an</th>{" "}
                 <th className="px-5 py-3 font-medium">Nombre d'offres</th>
                 <th className="px-5 py-3 font-medium">Créé par</th>
                 <th className="px-5 py-3 font-medium text-center">Statut</th>
@@ -269,19 +270,8 @@ export default function CatalogueAdminSection() {
                   <td className="px-5 py-3 text-gray-500 max-w-xs truncate">
                     {s.description}
                   </td>
-                  <td className="px-5 py-3">
-                    <p className="text-sm font-bold" style={{ color: accent }}>
-                      {s.parMois} TND
-                      <span className="text-xs text-gray-400 font-normal">
-                        {" "}
-                        /mois
-                      </span>
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {s.parAnnee} TND
-                      <span className="text-gray-400"> /an</span>
-                    </p>
-                  </td>
+                  <td className="px-5 py-3 text-gray-700">{s.parMois} TND</td>
+                  <td className="px-5 py-3 text-gray-700">{s.parAnnee} TND</td>
                   <td className="px-5 py-3 text-center text-gray-700">
                     {s.nbOffres}
                   </td>

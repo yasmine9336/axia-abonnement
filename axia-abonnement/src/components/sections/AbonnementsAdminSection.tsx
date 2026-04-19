@@ -1,317 +1,227 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
-import { Search } from "lucide-react";
-import ExportButton from "../common/ExportButton";
+import ExportButton from "./../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
-import { useTheme } from "../../context/ThemeContext";
 
 interface Abonnement {
   id: string;
   intituleOffre: string;
-  description: string;
   type: string;
   montant: number;
   dateDebut: string;
   dateFin: string;
-  isActive: boolean;
   statut: string;
   clientUsername: string;
   clientEmail: string;
+  responsableUsername?: string;
 }
 
-interface Demande {
-  id: string;
-  abonnementId: string;
-  statut: string;
+type FilterTab = "tous" | "actifs" | "expirés";
+
+function getInitials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+}
+
+const AVATAR_COLORS = [
+  "bg-violet-100 text-violet-700",
+  "bg-blue-100 text-blue-700",
+  "bg-green-100 text-green-700",
+  "bg-orange-100 text-orange-700",
+  "bg-pink-100 text-pink-700",
+];
+
+function avatarColor(name: string) {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export default function AbonnementsAdminSection() {
   const [abonnements, setAbonnements] = useState<Abonnement[]>([]);
-  const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const { accent } = useTheme();
+  const [tab, setTab] = useState<FilterTab>("tous");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const [abosRes, demandesRes] = await Promise.all([
-          axiosInstance.get<Abonnement[]>("/abonnements/all"),
-          axiosInstance.get<Demande[]>("/demandes"),
-        ]);
-        setAbonnements(abosRes.data ?? []);
-        setDemandes(demandesRes.data ?? []);
-      } catch {
-        setError("Erreur lors du chargement des abonnements.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+    axiosInstance
+      .get<Abonnement[]>("/abonnements/all")
+      .then((r) => setAbonnements(r.data ?? []))
+      .catch(() => setError("Erreur lors du chargement des abonnements."))
+      .finally(() => setLoading(false));
   }, []);
 
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("fr-FR");
+  const formatDate = (d: string) => new Date(d).toLocaleDateString("fr-FR");
 
-  const filtered = abonnements.filter(
-    (a) =>
-      a.clientUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.clientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.intituleOffre?.toLowerCase().includes(searchTerm.toLowerCase()),
+  const totalActifs = useMemo(
+    () => abonnements.filter((a) => a.statut === "actif").length,
+    [abonnements]
+  );
+  const totalExpires = useMemo(
+    () => abonnements.filter((a) => a.statut === "expiré").length,
+    [abonnements]
+  );
+  const revenusActifs = useMemo(
+    () =>
+      abonnements
+        .filter((a) => a.statut === "actif")
+        .reduce((sum, a) => sum + a.montant, 0),
+    [abonnements]
   );
 
-  const demandesEnAttenteIds = new Set(
-    demandes
-      .filter((d) => d.statut === "en_attente")
-      .map((d) => d.abonnementId),
-  );
+  const filtered = useMemo(() => {
+    let result = abonnements;
+    if (tab === "actifs") result = result.filter((a) => a.statut === "actif");
+    if (tab === "expirés") result = result.filter((a) => a.statut === "expiré");
+    if (searchTerm)
+      result = result.filter(
+        (a) =>
+          a.clientUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          a.clientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          a.intituleOffre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          a.responsableUsername?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    return result;
+  }, [abonnements, tab, searchTerm]);
 
-  const actifs = filtered.filter(
-    (a) => a.statut === "actif" && !demandesEnAttenteIds.has(a.id),
-  );
-  const enDemandeRenouvellement = filtered.filter((a) =>
-    demandesEnAttenteIds.has(a.id),
-  );
-  const expires = filtered.filter((a) => a.statut === "expiré");
-
-  const totalActifs = abonnements.filter(
-    (a) => a.statut === "actif" && !demandesEnAttenteIds.has(a.id),
-  ).length;
-  const totalEnDemande = abonnements.filter((a) =>
-    demandesEnAttenteIds.has(a.id),
-  ).length;
-  const totalExpires = abonnements.filter((a) => a.statut === "expiré").length;
-
-  const statCards = [
+  const kpiCards = [
     {
-      label: "Total abonnements",
+      label: "TOTAL ABONNEMENTS",
       value: abonnements.length,
-      sub: "tous statuts confondus",
-      color: "",
-      bg: "",
-      useAccent: true,
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
-          />
-        </svg>
-      ),
+      sub: "tous statuts",
+      icon: "📋",
+      border: "border-t-violet-400",
     },
     {
-      label: "Actifs",
+      label: "ACTIFS",
       value: totalActifs,
-      sub: "abonnements en cours",
-      color: "text-green-600",
-      bg: "bg-green-100 text-green-700",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      sub: "en cours",
+      icon: "✅",
+      border: "border-t-green-400",
     },
     {
-      label: "En renouvellement",
-      value: totalEnDemande,
-      sub: "demandes en attente",
-      color: totalEnDemande > 0 ? "text-amber-600" : "text-gray-400",
-      bg:
-        totalEnDemande > 0
-          ? "bg-amber-100 text-amber-600"
-          : "bg-gray-100 text-gray-400",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: "Expirés",
+      label: "EXPIRÉS",
       value: totalExpires,
       sub: "à renouveler",
-      color: totalExpires > 0 ? "text-red-600" : "text-gray-400",
-      bg:
-        totalExpires > 0
-          ? "bg-red-100 text-red-600"
-          : "bg-gray-100 text-gray-400",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-          />
-        </svg>
-      ),
+      icon: "⏰",
+      border: "border-t-red-400",
+    },
+    {
+      label: "REVENUS GÉNÉRÉS",
+      value: `${revenusActifs.toFixed(2)} TND`,
+      sub: "ce mois",
+      icon: "💰",
+      border: "border-t-blue-400",
+      large: true,
     },
   ];
 
-  const AbonnementCard = ({
-    a,
-    badgeLabel,
-    badgeClass,
-  }: {
-    a: Abonnement;
-    badgeLabel: string;
-    badgeClass: string;
-  }) => (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <p className="font-semibold text-gray-900">{a.clientUsername}</p>
-            <span className="text-xs text-gray-400">{a.clientEmail}</span>
-          </div>
-          <p className="text-sm text-gray-600">
-            Offre :{" "}
-            <span className="font-medium text-gray-900">{a.intituleOffre}</span>
-          </p>
-          <p className="text-sm text-gray-600">
-            Type : <span className="capitalize font-medium">{a.type}</span>
-            {" · "}
-            Montant : <span className="font-medium">{a.montant} TND</span>
-          </p>
-          <p className="text-xs text-gray-400">
-            Du {formatDate(a.dateDebut)} au {formatDate(a.dateFin)}
-          </p>
-        </div>
-        <span
-          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}`}
-        >
-          {badgeLabel}
-        </span>
-      </div>
-    </div>
-  );
-
   return (
     <div className="p-6 lg:p-8">
+      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Abonnements</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {totalActifs} actif(s) · {totalEnDemande} en demande de renouvellement
-          · {totalExpires} expiré(s)
+        <h1 className="text-2xl font-bold text-gray-900">Abonnements globaux</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          {totalActifs} actif(s) · {totalExpires} expiré(s) · {abonnements.length} total
         </p>
       </div>
 
-      {/* Stat cards */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statCards.map((card) => (
+        {kpiCards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-2xl border border-gray-200 p-5"
+            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-500 mb-1">{card.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                <p
-                  className={`text-xs mt-1 ${card.color}`}
-                  style={"useAccent" in card ? { color: accent } : undefined}
-                >
-                  {card.sub}
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                  {card.label}
                 </p>
+                <p className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}>
+                  {card.value}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
-              <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}
-                style={
-                  "useAccent" in card
-                    ? { backgroundColor: `${accent}1a`, color: accent }
-                    : undefined
-                }
-              >
-                {card.icon}
-              </div>
+              <span className="text-2xl">{card.icon}</span>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-end mb-4">
-        <ExportButton
-          data={filtered}
-          columns={[
-            { key: "clientUsername", label: "Client" },
-            { key: "clientEmail", label: "Email" },
-            { key: "intituleOffre", label: "Offre / Service" },
-            { key: "type", label: "Type" },
-            { key: "montant", label: "Montant (TND)" },
-            {
-              key: "dateDebut",
-              label: "Date début",
-              format: (v) => formatDateFR(v),
-            },
-            {
-              key: "dateFin",
-              label: "Date fin",
-              format: (v) => formatDateFR(v),
-            },
-            { key: "statut", label: "Statut" },
-          ]}
-          filename="abonnements"
-          label="Exporter abonnements"
-          sheetName="Abonnements"
-          pdfTitle="Liste des abonnements"
-        />
-      </div>
+      {/* Filters + Search + Export */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Tabs */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            {(["tous", "actifs", "expirés"] as FilterTab[]).map((t) => {
+              const count =
+                t === "tous"
+                  ? abonnements.length
+                  : t === "actifs"
+                  ? totalActifs
+                  : totalExpires;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    tab === t
+                      ? "bg-white text-[#4F46E5] shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {capitalize(t)}{" "}
+                  <span className="ml-1 text-xs font-semibold">{count}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={16}
-          />
-          <input
-            type="text"
-            placeholder="Rechercher par client, email ou offre..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = accent;
-              e.currentTarget.style.boxShadow = `0 0 0 3px ${accent}30`;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "";
-              e.currentTarget.style.boxShadow = "";
-            }}
+          {/* Search */}
+          <div className="relative flex-1 min-w-48">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Rechercher par client, responsable ou offre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+            />
+          </div>
+
+          {/* Export */}
+          <ExportButton
+            data={filtered}
+            columns={[
+              { key: "clientUsername", label: "Client" },
+              { key: "clientEmail", label: "Email" },
+              { key: "responsableUsername", label: "Responsable" },
+              { key: "intituleOffre", label: "Offre / Service" },
+              { key: "type", label: "Type" },
+              { key: "montant", label: "Montant (TND)" },
+              { key: "dateDebut", label: "Date début", format: (v) => formatDateFR(v) },
+              { key: "dateFin", label: "Date fin", format: (v) => formatDateFR(v) },
+              { key: "statut", label: "Statut" },
+            ]}
+            filename="abonnements"
+            label="Exporter"
+            sheetName="Abonnements"
+            pdfTitle="Abonnements globaux"
           />
         </div>
       </div>
@@ -322,85 +232,103 @@ export default function AbonnementsAdminSection() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex items-center justify-center min-h-40">
-          <div
-            className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"
-            style={{ borderColor: accent, borderTopColor: "transparent" }}
-          />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm">
-          Aucun abonnement trouvé
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {actifs.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">Actifs</h2>
-                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  {actifs.length}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {actifs.map((a) => (
-                  <AbonnementCard
-                    key={a.id}
-                    a={a}
-                    badgeLabel="actif"
-                    badgeClass="bg-green-100 text-green-700"
-                  />
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-40">
+            <div className="w-8 h-8 border-4 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 text-sm">
+            Aucun abonnement trouvé
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100">
+                {["Client", "Responsable", "Offre / Service", "Période", "Type", "Montant", "Statut"].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
+                  >
+                    {h}
+                  </th>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {enDemandeRenouvellement.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">
-                  En demande de renouvellement
-                </h2>
-                <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  {enDemandeRenouvellement.length}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {enDemandeRenouvellement.map((a) => (
-                  <AbonnementCard
-                    key={a.id}
-                    a={a}
-                    badgeLabel="en attente"
-                    badgeClass="bg-amber-100 text-amber-700"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {expires.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-gray-700">Expirés</h2>
-                <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  {expires.length}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {expires.map((a) => (
-                  <AbonnementCard
-                    key={a.id}
-                    a={a}
-                    badgeLabel="expiré"
-                    badgeClass="bg-red-100 text-red-700"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((a) => (
+                <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="py-4 px-5">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(a.clientUsername)}`}
+                      >
+                        {getInitials(a.clientUsername)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{a.clientUsername}</p>
+                        <p className="text-xs text-gray-400">{a.clientEmail}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-5 text-gray-600">
+                    {a.responsableUsername ?? "—"}
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className="text-[#4F46E5] font-medium">{a.intituleOffre}</span>
+                  </td>
+                  <td className="py-4 px-5 text-gray-500 text-xs whitespace-nowrap">
+                    {formatDate(a.dateDebut)} → {formatDate(a.dateFin)}
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-lg">
+                      {capitalize(a.type)}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 font-semibold text-gray-900 whitespace-nowrap">
+                    {a.montant} TND
+                  </td>
+                  <td className="py-4 px-5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-semibold ${
+                          a.statut === "actif"
+                            ? "text-green-600"
+                            : a.statut === "expiré"
+                            ? "text-red-500"
+                            : "text-amber-600"
+                        }`}
+                      >
+                        {a.statut}
+                      </span>
+                      <div
+                        className={`w-8 h-1.5 rounded-full ${
+                          a.statut === "actif"
+                            ? "bg-green-200"
+                            : a.statut === "expiré"
+                            ? "bg-red-200"
+                            : "bg-amber-200"
+                        }`}
+                      >
+                        <div
+                          className={`h-full rounded-full ${
+                            a.statut === "actif"
+                              ? "bg-green-500 w-full"
+                              : a.statut === "expiré"
+                              ? "bg-red-400 w-1/3"
+                              : "bg-amber-400 w-2/3"
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

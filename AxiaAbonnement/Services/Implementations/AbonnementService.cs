@@ -35,7 +35,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = !a.IsActive ? "suspendu" : a.DateFin < DateTime.UtcNow ? "expiré" : "actif"
+                Statut = a.DateFin < DateTime.UtcNow ? "expiré" : "actif"
             }).ToList();
         }
 
@@ -74,7 +74,7 @@ namespace AxiaAbonnement.Services.Implementations
                     DateDebut = a.DateDebut,
                     DateFin = a.DateFin,
                     IsActive = a.IsActive,
-                    Statut = !a.IsActive ? "désactivé" : a.DateFin < now ? "expiré" : "actif",
+                    Statut = a.DateFin < now ? "expiré" : "actif",
                     ClientUsername = a.User.Username,
                     ClientEmail = a.User.Email
                 })
@@ -179,7 +179,8 @@ namespace AxiaAbonnement.Services.Implementations
                     IsActive = a.IsActive,
                     Statut = !a.IsActive ? "désactivé" : a.DateFin < now ? "expiré" : "actif",
                     ClientUsername = a.User.Username,
-                    ClientEmail = a.User.Email
+                    ClientEmail = a.User.Email,
+                    ResponsableUsername = a.Offre != null ? a.Offre.CreePar : a.Service != null ? a.Service.CreePar : null,
                 })
                 .ToListAsync();
         }
@@ -269,58 +270,6 @@ namespace AxiaAbonnement.Services.Implementations
                 AbonnementsDesactives = mesAbonnements.Count(a => !a.IsActive && a.DateFin > now)
             };
 
-        }
-
-
-        public async Task<bool> DesactiverAsync(Guid abonnementId, Guid responsableId)
-        {
-            var a = await _db.Abonnements
-        .Include(a => a.Service)
-        .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres).ThenInclude(so => so.Service!)
-        .FirstOrDefaultAsync(a => a.Id == abonnementId);
-
-            if (a == null || !a.IsActive) return false;
-
-            // Vérifier que le responsable possède ce service/offre
-            bool owns = false;
-            if (a.ServiceId != null)
-                owns = a.Service?.ResponsableId == responsableId;
-            else if (a.OffreId != null)
-                owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
-
-            if (!owns) return false;
-
-            a.IsActive = false;
-            await _db.SaveChangesAsync();
-            await _notifService.SendAsync(a.UserId,
-                "Votre abonnement a été désactivé.", "warning",
-                "/dashboard/client/subscriptions");
-            return true;
-        }
-
-        public async Task<bool> ActiverAsync(Guid abonnementId, Guid responsableId)
-        {
-            var a = await _db.Abonnements
-                .Include(a => a.Service)
-                .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres).ThenInclude(so => so.Service!)
-                .FirstOrDefaultAsync(a => a.Id == abonnementId);
-
-            if (a == null || a.IsActive) return false;
-
-            bool owns = false;
-            if (a.ServiceId != null)
-                owns = a.Service?.ResponsableId == responsableId;
-            else if (a.OffreId != null)
-                owns = a.Offre?.ServiceOffres.Any(so => so.Service?.ResponsableId == responsableId) ?? false;
-
-            if (!owns) return false;
-
-            a.IsActive = true;
-            await _db.SaveChangesAsync();
-            await _notifService.SendAsync(a.UserId,
-                "Votre abonnement a été activé.", "success",
-                "/dashboard/client/subscriptions");
-            return true;
         }
 
     }

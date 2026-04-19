@@ -83,7 +83,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 
-builder.Services.AddSingleton<ISignatureService, SignatureService>();
+builder.Services.AddSingleton<IPdfExportService, PdfExportService>();
 
 
 var emailConfig = builder.Configuration

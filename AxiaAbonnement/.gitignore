@@ -1,6 +1,0 @@
-
-# Sensitive keys
-*.pem
-*.key
-*private*
-
