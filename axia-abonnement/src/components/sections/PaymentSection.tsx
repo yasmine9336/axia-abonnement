@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import axios from "axios";
 import { API_URL } from "../../api/config";
@@ -38,8 +38,10 @@ export default function PaymentSection() {
         axiosInstance.get("/offres/public"),
         axios.get(`${API_URL}/api/services/public`),
       ]);
+
       const offresData: Offre[] = offresRes.data;
       const servicesData: Service[] = servicesRes.data;
+
       setOffres(offresData);
       setServices(servicesData);
 
@@ -51,9 +53,10 @@ export default function PaymentSection() {
         const found = servicesData.find((s) => s.id === pendingServiceId);
         if (found) {
           setSelection({ kind: "service", item: found });
-          // Offres qui incluent ce service
           setRelatedOffres(
-            offresData.filter((o) => o.services.includes(found.intituleService))
+            offresData.filter((o) =>
+              o.services.includes(found.intituleService),
+            ),
           );
         }
         localStorage.removeItem("pendingServiceId");
@@ -63,14 +66,14 @@ export default function PaymentSection() {
         localStorage.removeItem("pendingOffreId");
       }
     };
-    loadData();
+
+    void loadData();
   }, []);
 
-  // Quand on sélectionne un service, calculer les offres liées
   const selectService = (s: Service) => {
     setSelection({ kind: "service", item: s });
     setRelatedOffres(
-      offres.filter((o) => o.services.includes(s.intituleService))
+      offres.filter((o) => o.services.includes(s.intituleService)),
     );
   };
 
@@ -79,34 +82,15 @@ export default function PaymentSection() {
     setRelatedOffres([]);
   };
 
-  const handlePay = async () => {
-    if (!selection) return;
-    setLoading(true);
-    try {
-      const body =
-        selection.kind === "offre"
-          ? { offreId: selection.item.id, type }
-          : { serviceId: selection.item.id, type };
+  const getPrice = (x: { parMois: number; parAnnee: number }) =>
+    type === "annuel" ? x.parAnnee : x.parMois;
 
-      const res = await axiosInstance.post(
-        "/payment/create-checkout-session",
-        body
-      );
-      window.location.href = res.data.url;
-    } catch {
-      setLoading(false);
-    }
-  };
-
-  const montant = selection
-    ? type === "annuel"
-      ? selection.kind === "offre"
-        ? (selection.item as Offre).parAnnee
-        : (selection.item as Service).parAnnee
-      : selection.kind === "offre"
-        ? (selection.item as Offre).parMois
-        : (selection.item as Service).parMois
-    : null;
+  const montant =
+    selection == null
+      ? null
+      : type === "annuel"
+        ? selection.item.parAnnee
+        : selection.item.parMois;
 
   const selectionName = selection
     ? selection.kind === "offre"
@@ -116,146 +100,208 @@ export default function PaymentSection() {
 
   const selectionLabel = selection?.kind === "offre" ? "Offre" : "Service";
 
+  const handlePay = async () => {
+    if (!selection) return;
+    setLoading(true);
+
+    try {
+      const body =
+        selection.kind === "offre"
+          ? { offreId: selection.item.id, type }
+          : { serviceId: selection.item.id, type };
+
+      const res = await axiosInstance.post(
+        "/payment/create-checkout-session",
+        body,
+      );
+      window.location.href = res.data.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  const shownOffres = selection?.kind === "service" ? relatedOffres : offres;
+
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Paiement</h1>
         <p className="text-gray-500 text-sm mt-1">
           Choisissez un service ou une offre et complétez votre abonnement.
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Colonne gauche — sélection */}
-        <div className="space-y-6">
-          {/* Services */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Services</h2>
-            <div className="space-y-3">
-              {services.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => selectService(s)}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                    selection?.kind === "service" && selection.item.id === s.id
-                      ? "border-[#4F46E5] bg-indigo-50"
-                      : "border-gray-200 hover:border-[#4F46E5]"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {s.intituleService}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {s.description}
+      {/* Switch Mensuel/Annuel (global) */}
+      <div className="mb-6">
+        <div className="inline-flex p-1 rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <button
+            onClick={() => setType("mensuel")}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+              type === "mensuel"
+                ? "bg-[#0F6CBD] text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Mensuel
+          </button>
+          <button
+            onClick={() => setType("annuel")}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+              type === "annuel"
+                ? "bg-[#0F6CBD] text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            Annuel
+          </button>
+        </div>
+      </div>
+
+      {/* Layout principal */}
+      <div className="grid lg:grid-cols-[1fr_420px] gap-6 items-start">
+        {/* Colonne gauche */}
+        <div className="space-y-8">
+          {/* SERVICES */}
+          <div>
+            <h2 className="text-xs font-bold tracking-widest text-gray-400 mb-4">
+              SERVICES
+            </h2>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {services.map((s) => {
+                const isSelected =
+                  selection?.kind === "service" && selection.item.id === s.id;
+                const price = getPrice(s);
+
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => selectService(s)}
+                    className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+                      isSelected
+                        ? "border-[#0F6CBD] ring-4 ring-[#0F6CBD]/10"
+                        : "border-gray-200 hover:border-[#0F6CBD]/50"
+                    }`}
+                  >
+                    <p className="font-bold text-gray-900">
+                      {s.intituleService}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                      {s.description}
+                    </p>
+
+                    <div className="mt-4">
+                      <p className="text-2xl font-extrabold text-[#0F6CBD]">
+                        {price}{" "}
+                        <span className="text-sm font-semibold text-gray-400">
+                          TND/{type === "annuel" ? "an" : "mois"}
+                        </span>
                       </p>
                     </div>
-                    <div className="text-right shrink-0 ml-3">
-                      <p className="text-sm font-bold text-[#4F46E5]">
-                        {s.parMois} TND
-                      </p>
-                      <p className="text-xs text-gray-400">/mois</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Offres (ou offres liées si service sélectionné) */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">
-              {selection?.kind === "service"
-                ? "Offres incluant ce service"
-                : "Offres / Packs"}
-            </h2>
-            {selection?.kind === "service" && relatedOffres.length > 0 && (
-              <p className="text-xs text-green-600 mb-4">
-                Économisez avec un pack !
-              </p>
-            )}
-            <div className="space-y-3">
-              {(selection?.kind === "service" ? relatedOffres : offres).map(
-                (o) => (
-                  <button
-                    key={o.id}
-                    onClick={() => selectOffre(o)}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                      selection?.kind === "offre" && selection.item.id === o.id
-                        ? "border-[#4F46E5] bg-indigo-50"
-                        : "border-gray-200 hover:border-[#4F46E5]"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {o.intituleOffre}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {o.description}
-                        </p>
-                        {o.services.length > 0 && (
-                          <p className="text-xs text-[#4F46E5] mt-1">
-                            {o.services.join(", ")}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0 ml-3">
-                        <p className="text-sm font-bold text-[#4F46E5]">
-                          {o.parMois} TND
-                        </p>
-                        <p className="text-xs text-gray-400">/mois</p>
-                      </div>
-                    </div>
-                  </button>
-                )
-              )}
-              {selection?.kind === "service" &&
-                relatedOffres.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-4">
-                    Aucune offre disponible pour ce service.
+          {/* OFFRES / PACKS (ou OFFRES LIÉES) */}
+          <div>
+            <div className="flex items-end justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-xs font-bold tracking-widest text-gray-400">
+                  {selection?.kind === "service"
+                    ? "OFFRES LIÉES"
+                    : "OFFRES / PACKS"}
+                </h2>
+                {selection?.kind === "service" && (
+                  <p className="text-xs text-green-600 mt-1">
+                    {relatedOffres.length > 0
+                      ? "Économisez avec un pack !"
+                      : "Aucune offre liée à ce service."}
                   </p>
                 )}
+              </div>
             </div>
+
+            {shownOffres.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 text-sm text-gray-400">
+                Aucune offre disponible.
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {shownOffres.map((o) => {
+                  const isSelected =
+                    selection?.kind === "offre" && selection.item.id === o.id;
+                  const price = getPrice(o);
+
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => selectOffre(o)}
+                      className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+                        isSelected
+                          ? "border-[#0F6CBD] ring-4 ring-[#0F6CBD]/10"
+                          : "border-gray-200 hover:border-[#0F6CBD]/50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-bold text-gray-900 truncate">
+                            {o.intituleOffre}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            {o.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-2xl font-extrabold text-[#0F6CBD]">
+                          {price}{" "}
+                          <span className="text-sm font-semibold text-gray-400">
+                            TND/{type === "annuel" ? "an" : "mois"}
+                          </span>
+                        </p>
+                      </div>
+
+                      {o.services?.length > 0 && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {o.services.slice(0, 4).map((srv) => (
+                            <span
+                              key={srv}
+                              className="px-3 py-1 rounded-full text-xs font-semibold bg-[#EAF4FF] text-[#0F6CBD]"
+                            >
+                              {srv}
+                            </span>
+                          ))}
+                          {o.services.length > 4 && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                              +{o.services.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Colonne droite — récapitulatif */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        {/* Colonne droite — Récap sticky */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:sticky lg:top-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">
             Récapitulatif
           </h2>
 
           {!selection ? (
-            <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-56 text-gray-400 text-sm">
               Sélectionnez un service ou une offre
             </div>
           ) : (
             <>
-              <div className="flex gap-3 mb-6">
-                <button
-                  onClick={() => setType("mensuel")}
-                  className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
-                    type === "mensuel"
-                      ? "bg-[#4F46E5] text-white"
-                      : "border border-gray-200 text-gray-600 hover:border-[#4F46E5]"
-                  }`}
-                >
-                  Mensuel
-                </button>
-                <button
-                  onClick={() => setType("annuel")}
-                  className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all ${
-                    type === "annuel"
-                      ? "bg-[#4F46E5] text-white"
-                      : "border border-gray-200 text-gray-600 hover:border-[#4F46E5]"
-                  }`}
-                >
-                  Annuel
-                </button>
-              </div>
-
               <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{selectionLabel}</span>
@@ -278,7 +324,7 @@ export default function PaymentSection() {
               <button
                 onClick={handlePay}
                 disabled={loading}
-                className="w-full py-3 bg-[#4F46E5] text-white rounded-xl font-semibold text-sm hover:bg-[#3730A3] transition-all disabled:opacity-50"
+                className="w-full py-3 bg-[#0F6CBD] text-white rounded-xl font-semibold text-sm hover:bg-[#0C5A9E] transition-all disabled:opacity-50"
               >
                 {loading
                   ? "Redirection vers Stripe..."

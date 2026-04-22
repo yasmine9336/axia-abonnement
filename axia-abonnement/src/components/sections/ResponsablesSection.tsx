@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
 import { API_URL } from "../../api/config";
 import {
-  Edit2,
   Trash2,
   Search,
   Mail,
@@ -19,6 +18,8 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 
 interface Responsable {
@@ -76,8 +77,9 @@ export default function ResponsablesSection() {
   const [responsables, setResponsables] = useState<Responsable[]>([]);
   const [loadingActifs, setLoadingActifs] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal création uniquement
   const [showModal, setShowModal] = useState(false);
-  const [editingResp, setEditingResp] = useState<Responsable | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -125,24 +127,20 @@ export default function ResponsablesSection() {
   useEffect(() => {
     fetchResponsables();
   }, [fetchResponsables]);
+
   useEffect(() => {
     fetchDemandes();
   }, [fetchDemandes]);
 
-  const openEditModal = (resp: Responsable) => {
-    setEditingResp(resp);
-    setForm({
-      username: resp.username,
-      email: resp.email,
-      password: "",
-      phoneNumber: resp.phoneNumber || "",
-    });
+  const openCreateModal = () => {
+    setForm({ username: "", email: "", password: "", phoneNumber: "" });
     setError("");
+    setShowPassword(false);
     setShowModal(true);
   };
+
   const closeModal = () => {
     setShowModal(false);
-    setEditingResp(null);
     setError("");
   };
 
@@ -151,24 +149,12 @@ export default function ResponsablesSection() {
     setSubmitting(true);
     setError("");
     try {
-      if (editingResp) {
-        const payload: Record<string, string> = {};
-        if (form.username) payload.username = form.username;
-        if (form.email) payload.email = form.email;
-        if (form.phoneNumber !== undefined)
-          payload.phoneNumber = form.phoneNumber;
-        await axiosInstance.patch(
-          `/users/responsables/${editingResp.id}`,
-          payload,
-        );
-      } else {
-        await axiosInstance.post("/users/responsables", {
-          username: form.username,
-          email: form.email,
-          password: form.password,
-          phoneNumber: form.phoneNumber || null,
-        });
-      }
+      await axiosInstance.post("/users/responsables", {
+        username: form.username,
+        email: form.email,
+        password: form.password,
+        phoneNumber: form.phoneNumber || null,
+      });
       await fetchResponsables();
       closeModal();
     } catch (err) {
@@ -203,7 +189,7 @@ export default function ResponsablesSection() {
     }
   };
 
-  const showToast = (msg: string) => {
+  const showToastMsg = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3500);
   };
@@ -217,7 +203,7 @@ export default function ResponsablesSection() {
         await axiosInstance.patch(
           `/demandes-responsables/${confirmAction.demande.id}/accepter`,
         );
-        showToast(
+        showToastMsg(
           `Demande de ${confirmAction.demande.username} acceptée. Un email avec le lien de paiement a été envoyé.`,
         );
       } else {
@@ -225,7 +211,7 @@ export default function ResponsablesSection() {
           `/demandes-responsables/${confirmAction.demande.id}/refuser`,
           { motif: motifRefus.trim() || null },
         );
-        showToast(`Demande de ${confirmAction.demande.username} refusée.`);
+        showToastMsg(`Demande de ${confirmAction.demande.username} refusée.`);
       }
       setConfirmAction(null);
       setMotifRefus("");
@@ -237,28 +223,76 @@ export default function ResponsablesSection() {
     }
   };
 
-  const filteredActifs = responsables.filter(
-    (r) =>
-      r.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  const activeCount = useMemo(
+    () => responsables.filter((r) => r.isActive).length,
+    [responsables],
   );
-  const activeCount = responsables.filter((r) => r.isActive).length;
-  const pendingCount = demandes.filter((d) => d.statut === "Pending").length;
+  const inactiveCount = responsables.length - activeCount;
 
-  const filteredDemandes = demandes.filter((d) => {
-    const q = searchDemandes.toLowerCase();
-    return (
-      d.username.toLowerCase().includes(q) ||
-      d.email.toLowerCase().includes(q) ||
-      (d.nomEntreprise ?? "").toLowerCase().includes(q)
+  const pendingCount = useMemo(
+    () => demandes.filter((d) => d.statut === "Pending").length,
+    [demandes],
+  );
+
+  const filteredActifs = useMemo(() => {
+    const q = searchTerm.toLowerCase().trim();
+    if (!q) return responsables;
+    return responsables.filter(
+      (r) =>
+        r.username.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q),
     );
-  });
+  }, [responsables, searchTerm]);
+
+  const filteredDemandes = useMemo(() => {
+    const q = searchDemandes.toLowerCase().trim();
+    if (!q) return demandes;
+    return demandes.filter((d) => {
+      return (
+        d.username.toLowerCase().includes(q) ||
+        d.email.toLowerCase().includes(q) ||
+        (d.nomEntreprise ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [demandes, searchDemandes]);
 
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
     if (photoPath.startsWith("http")) return photoPath;
     return `${API_URL}${photoPath}`;
   };
+
+  // ✅ KPI cards au style des autres sections (border-t-4)
+  const kpiCards = [
+    {
+      label: "TOTAL RESPONSABLES",
+      value: responsables.length,
+      sub: `${activeCount} actif(s)`,
+      icon: <Users className="w-5 h-5 text-blue-600" />,
+      border: "border-t-blue-500",
+    },
+    {
+      label: "ACTIFS",
+      value: activeCount,
+      sub: `${inactiveCount} inactif(s)`,
+      icon: <CheckCircle2 className="w-5 h-5 text-green-500" />,
+      border: "border-t-green-400",
+    },
+    {
+      label: "TOTAL DEMANDES",
+      value: demandes.length,
+      sub: "toutes confondues",
+      icon: <ClipboardList className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
+    },
+    {
+      label: "EN ATTENTE",
+      value: pendingCount,
+      sub: "demandes à traiter",
+      icon: <Clock className="w-5 h-5 text-orange-500" />,
+      border: "border-t-orange-400",
+    },
+  ];
 
   return (
     <div className="p-6 lg:p-8">
@@ -269,163 +303,44 @@ export default function ResponsablesSection() {
             Gérer les Responsables
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            {tab === "actifs" ? (
-              <>
-                {activeCount} actif{activeCount > 1 ? "s" : ""} sur{" "}
-                {responsables.length} responsable
-                {responsables.length > 1 ? "s" : ""}
-              </>
-            ) : (
-              <>{pendingCount} demande(s) en attente</>
-            )}
+            {activeCount} actif(s) · {pendingCount} en attente ·{" "}
+            {responsables.length} total
           </p>
         </div>
+
+        {/* Bouton ajout */}
+        {tab === "actifs" && (
+          <button
+            onClick={openCreateModal}
+            className="bg-[#0F6CBD] hover:bg-[#4338CA] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+          >
+            + Ajouter un responsable
+          </button>
+        )}
       </div>
 
-      {/* Stat cards */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          {
-            label: "Total responsables",
-            value: responsables.length,
-            sub: `${activeCount} actif${activeCount !== 1 ? "s" : ""}`,
-            color: "text-[#4F46E5]",
-            bg: "bg-[#4F46E5]/10 text-[#4F46E5]",
-            icon: (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            ),
-          },
-          {
-            label: "Actifs",
-            value: activeCount,
-            sub: `${responsables.length - activeCount} inactif${responsables.length - activeCount !== 1 ? "s" : ""}`,
-            color: "text-green-600",
-            bg: "bg-green-100 text-green-700",
-            icon: (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            ),
-          },
-          {
-            label: "Total demandes",
-            value: demandes.length,
-            sub: "toutes confondues",
-            color: "text-indigo-600",
-            bg: "bg-indigo-100 text-indigo-600",
-            icon: (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            ),
-          },
-          {
-            label: "En attente",
-            value: pendingCount,
-            sub: "demandes à traiter",
-            color: pendingCount > 0 ? "text-yellow-600" : "text-gray-400",
-            bg:
-              pendingCount > 0
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-gray-100 text-gray-400",
-            icon: (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            ),
-          },
-        ].map((card) => (
+        {kpiCards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-2xl border border-gray-200 p-5"
+            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-500 mb-1">{card.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                <p className={`text-xs mt-1 ${card.color}`}>{card.sub}</p>
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                  {card.label}
+                </p>
+                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+                <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
-              <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.bg}`}
-              >
-                {card.icon}
-              </div>
+              <div className="mt-1">{card.icon}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
-        <button
-          onClick={() => setTab("actifs")}
-          className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-            tab === "actifs"
-              ? "border-[#4F46E5] text-[#4F46E5]"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Responsables actifs
-        </button>
-        <button
-          onClick={() => setTab("demandes")}
-          className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors flex items-center gap-2 ${
-            tab === "demandes"
-              ? "border-[#4F46E5] text-[#4F46E5]"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Demandes
-          {pendingCount > 0 && (
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full">
-              {pendingCount}
-            </span>
-          )}
-        </button>
-      </div>
-
+      {/* Toast / Errors */}
       {toast && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm">
           {toast}
@@ -437,12 +352,57 @@ export default function ResponsablesSection() {
         </div>
       )}
 
-      {/* TAB : ACTIFS */}
-      {tab === "actifs" && (
-        <>
-          <div className="flex justify-end mb-4">
+      {/* ✅ Filters + Search + Export (comme Abonnements/Archive/Transactions) */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Tabs (pills) */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            {(["actifs", "demandes"] as const).map((t) => {
+              const count = t === "actifs" ? responsables.length : demandes.length;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    tab === t
+                      ? "bg-white text-[#0F6CBD] shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {t === "actifs" ? "Responsables" : "Demandes"}{" "}
+                  <span className="ml-1 text-xs font-semibold">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search */}
+          <div className="relative flex-1 min-w-48">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={16}
+            />
+            <input
+              type="text"
+              placeholder={
+                tab === "actifs"
+                  ? "Rechercher par nom ou email..."
+                  : "Rechercher par nom, email ou entreprise..."
+              }
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+              value={tab === "actifs" ? searchTerm : searchDemandes}
+              onChange={(e) =>
+                tab === "actifs"
+                  ? setSearchTerm(e.target.value)
+                  : setSearchDemandes(e.target.value)
+              }
+            />
+          </div>
+
+          {/* Export (visible seulement sur la liste responsables) */}
+          {tab === "actifs" && (
             <ExportButton
-              data={responsables}
+              data={filteredActifs}
               columns={[
                 { key: "username", label: "Nom d'utilisateur" },
                 { key: "email", label: "Email" },
@@ -458,27 +418,16 @@ export default function ResponsablesSection() {
               sheetName="Responsables"
               pdfTitle="Liste des responsables"
             />
-          </div>
+          )}
+        </div>
+      </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Rechercher par nom ou email..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
+      {/* TAB : ACTIFS */}
+      {tab === "actifs" && (
+        <>
           {loadingActifs ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse"
@@ -492,7 +441,6 @@ export default function ResponsablesSection() {
                   <div className="w-24 h-3 bg-gray-200 rounded mb-6" />
                   <div className="flex gap-2">
                     <div className="flex-1 h-9 bg-gray-200 rounded-xl" />
-                    <div className="w-9 h-9 bg-gray-200 rounded-xl" />
                     <div className="w-9 h-9 bg-gray-200 rounded-xl" />
                   </div>
                 </div>
@@ -517,7 +465,7 @@ export default function ResponsablesSection() {
                         className="w-12 h-12 rounded-full object-cover border border-gray-200"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      <div className="w-12 h-12 bg-[#0F6CBD] rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {resp.username.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -531,9 +479,11 @@ export default function ResponsablesSection() {
                       {resp.isActive ? "Actif" : "Inactif"}
                     </span>
                   </div>
+
                   <h3 className="font-semibold text-gray-900 mb-3">
                     {resp.username}
                   </h3>
+
                   <div className="space-y-1.5 mb-6">
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Mail size={13} />
@@ -546,24 +496,21 @@ export default function ResponsablesSection() {
                       </div>
                     )}
                   </div>
+
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => openEditModal(resp)}
-                      className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 hover:border-[#4F46E5] hover:text-[#4F46E5] text-gray-600 text-sm font-medium py-2 rounded-xl transition-colors"
-                    >
-                      <Edit2 size={13} /> Modifier
-                    </button>
                     <button
                       onClick={() => handleToggle(resp)}
                       title={resp.isActive ? "Désactiver" : "Activer"}
-                      className={`p-2 rounded-xl border transition-colors ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border transition-colors text-sm font-medium ${
                         resp.isActive
-                          ? "border-orange-200 text-orange-500 hover:bg-orange-50"
-                          : "border-green-200 text-green-600 hover:bg-green-50"
+                          ? "border-orange-200 text-orange-600 hover:bg-orange-50"
+                          : "border-green-200 text-green-700 hover:bg-green-50"
                       }`}
                     >
                       <Power size={15} />
+                      {resp.isActive ? "Désactiver" : "Activer"}
                     </button>
+
                     <button
                       onClick={() => handleDelete(resp)}
                       title="Supprimer"
@@ -582,6 +529,7 @@ export default function ResponsablesSection() {
       {/* TAB : DEMANDES */}
       {tab === "demandes" && (
         <>
+          {/* Filtres statut (inchangé, déjà cohérent) */}
           <div className="flex flex-wrap gap-2 mb-4">
             {(["Pending", "Accepted", "Rejected", "All"] as FilterStatut[]).map(
               (s) => (
@@ -590,30 +538,14 @@ export default function ResponsablesSection() {
                   onClick={() => setFilter(s)}
                   className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     filter === s
-                      ? "bg-[#4F46E5] text-white"
-                      : "bg-white border border-gray-200 text-gray-600 hover:border-[#4F46E5]"
+                      ? "bg-[#0F6CBD] text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-[#0F6CBD]"
                   }`}
                 >
                   {s === "All" ? "Toutes" : STATUT_LABEL[s]}
                 </button>
               ),
             )}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Rechercher par nom, email ou entreprise..."
-                value={searchDemandes}
-                onChange={(e) => setSearchDemandes(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-              />
-            </div>
           </div>
 
           {loadingDemandes ? (
@@ -650,7 +582,7 @@ export default function ResponsablesSection() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-[#4F46E5] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      <div className="w-12 h-12 bg-[#0F6CBD] rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {d.username.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -664,7 +596,9 @@ export default function ResponsablesSection() {
                       </div>
                     </div>
                     <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUT_STYLES[d.statut] ?? "bg-gray-100 text-gray-500"}`}
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                        STATUT_STYLES[d.statut] ?? "bg-gray-100 text-gray-500"
+                      }`}
                     >
                       {STATUT_LABEL[d.statut] ?? d.statut}
                     </span>
@@ -750,15 +684,13 @@ export default function ResponsablesSection() {
         </>
       )}
 
-      {/* Modal création/édition responsable */}
+      {/* Modal création responsable */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-900">
-                {editingResp
-                  ? "Modifier le responsable"
-                  : "Ajouter un responsable"}
+                Ajouter un responsable
               </h2>
               <button
                 onClick={closeModal}
@@ -767,12 +699,14 @@ export default function ResponsablesSection() {
                 <X size={20} />
               </button>
             </div>
+
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
                   {error}
                 </div>
               )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Nom d'utilisateur
@@ -785,10 +719,11 @@ export default function ResponsablesSection() {
                   onChange={(e) =>
                     setForm({ ...form, username: e.target.value })
                   }
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
                   placeholder="ex: responsable1"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email
@@ -799,37 +734,37 @@ export default function ResponsablesSection() {
                   autoComplete="off"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
                   placeholder="ex: resp@axia.com"
                 />
               </div>
-              {!editingResp && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Mot de passe
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      autoComplete="new-password"
-                      value={form.password}
-                      onChange={(e) =>
-                        setForm({ ...form, password: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-                      placeholder="Minimum 8 caractères"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+                    placeholder="Minimum 8 caractères"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-              )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Téléphone{" "}
@@ -841,21 +776,18 @@ export default function ResponsablesSection() {
                   onChange={(e) =>
                     setForm({ ...form, phoneNumber: e.target.value })
                   }
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
                   placeholder="ex: 0612345678"
                 />
               </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 bg-[#4F46E5] hover:bg-[#4338CA] disabled:opacity-60 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
+                  className="flex-1 bg-[#0F6CBD] hover:bg-[#0C5A9D] disabled:opacity-60 text-white py-2.5 rounded-xl font-medium text-sm transition-colors"
                 >
-                  {submitting
-                    ? "En cours..."
-                    : editingResp
-                      ? "Mettre à jour"
-                      : "Créer"}
+                  {submitting ? "En cours..." : "Créer"}
                 </button>
                 <button
                   type="button"
@@ -890,19 +822,21 @@ export default function ResponsablesSection() {
                 <X size={20} />
               </button>
             </div>
+
             <div className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
                   {error}
                 </div>
               )}
+
               <p className="text-sm text-gray-600">
                 {confirmAction.type === "accept" ? (
                   <>
                     Vous allez accepter la demande de{" "}
                     <strong>{confirmAction.demande.username}</strong> (
-                    {confirmAction.demande.email}). Un email lui sera envoyé
-                    avec le <strong>lien de paiement de 500 TND</strong>.
+                    {confirmAction.demande.email}). Un email lui sera envoyé avec
+                    le <strong>lien de paiement de 500 TND</strong>.
                   </>
                 ) : (
                   <>
@@ -912,6 +846,7 @@ export default function ResponsablesSection() {
                   </>
                 )}
               </p>
+
               {confirmAction.type === "reject" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -925,10 +860,11 @@ export default function ResponsablesSection() {
                     value={motifRefus}
                     onChange={(e) => setMotifRefus(e.target.value)}
                     placeholder="Ex: Informations professionnelles incomplètes..."
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] resize-none"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD] resize-none"
                   />
                 </div>
               )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleConfirmDemande}

@@ -4,7 +4,6 @@
     {
         Actif,
         Expiré,
-        Désactivé,
         EnAttente
     }
 }

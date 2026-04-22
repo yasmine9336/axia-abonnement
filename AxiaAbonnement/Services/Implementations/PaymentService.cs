@@ -407,5 +407,32 @@ namespace AxiaAbonnement.Services.Implementations
                 .ToListAsync();
         }
 
+        public async Task<PaiementDto?> GetMyPaiementByIdAsync(Guid userId, Guid paiementId)
+        {
+            return await _ctx.Paiements
+                .Include(p => p.Abonnement).ThenInclude(a => a!.Offre)
+                .Include(p => p.Abonnement).ThenInclude(a => a!.Service)
+                .Include(p => p.User)
+                .Where(p => p.Id == paiementId && p.UserId == userId)
+                .Select(p => new PaiementDto
+                {
+                    Id = p.Id,
+                    Montant = p.Montant,
+                    Statut = p.Statut,
+                    CreatedAt = p.CreatedAt,
+                    IntituleOffre = p.Abonnement != null && p.Abonnement.Offre != null
+                        ? p.Abonnement.Offre.IntituleOffre
+                        : p.Abonnement != null && p.Abonnement.Service != null
+                            ? p.Abonnement.Service.IntituleService
+                            : "Activation compte responsable",
+                    TypeAbonnement = p.Abonnement != null
+                        ? p.Abonnement.Type
+                        : "responsable-account",
+                    ClientUsername = p.User.Username,
+                    ClientEmail = p.User.Email
+                })
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

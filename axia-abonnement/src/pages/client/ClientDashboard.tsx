@@ -8,9 +8,10 @@ import HistoriqueSection from "../../components/sections/HistoriqueSection";
 import ClientChat from "../../components/chat/ClientChat";
 import axiosInstance from "../../api/axiosInstance";
 import { useNotifications } from "../../hooks/useNotifications";
+import { Package, Wallet, Bell, BarChart3, Plus, CreditCard, History, User } from "lucide-react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -25,6 +26,7 @@ type Section =
   | "history"
   | "chat"
   | "profile";
+
 interface Props {
   section?: Section;
 }
@@ -38,6 +40,7 @@ interface AbonnementItem {
   dateDebut: string;
   statut: string;
 }
+
 interface PaiementItem {
   id: string;
   intituleOffre: string;
@@ -46,46 +49,54 @@ interface PaiementItem {
   createdAt: string;
 }
 
-function KpiCard({
-  icon,
-  label,
-  value,
-  sub,
-  bg,
-  iconColor,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-  sub: string;
-  bg: string;
-  iconColor: string;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-start gap-4">
-      <div
-        className={`w-11 h-11 ${bg} rounded-xl flex items-center justify-center shrink-0`}
-      >
-        <span className={iconColor}>{icon}</span>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500 mb-1">{label}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function ClientDashboard({ section = "dashboard" }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { notifications, unreadCount } = useNotifications();
+  const { unreadCount } = useNotifications();
   const [abonnements, setAbonnements] = useState<AbonnementItem[]>([]);
   const [paiements, setPaiements] = useState<PaiementItem[]>([]);
   const [loadingData, setLoadingData] = useState(section === "dashboard");
   const [now] = useState(() => Date.now());
 
+  // ── Tous les useMemo AVANT les early returns ──────────────────────────────
+  const abonnementsActifs = useMemo(
+    () => abonnements.filter((a) => a.statut === "actif"),
+    [abonnements]
+  );
+
+  const totalDepense = useMemo(
+    () => paiements.reduce((sum, p) => sum + p.montant, 0),
+    [paiements]
+  );
+
+  const totalCeMois = useMemo(() => {
+    const n = new Date();
+    return paiements
+      .filter((p) => {
+        const d = new Date(p.createdAt);
+        return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+      })
+      .reduce((sum, p) => sum + p.montant, 0);
+  }, [paiements]);
+
+  const depensesParMois = useMemo(() => {
+    const n = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const mois = new Date(n.getFullYear(), n.getMonth() - (5 - i), 1);
+      const total = paiements
+        .filter((p) => {
+          const d = new Date(p.createdAt);
+          return d.getMonth() === mois.getMonth() && d.getFullYear() === mois.getFullYear();
+        })
+        .reduce((sum, p) => sum + p.montant, 0);
+      return {
+        mois: mois.toLocaleDateString("fr-FR", { month: "short" }),
+        depense: total,
+      };
+    });
+  }, [paiements]);
+
+  // ── useEffect AVANT les early returns ─────────────────────────────────────
   useEffect(() => {
     if (section !== "dashboard") return;
     let cancelled = false;
@@ -99,66 +110,24 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
         setPaiements(paRes.data);
       })
       .catch(() => {
-        if (!cancelled) {
-          setAbonnements([]);
-          setPaiements([]);
-        }
+        if (!cancelled) { setAbonnements([]); setPaiements([]); }
       })
-      .finally(() => {
-        if (!cancelled) setLoadingData(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .finally(() => { if (!cancelled) setLoadingData(false); });
+    return () => { cancelled = true; };
   }, [section]);
 
-  const abonnementsActifs = useMemo(
-    () => abonnements.filter((a) => a.statut === "actif"),
-    [abonnements],
-  );
-  const totalDepense = useMemo(
-    () => paiements.reduce((sum, p) => sum + p.montant, 0),
-    [paiements],
-  );
-  const totalCeMois = useMemo(() => {
-    const now = new Date();
-    return paiements
-      .filter((p) => {
-        const d = new Date(p.createdAt);
-        return (
-          d.getMonth() === now.getMonth() &&
-          d.getFullYear() === now.getFullYear()
-        );
-      })
-      .reduce((sum, p) => sum + p.montant, 0);
-  }, [paiements]);
+  // ── Early returns APRÈS tous les hooks ────────────────────────────────────
+  if (section === "profile") return <ProfileSection />;
+  if (section === "payment") return <PaymentSection />;
+  if (section === "subscriptions") return <SubscriptionsSection />;
+  if (section === "chat") return <ClientChat />;
+  if (section === "history") return <HistoriqueSection />;
 
-  const depensesParMois = useMemo(() => {
-    const now = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
-      const mois = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-      const total = paiements
-        .filter((p) => {
-          const d = new Date(p.createdAt);
-          return (
-            d.getMonth() === mois.getMonth() &&
-            d.getFullYear() === mois.getFullYear()
-          );
-        })
-        .reduce((sum, p) => sum + p.montant, 0);
-      return {
-        mois: mois.toLocaleDateString("fr-FR", { month: "short" }),
-        depense: total,
-      };
-    });
-  }, [paiements]);
-
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const getProgress = (dateDebut: string, dateFin: string) => {
     const debut = new Date(dateDebut).getTime();
     const fin = new Date(dateFin).getTime();
-    return Math.round(
-      Math.min(100, Math.max(0, ((now - debut) / (fin - debut)) * 100)),
-    );
+    return Math.round(Math.min(100, Math.max(0, ((now - debut) / (fin - debut)) * 100)));
   };
 
   const joursRestants = (dateFin: string) => {
@@ -166,441 +135,262 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
-  if (section === "profile") return <ProfileSection />;
-  if (section === "payment") return <PaymentSection />;
-  if (section === "subscriptions") return <SubscriptionsSection />;
-  if (section === "chat") return <ClientChat />;
-  if (section === "history") return <HistoriqueSection />;
+  const totalJours = (dateDebut: string, dateFin: string) => {
+    const debut = new Date(dateDebut).getTime();
+    const fin = new Date(dateFin).getTime();
+    return Math.ceil((fin - debut) / (1000 * 60 * 60 * 24));
+  };
 
-  const actions = [
+  const prochainRenouvellement = abonnementsActifs
+    .slice()
+    .sort((a, b) => new Date(a.dateFin).getTime() - new Date(b.dateFin).getTime())[0];
+
+  const joursAvantRenouvellement = prochainRenouvellement
+    ? joursRestants(prochainRenouvellement.dateFin)
+    : null;
+
+  const kpiCards = [
     {
-      label: "Effectuer un paiement",
-      path: "/dashboard/client/payment",
-      bg: "bg-indigo-600",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-          />
-        </svg>
-      ),
+      label: "ABONNEMENTS ACTIFS",
+      value: abonnementsActifs.length,
+      sub: "en cours",
+      icon: <Package className="w-5 h-5 text-blue-600" />,
+      border: "border-t-blue-500",
     },
     {
-      label: "Gérer les abonnements",
-      path: "/dashboard/client/subscriptions",
-      bg: "bg-blue-500",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-          />
-        </svg>
-      ),
+      label: "TOTAL DÉPENSÉ",
+      value: `${totalDepense.toFixed(2)} TND`,
+      sub: "tous paiements",
+      icon: <Wallet className="w-5 h-5 text-green-500" />,
+      border: "border-t-green-400",
+      large: true,
     },
     {
-      label: "Contacter le support",
-      path: "/dashboard/client/chat",
-      bg: "bg-purple-500",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
-        </svg>
-      ),
+      label: "NOTIFICATIONS",
+      value: unreadCount,
+      sub: "non lues",
+      icon: <Bell className={`w-5 h-5 ${unreadCount > 0 ? "text-red-400" : "text-gray-400"}`} />,
+      border: unreadCount > 0 ? "border-t-red-400" : "border-t-gray-300",
     },
     {
-      label: "Explorer les offres",
-      path: "/",
-      bg: "bg-green-500",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      ),
+      label: "CE MOIS-CI",
+      value: `${totalCeMois.toFixed(2)} TND`,
+      sub: "dépensé",
+      icon: <BarChart3 className="w-5 h-5 text-orange-500" />,
+      border: "border-t-orange-400",
+      large: true,
     },
   ];
 
+  const actions = [
+    {
+      label: "Nouvel abonnement",
+      sub: "Parcourir les offres",
+      path: "/",
+      icon: <Plus className="w-6 h-6 text-[#0F6CBD]" />,
+    },
+    {
+      label: "Mes abonnements",
+      sub: "Gérer et suivre",
+      path: "/dashboard/client/subscriptions",
+      icon: <CreditCard className="w-6 h-6 text-blue-500" />,
+    },
+    {
+      label: "Historique",
+      sub: "Dernière transaction",
+      path: "/dashboard/client/history",
+      icon: <History className="w-6 h-6 text-orange-500" />,
+    },
+    {
+      label: "Mon profil",
+      sub: "Informations compte",
+      path: "/dashboard/client/profile",
+      icon: <User className="w-6 h-6 text-gray-500" />,
+    },
+  ];
+
+  const chartLabel = `${depensesParMois[0]?.mois} — ${new Date().toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}`;
+
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
+      {/* Header */}
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
         <p className="text-gray-500 text-sm mt-1">
           Bienvenue {user?.username} ! Voici un aperçu de vos abonnements.
         </p>
       </div>
 
+      {/* Bannière renouvellement */}
+      {prochainRenouvellement && joursAvantRenouvellement !== null && joursAvantRenouvellement <= 30 && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6 text-blue-500 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                Renouvellement dans {joursAvantRenouvellement} jours
+              </p>
+              <p className="text-xs text-blue-600">
+                {prochainRenouvellement.intituleOffre} — {prochainRenouvellement.montant} TND le{" "}
+                {new Date(prochainRenouvellement.dateFin).toLocaleDateString("fr-FR", {
+                  day: "numeric", month: "long", year: "numeric",
+                })}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/dashboard/client/subscriptions")}
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+          >
+            Gérer →
+          </button>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {loadingData ? (
           [1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse"
-            >
-              <div className="flex gap-4">
-                <div className="w-11 h-11 bg-gray-200 rounded-xl" />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 bg-gray-200 rounded w-3/4" />
-                  <div className="h-6 bg-gray-200 rounded w-1/2" />
-                </div>
-              </div>
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+              <div className="h-3 bg-gray-200 rounded w-3/4 mb-3" />
+              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2" />
+              <div className="h-2 bg-gray-200 rounded w-2/3" />
             </div>
           ))
         ) : (
-          <>
-            <KpiCard
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
-                </svg>
-              }
-              label="Abonnements actifs"
-              value={abonnementsActifs.length}
-              sub="en cours"
-              bg="bg-indigo-100"
-              iconColor="text-indigo-600"
-            />
-            <KpiCard
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              }
-              label="Total dépensé"
-              value={`${totalDepense.toFixed(2)} TND`}
-              sub="tous paiements"
-              bg="bg-green-100"
-              iconColor="text-green-600"
-            />
-            <KpiCard
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-              }
-              label="Notifications"
-              value={unreadCount}
-              sub="non lues"
-              bg={unreadCount > 0 ? "bg-red-100" : "bg-gray-100"}
-              iconColor={unreadCount > 0 ? "text-red-600" : "text-gray-400"}
-            />
-            <KpiCard
-              icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              }
-              label="Ce mois-ci"
-              value={`${totalCeMois.toFixed(2)} TND`}
-              sub="dépensé ce mois"
-              bg="bg-yellow-100"
-              iconColor="text-yellow-600"
-            />
-          </>
+          kpiCards.map((card) => (
+            <div
+              key={card.label}
+              className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
+                  <p className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}>
+                    {card.value}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
+                </div>
+                <div className="mt-1">{card.icon}</div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Line chart */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-base font-bold text-gray-900 mb-4">
-          Dépenses des 6 derniers mois
-        </h2>
-        {loadingData ? (
-          <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-        ) : (
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={depensesParMois}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis
-                dataKey="mois"
-                tick={{ fontSize: 12, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 12, fill: "#9ca3af" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                formatter={(v) => [`${Number(v) || 0} TND`, "Dépense"]}
-                contentStyle={{
-                  borderRadius: "12px",
-                  border: "1px solid #e5e7eb",
-                  fontSize: 12,
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="depense"
-                stroke="#4F46E5"
-                strokeWidth={2.5}
-                dot={{ fill: "#4F46E5", r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Abonnements actifs */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-4">
-            Abonnements actifs
-          </h2>
-          {loadingData ? (
-            <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-          ) : abonnementsActifs.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">
-              Aucun abonnement actif
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {abonnementsActifs.map((a) => (
-                <div key={a.id} className="p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold text-gray-900 text-sm">
-                      {a.intituleOffre}
-                    </p>
-                    <p className="font-semibold text-gray-900 text-sm">
-                      {a.montant} TND/{a.type === "annuel" ? "an" : "mois"}
-                    </p>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
-                    <div
-                      className="bg-indigo-500 h-1.5 rounded-full"
-                      style={{
-                        width: `${getProgress(a.dateDebut ?? a.dateFin, a.dateFin)}%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    {joursRestants(a.dateFin)} jours restants
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Notifications récentes */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-4">
-            Notifications récentes
-          </h2>
-          {notifications.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">
-              Aucune notification
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {notifications.slice(0, 3).map((n) => (
-                <div
-                  key={n.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl border-l-4 ${n.type === "success" ? "bg-green-50 border-green-400" : n.type === "warning" ? "bg-orange-50 border-orange-400" : "bg-blue-50 border-blue-400"}`}
-                >
-                  <p className="text-xs text-gray-700 flex-1">{n.message}</p>
-                  <p className="text-xs text-gray-400 shrink-0">
-                    {new Date(n.createdAt).toLocaleDateString("fr-FR")}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Paiements récents */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-4">
-            Paiements récents
-          </h2>
-          {loadingData ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 bg-gray-100 rounded-xl animate-pulse"
-                />
-              ))}
-            </div>
-          ) : paiements.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">
-              Aucun paiement
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {paiements.slice(0, 4).map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${p.statut === "completed" || p.statut === "succeeded" ? "bg-green-100" : p.statut === "pending" ? "bg-yellow-100" : "bg-red-100"}`}
-                    >
-                      {p.statut === "completed" || p.statut === "succeeded" ? (
-                        <svg
-                          className="w-4 h-4 text-green-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      ) : p.statut === "pending" ? (
-                        <svg
-                          className="w-4 h-4 text-yellow-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-4 h-4 text-red-600"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {p.intituleOffre}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(p.createdAt).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {p.montant} TND
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-          <button
-            onClick={() => navigate("/dashboard/client/history")}
-            className="w-full mt-4 text-sm text-[#4F46E5] hover:underline font-medium"
-          >
-            Voir tous les paiements
-          </button>
-        </div>
-
-        {/* Actions rapides */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-base font-bold text-gray-900 mb-4">
-            Actions rapides
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {actions.map((action) => (
-              <button
-                key={action.label}
-                onClick={() => navigate(action.path)}
-                className={`${action.bg} text-white rounded-xl p-4 flex flex-col items-center gap-2 hover:opacity-90 transition-opacity`}
-              >
-                {action.icon}
-                <span className="text-xs font-medium text-center">
-                  {action.label}
-                </span>
-              </button>
-            ))}
+      {/* Chart + Abonnement actif */}
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        {/* Chart */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-gray-900">Dépenses des 6 derniers mois</h2>
+            <span className="text-xs text-gray-400">{chartLabel}</span>
           </div>
+          {loadingData ? (
+            <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={depensesParMois}>
+                <defs>
+                  <linearGradient id="colorDepense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0F6CBD" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#0F6CBD" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="mois" tick={{ fontSize: 12, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  formatter={(v) => [`${Number(v) || 0} TND`, "Dépense"]}
+                  contentStyle={{ borderRadius: "12px", border: "1px solid #e5e7eb", fontSize: 12 }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="depense"
+                  stroke="#0F6CBD"
+                  strokeWidth={2.5}
+                  fill="url(#colorDepense)"
+                  dot={{ fill: "#0F6CBD", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Abonnement actif */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <h2 className="text-base font-bold text-gray-900 mb-4">Abonnement actif</h2>
+          {loadingData ? (
+            <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />
+          ) : abonnementsActifs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-32 text-center">
+              <p className="text-gray-400 text-sm">Aucun abonnement actif</p>
+              <button
+                onClick={() => navigate("/")}
+                className="mt-3 text-xs text-[#0F6CBD] font-semibold hover:underline"
+              >
+                Explorer les offres →
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {abonnementsActifs.slice(0, 2).map((a) => {
+                const jr = joursRestants(a.dateFin);
+                const tj = totalJours(a.dateDebut, a.dateFin);
+                const prog = getProgress(a.dateDebut, a.dateFin);
+                return (
+                  <div key={a.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-semibold text-gray-900 text-sm">{a.intituleOffre}</p>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                        actif
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3">
+                      {a.type === "annuel" ? "Annuel" : "Mensuel"} · renouvelle le{" "}
+                      {new Date(a.dateFin).toLocaleDateString("fr-FR")}
+                    </p>
+                    <p className="text-xl font-extrabold text-[#0F6CBD] mb-3">
+                      {a.montant}{" "}
+                      <span className="text-xs font-semibold text-gray-400">
+                        TND/{a.type === "annuel" ? "an" : "mois"}
+                      </span>
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                      <div className="bg-[#0F6CBD] h-1.5 rounded-full" style={{ width: `${prog}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span>{jr} jours restants</span>
+                      <span>sur {tj} jours</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Actions rapides */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 className="text-base font-bold text-gray-900 mb-4">Actions rapides</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => navigate(action.path)}
+              className="flex flex-col items-center gap-2 p-5 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 transition-colors text-center"
+            >
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-gray-200 shadow-sm">
+                {action.icon}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{action.label}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{action.sub}</p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>

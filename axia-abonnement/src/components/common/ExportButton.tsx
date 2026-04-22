@@ -44,6 +44,7 @@ export default function ExportButton<T>({
         setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -53,7 +54,9 @@ export default function ExportButton<T>({
       alert("Aucune donnée à exporter");
       return;
     }
+
     setOpen(false);
+
     if (type === "csv") {
       exportToCSV(data, columns, filename);
     } else if (type === "excel") {
@@ -61,7 +64,12 @@ export default function ExportButton<T>({
     } else {
       setSigning(true);
       try {
-        await exportToPDFSigned(data, columns, filename, pdfTitle ?? sheetName ?? "Export");
+        await exportToPDFSigned(
+          data,
+          columns,
+          filename,
+          pdfTitle ?? sheetName ?? "Export",
+        );
       } finally {
         setSigning(false);
       }
@@ -73,12 +81,21 @@ export default function ExportButton<T>({
       <button
         onClick={() => setOpen(!open)}
         disabled={signing}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-[#4F46E5] text-white text-sm font-medium rounded-xl hover:bg-[#4338CA] transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F6CBD] text-white text-sm font-medium rounded-xl hover:bg-[#0B5CAD] transition-colors disabled:opacity-60"
       >
-        {signing ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+        {signing ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : (
+          <Download size={16} />
+        )}
+
         {signing ? "Signature en cours..." : label}
+
         {!signing && (
-          <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown
+            size={14}
+            className={`transition-transform ${open ? "rotate-180" : ""}`}
+          />
         )}
       </button>
 
@@ -91,6 +108,7 @@ export default function ExportButton<T>({
             <FileText size={16} className="text-gray-500" />
             Exporter en CSV
           </button>
+
           <button
             onClick={() => handleExport("excel")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
@@ -98,14 +116,16 @@ export default function ExportButton<T>({
             <FileSpreadsheet size={16} className="text-green-600" />
             Exporter en Excel
           </button>
+
           <button
             onClick={() => handleExport("pdf")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
             <FileDown size={16} className="text-blue-600" />
             Exporter en PDF
+
             {isAdmin && (
-              <span className="ml-auto text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">
+              <span className="ml-auto text-xs bg-[#EAF4FF] text-[#0F6CBD] px-1.5 py-0.5 rounded-full font-medium">
                 Signé
               </span>
             )}

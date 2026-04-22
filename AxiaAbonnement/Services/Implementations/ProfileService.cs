@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Profile;
 using AxiaAbonnement.Models.Entities;
+using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +25,15 @@ namespace AxiaAbonnement.Services.Implementations
                 Username = user.Username,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                // ✅ .ToString() pour convertir enum → string
                 Role = user.Role.ToString(),
-                ProfileImageUrl = user.ProfileImageUrl
+                ProfileImageUrl = user.ProfileImageUrl,
+                NomEntreprise = user.NomEntreprise,
+                MatriculeFiscal = user.MatriculeFiscal,
+                SecteurActivite = user.SecteurActivite,
+                AdresseProfessionnelle = user.AdresseProfessionnelle,
+                CreatedAt = user.CreatedAt,
+                Gouvernorat = user.Gouvernorat,
+                Ville = user.Ville,
             };
         }
 
@@ -41,6 +48,8 @@ namespace AxiaAbonnement.Services.Implementations
             user.Username = dto.Username;
             user.Email = dto.Email;
             user.PhoneNumber = dto.PhoneNumber;
+            user.Gouvernorat = dto.Gouvernorat;
+            user.Ville = dto.Ville;
             await _ctx.SaveChangesAsync();
             return true;
         }
@@ -104,6 +113,85 @@ namespace AxiaAbonnement.Services.Implementations
             user.ProfileImageUrl = $"/uploads/profiles/{fileName}";
             await _ctx.SaveChangesAsync();
             return user.ProfileImageUrl;
+        }
+
+        public async Task<ProfileStatsDto> GetStatsAsync(Guid userId, string role)
+        {
+            var now = DateTime.UtcNow;
+
+            if (role == "Admin")
+            {
+                var debutMois = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                return new ProfileStatsDto
+                {
+                    NombreResponsables = await _ctx.Users.CountAsync(u => u.Role == UserRole.Responsable),
+                    NombreClients = await _ctx.Users.CountAsync(u => u.Role == UserRole.Client),
+                    AbonnementsActifs = await _ctx.Abonnements.CountAsync(a => a.Statut == StatutAbonnement.Actif),
+                    RevenusMois = await _ctx.Paiements
+                        .Where(p => p.Statut == "completed" && p.CreatedAt >= debutMois)
+                        .SumAsync(p => (decimal?)p.Montant) ?? 0,
+                    NombreServices = await _ctx.Services.CountAsync(),
+                    NombreOffres = await _ctx.Offres.CountAsync(),
+                };
+            }
+
+            if (role == "Responsable")
+            {
+                var debutMois = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+                var mesServiceIds = await _ctx.Services
+                    .Where(s => s.ResponsableId == userId)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                var mesAbonnementIds = await _ctx.Abonnements
+                    .Where(a =>
+                        (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                        (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                    )
+                    .Select(a => a.Id)
+                    .ToListAsync();
+
+                var mesClientIds = await _ctx.Abonnements
+                    .Where(a => mesAbonnementIds.Contains(a.Id))
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var mesOffres = await _ctx.Offres
+                    .CountAsync(o => o.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)));
+
+                var revenusMois = await _ctx.Paiements
+                    .Where(p => p.Statut == "completed"
+                             && p.AbonnementId.HasValue
+                             && mesAbonnementIds.Contains(p.AbonnementId.Value)
+                             && p.CreatedAt >= debutMois)
+                    .SumAsync(p => (decimal?)p.Montant) ?? 0;
+
+                return new ProfileStatsDto
+                {
+                    MesServices = mesServiceIds.Count,
+                    MesOffres = mesOffres,
+                    MesClients = mesClientIds.Count,
+                    AbonnementsActifs = await _ctx.Abonnements.CountAsync(a =>
+                        a.Statut == StatutAbonnement.Actif &&
+                        ((a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                         (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId))))),
+                    RevenusMois = revenusMois,
+                };
+            }
+
+            // Client
+            return new ProfileStatsDto
+            {
+                AbonnementsActifs = await _ctx.Abonnements.CountAsync(a =>
+                    a.UserId == userId && a.Statut == StatutAbonnement.Actif),
+                AbonnementsExpires = await _ctx.Abonnements.CountAsync(a =>
+                    a.UserId == userId && a.Statut == StatutAbonnement.Expiré),
+                TotalPaye = await _ctx.Paiements
+                    .Where(p => p.UserId == userId && p.Statut == "completed")
+                    .SumAsync(p => (decimal?)p.Montant) ?? 0
+            };
         }
     }
 }

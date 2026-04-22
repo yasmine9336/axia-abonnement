@@ -17,5 +17,7 @@ namespace AxiaAbonnement.Models.DTOs.Auth
         public string? MatriculeFiscal { get; set; }
         public string? SecteurActivite { get; set; }
         public string? AdresseProfessionnelle { get; set; }
+        public string? Gouvernorat { get; set; }
+        public string? Ville { get; set; }
     }
 }

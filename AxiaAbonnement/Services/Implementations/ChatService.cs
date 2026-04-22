@@ -219,6 +219,17 @@ public class ChatService(
 
     public async Task<List<ConversationSummaryDto>> GetConversationsAsync(Guid responsableId)
     {
+        var stale = await _ctx.ChatConversations
+            .Include(c => c.Messages)
+            .Where(c => c.Statut == nameof(Closed) && c.Messages.Count == 0)
+            .ToListAsync();
+
+        if (stale.Count > 0)
+        {
+            _ctx.ChatConversations.RemoveRange(stale);
+            await _ctx.SaveChangesAsync();
+        }
+
         var mesServiceIds = await _ctx.Services
             .Where(s => s.ResponsableId == responsableId && s.IsActive)
             .Select(s => s.Id)
@@ -237,8 +248,10 @@ public class ChatService(
             .Include(c => c.Client)
             .Include(c => c.Messages)
             .Where(c =>
-                c.AssignedResponsableId == responsableId ||
-                (c.AssignedResponsableId == null && mesClientIds.Contains(c.ClientId))
+            c.Statut == nameof(Open) && (
+            c.AssignedResponsableId == responsableId ||
+            (c.AssignedResponsableId == null && mesClientIds.Contains(c.ClientId))
+            )
             )
             .OrderByDescending(c => c.UpdatedAt)
             .Select(c => new ConversationSummaryDto
@@ -262,6 +275,66 @@ public class ChatService(
                     .FirstOrDefault()
             })
             .ToListAsync();
+    }
+
+    public async Task<ServiceResult<ConversationSummaryDto>> GetOrCreateConversationForClientAsync(Guid clientId, Guid responsableId)
+    {
+        var client = await _ctx.Users.FirstOrDefaultAsync(u => u.Id == clientId);
+        if (client == null)
+            return ServiceResult<ConversationSummaryDto>.NotFound("Client introuvable.");
+
+        // chercher conversation Open existante
+        var convo = await _ctx.ChatConversations
+            .Include(c => c.Messages)
+            .FirstOrDefaultAsync(c => c.ClientId == clientId && c.Statut == nameof(Open));
+
+        if (convo == null)
+        {
+            convo = new ChatConversation
+            {
+                ClientId = clientId,
+                AssignedResponsableId = responsableId,
+                Statut = nameof(Open),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _ctx.ChatConversations.Add(convo);
+            await _ctx.SaveChangesAsync();
+        }
+        else
+        {
+            // si non assignée, on l’assigne au responsable qui l’ouvre depuis Archive
+            if (!convo.AssignedResponsableId.HasValue)
+            {
+                convo.AssignedResponsableId = responsableId;
+                convo.UpdatedAt = DateTime.UtcNow;
+                await _ctx.SaveChangesAsync();
+            }
+        }
+
+        var last = convo.Messages
+            .OrderByDescending(m => m.CreatedAt)
+            .Select(m => new LastMessageDto
+            {
+                Content = m.Content,
+                SenderType = m.SenderType,
+                CreatedAt = m.CreatedAt
+            })
+            .FirstOrDefault();
+
+        return ServiceResult<ConversationSummaryDto>.Ok(new ConversationSummaryDto
+        {
+            Id = convo.Id,
+            ClientId = convo.ClientId,
+            ClientName = client.Username,
+            ClientEmail = client.Email,
+            AssignedResponsableId = convo.AssignedResponsableId,
+            Statut = convo.Statut,
+            UpdatedAt = convo.UpdatedAt,
+            UnreadCount = convo.Messages.Count(m => !m.IsRead && m.SenderType == nameof(Client)),
+            LastMessage = last
+        });
     }
 
     public async Task<ServiceResult<List<ChatMessageDto>>> GetConversationMessagesAsync(
@@ -380,6 +453,7 @@ public class ChatService(
     public async Task<ServiceResult<bool>> CloseConversationAsync(Guid conversationId, Guid responsableId)
     {
         var convo = await _ctx.ChatConversations
+            .Include(c => c.Messages)
             .FirstOrDefaultAsync(c => c.Id == conversationId);
 
         if (convo == null)
@@ -387,6 +461,14 @@ public class ChatService(
 
         if (convo.AssignedResponsableId.HasValue && convo.AssignedResponsableId != responsableId)
             return ServiceResult<bool>.Forbidden();
+
+        // ✅ si aucun message => supprimer la conversation
+        if (convo.Messages.Count == 0)
+        {
+            _ctx.ChatConversations.Remove(convo);
+            await _ctx.SaveChangesAsync();
+            return ServiceResult<bool>.Ok(true);
+        }
 
         convo.Statut = nameof(Closed);
         convo.UpdatedAt = DateTime.UtcNow;

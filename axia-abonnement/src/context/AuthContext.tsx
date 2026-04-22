@@ -16,6 +16,8 @@ export interface RegisterData {
   password: string;
   role: "Client" | "Responsable";
   phoneNumber?: string;
+  gouvernorat?: string;          
+  ville?: string; 
   nomEntreprise?: string;
   matriculeFiscal?: string;
   secteurActivite?: string;

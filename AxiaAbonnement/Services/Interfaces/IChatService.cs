@@ -12,4 +12,5 @@ public interface IChatService
     Task<ServiceResult<List<ChatMessageDto>>> GetConversationMessagesAsync(Guid conversationId, Guid responsableId);
     Task<ServiceResult<SentMessageDto>> SendStaffMessageAsync(Guid conversationId, Guid senderId, string content);
     Task<ServiceResult<bool>> CloseConversationAsync(Guid conversationId, Guid responsableId);
+    Task<ServiceResult<ConversationSummaryDto>> GetOrCreateConversationForClientAsync(Guid clientId, Guid responsableId);
 }

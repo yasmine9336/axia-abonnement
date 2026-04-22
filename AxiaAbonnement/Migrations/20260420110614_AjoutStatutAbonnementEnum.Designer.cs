@@ -4,6 +4,7 @@ using AxiaAbonnement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AxiaAbonnement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260420110614_AjoutStatutAbonnementEnum")]
+    partial class AjoutStatutAbonnementEnum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,31 +207,6 @@ namespace AxiaAbonnement.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Feedbacks");
-                });
-
-            modelBuilder.Entity("AxiaAbonnement.Models.Entities.LoginHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("IpAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("LoginAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserAgent")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("LoginHistories");
                 });
 
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.Notification", b =>
@@ -431,9 +409,6 @@ namespace AxiaAbonnement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Gouvernorat")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -483,9 +458,6 @@ namespace AxiaAbonnement.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Ville")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -592,17 +564,6 @@ namespace AxiaAbonnement.Migrations
                     b.Navigation("Abonnement");
 
                     b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("AxiaAbonnement.Models.Entities.LoginHistory", b =>
-                {
-                    b.HasOne("AxiaAbonnement.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AxiaAbonnement.Models.Entities.Notification", b =>

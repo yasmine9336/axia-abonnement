@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { GOUVERNORATS, getVillesByGouvernorat } from "../../data/villes";
 
 type Role = "Client" | "Responsable";
 
@@ -11,6 +12,8 @@ interface RegisterForm {
   confirmPassword: string;
   role: Role;
   phoneNumber: string;
+  gouvernorat: string;
+  ville: string;
   nomEntreprise: string;
   matriculeFiscal: string;
   secteurActivite: string;
@@ -24,6 +27,8 @@ const INITIAL_FORM: RegisterForm = {
   confirmPassword: "",
   role: "Client",
   phoneNumber: "",
+  gouvernorat: "",
+  ville: "",
   nomEntreprise: "",
   matriculeFiscal: "",
   secteurActivite: "",
@@ -42,10 +47,15 @@ export default function Register() {
   const isResponsable = form.role === "Responsable";
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleGouvernoratChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Réinitialiser la ville quand on change de gouvernorat
+    setForm((prev) => ({ ...prev, gouvernorat: e.target.value, ville: "" }));
   };
 
   const selectRole = (role: Role) => {
@@ -55,16 +65,22 @@ export default function Register() {
   };
 
   const validatePasswordRules = (): string | null => {
-    if (form.password !== form.confirmPassword) return "Les mots de passe ne correspondent pas.";
-    if (form.password.length < 8) return "Le mot de passe doit contenir au moins 8 caractères.";
-    if (!/[A-Z]/.test(form.password)) return "Le mot de passe doit contenir au moins une majuscule.";
-    if (!/[0-9]/.test(form.password)) return "Le mot de passe doit contenir au moins un chiffre.";
+    if (form.password !== form.confirmPassword)
+      return "Les mots de passe ne correspondent pas.";
+    if (form.password.length < 8)
+      return "Le mot de passe doit contenir au moins 8 caractères.";
+    if (!/[A-Z]/.test(form.password))
+      return "Le mot de passe doit contenir au moins une majuscule.";
+    if (!/[0-9]/.test(form.password))
+      return "Le mot de passe doit contenir au moins un chiffre.";
     return null;
   };
 
   const validateStep1 = (): string | null => {
     if (!form.fullName.trim()) return "Le nom complet est requis.";
     if (!form.email.trim()) return "L'email est requis.";
+    if (!form.gouvernorat) return "Le gouvernorat est requis.";
+    if (!form.ville) return "La ville est requise.";
     return validatePasswordRules();
   };
 
@@ -90,13 +106,11 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Responsable = 2 étapes
     if (isResponsable && step === 1) {
       goNext();
       return;
     }
 
-    // Validation finale
     const validationError = isResponsable ? validateStep2() : validateStep1();
     if (validationError) {
       setError(validationError);
@@ -113,6 +127,8 @@ export default function Register() {
         password: form.password,
         role: form.role,
         phoneNumber: form.phoneNumber || undefined,
+        gouvernorat: form.gouvernorat,
+        ville: form.ville,
         nomEntreprise: isResponsable ? form.nomEntreprise : undefined,
         matriculeFiscal: isResponsable ? form.matriculeFiscal : undefined,
         secteurActivite: isResponsable ? form.secteurActivite : undefined,
@@ -135,6 +151,8 @@ export default function Register() {
     }
   };
 
+  const villesDisponibles = getVillesByGouvernorat(form.gouvernorat);
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-md p-8">
@@ -146,7 +164,7 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Switch */}
+        {/* Switch rôle */}
         <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl mb-4">
           <button
             type="button"
@@ -227,7 +245,8 @@ export default function Register() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Téléphone {!isResponsable && <span className="text-gray-400 font-normal">(optionnel)</span>}
+                  Téléphone{" "}
+                  {!isResponsable && <span className="text-gray-400 font-normal">(optionnel)</span>}
                 </label>
                 <input
                   type="tel"
@@ -237,6 +256,47 @@ export default function Register() {
                   placeholder="ex: 20123456"
                   className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#4F46E5]"
                 />
+              </div>
+
+              {/* Gouvernorat + Ville (cascade) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Gouvernorat</label>
+                  <select
+                    name="gouvernorat"
+                    value={form.gouvernorat}
+                    onChange={handleGouvernoratChange}
+                    className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#4F46E5]"
+                    required
+                  >
+                    <option value="">Sélectionner...</option>
+                    {GOUVERNORATS.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Ville</label>
+                  <select
+                    name="ville"
+                    value={form.ville}
+                    onChange={handleChange}
+                    disabled={!form.gouvernorat}
+                    className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-[#4F46E5] disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  >
+                    <option value="">
+                      {form.gouvernorat ? "Sélectionner..." : "Choisir un gouvernorat"}
+                    </option>
+                    {villesDisponibles.map((v) => (
+                      <option key={v} value={v}>
+                        {v}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>

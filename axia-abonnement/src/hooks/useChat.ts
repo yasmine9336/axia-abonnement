@@ -3,7 +3,6 @@ import axiosInstance from "../api/axiosInstance";
 import { useNotifications } from "./useNotifications";
 import type { ChatMessage, Conversation } from "../types";
 
-// ─── Hook Client ─────────────────────────────────────────────
 export function useClientChat() {
   const { signalRService } = useNotifications();
   const [conversationId, setConversationId] = useState<string | undefined>();
@@ -13,12 +12,11 @@ export function useClientChat() {
   const isOpenRef = useRef(false);
 
   useEffect(() => {
-    axiosInstance.get("/chat/me").then((res) => {
+    axiosInstance.get("/chat/me").then((res: { data: { id: string } }) => {
       setConversationId(res.data.id);
     });
   }, []);
 
-  // S'abonner aux messages et rejoindre la room quand signalRService est prêt
   useEffect(() => {
     if (!conversationId || !signalRService) return;
 
@@ -38,7 +36,8 @@ export function useClientChat() {
 
   const loadMessages = useCallback(async () => {
     if (!conversationId) return;
-    const res = await axiosInstance.get("/chat/me/messages");
+    const res: { data: ChatMessage[] } =
+      await axiosInstance.get("/chat/me/messages");
     setMessages(res.data);
     setUnread(0);
   }, [conversationId]);
@@ -55,7 +54,7 @@ export function useClientChat() {
         setSending(false);
       }
     },
-    [sending]
+    [sending],
   );
 
   const setOpen = useCallback((open: boolean) => {
@@ -63,23 +62,34 @@ export function useClientChat() {
     if (open) setUnread(0);
   }, []);
 
-  return { conversationId, messages, unread, sending, loadMessages, sendMessage, setOpen };
+  return {
+    conversationId,
+    messages,
+    unread,
+    sending,
+    loadMessages,
+    sendMessage,
+    setOpen,
+  };
 }
 
-// ─── Hook Staff ───────────────────────────────────────────────
 export function useStaffChat() {
   const { signalRService } = useNotifications();
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+
   const selectedRef = useRef<Conversation | null>(null);
 
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await axiosInstance.get("/chat/conversations");
-      setConversations(res.data);
+      const res: { data: Conversation[] } = await axiosInstance.get(
+        "/chat/conversations",
+      );
+      setConversations(res.data ?? []);
     } finally {
       setLoading(false);
     }
@@ -89,7 +99,6 @@ export function useStaffChat() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // S'abonner aux événements chat quand signalRService est prêt
   useEffect(() => {
     if (!signalRService) return;
 
@@ -103,12 +112,13 @@ export function useStaffChat() {
         content: string;
         createdAt: string;
       };
+
       setConversations((prev) =>
         prev.map((c) =>
           c.id === d.conversationId
             ? {
                 ...c,
-                unreadCount: c.unreadCount + 1,
+                unreadCount: (c.unreadCount ?? 0) + 1,
                 lastMessage: {
                   content: d.content,
                   senderType: "Client",
@@ -116,8 +126,8 @@ export function useStaffChat() {
                 },
                 updatedAt: d.createdAt,
               }
-            : c
-        )
+            : c,
+        ),
       );
     };
 
@@ -132,26 +142,47 @@ export function useStaffChat() {
 
   const openConversation = useCallback(
     async (conv: Conversation) => {
-      // Quitter la conversation précédente
-      if (selectedRef.current) {
+      if (selectedRef.current)
         await signalRService?.leaveConversation(selectedRef.current.id);
-      }
 
       setSelected(conv);
       selectedRef.current = conv;
 
-      // Rejoindre la nouvelle conversation
       await signalRService?.joinConversation(conv.id);
 
-      const res = await axiosInstance.get(
-        `/chat/conversations/${conv.id}/messages`
+      const res: { data: ChatMessage[] } = await axiosInstance.get(
+        `/chat/conversations/${conv.id}/messages`,
       );
-      setMessages(res.data);
+      setMessages(res.data ?? []);
+
       setConversations((prev) =>
-        prev.map((c) => (c.id === conv.id ? { ...c, unreadCount: 0 } : c))
+        prev.map((c) => (c.id === conv.id ? { ...c, unreadCount: 0 } : c)),
       );
     },
-    [signalRService]
+    [signalRService],
+  );
+
+  const upsertConversation = useCallback((conv: Conversation) => {
+    setConversations((prev) => {
+      const exists = prev.some((c) => c.id === conv.id);
+      if (exists)
+        return prev.map((c) => (c.id === conv.id ? { ...c, ...conv } : c));
+      return [conv, ...prev];
+    });
+  }, []);
+
+  // ✅ la fonction qui réalise ton besoin "ouvrir même si jamais parlé"
+  const openConversationByClientId = useCallback(
+    async (clientId: string) => {
+      const res: { data: Conversation } = await axiosInstance.get(
+        `/chat/conversations/by-client/${clientId}`,
+      );
+      const conv = res.data;
+
+      upsertConversation(conv);
+      await openConversation(conv);
+    },
+    [openConversation, upsertConversation],
   );
 
   const sendMessage = useCallback(
@@ -161,30 +192,46 @@ export function useStaffChat() {
       try {
         await axiosInstance.post(
           `/chat/conversations/${selected.id}/messages`,
-          { content: content.trim() }
+          {
+            content: content.trim(),
+          },
         );
       } finally {
         setSending(false);
       }
     },
-    [selected, sending]
+    [selected, sending],
   );
 
   const closeConversation = useCallback(
     async (conv: Conversation) => {
       await axiosInstance.post(`/chat/conversations/${conv.id}/close`);
-      setConversations((prev) =>
-        prev.map((c) => (c.id === conv.id ? { ...c, statut: "Closed" } : c))
-      );
+
+      // ✅ toujours enlever de la liste (car on ne l'appelle que pour les vides)
+      setConversations((prev) => prev.filter((c) => c.id !== conv.id));
+
       if (selected?.id === conv.id) {
         setSelected(null);
         selectedRef.current = null;
+        setMessages([]);
       }
     },
-    [selected]
+    [selected],
   );
 
-  const totalUnread = conversations.reduce((s, c) => s + c.unreadCount, 0);
+  const totalUnread = conversations.reduce(
+    (s, c) => s + (c.unreadCount ?? 0),
+    0,
+  );
+
+  const hideConversation = useCallback(async () => {
+    if (selectedRef.current && signalRService) {
+      await signalRService.leaveConversation(selectedRef.current.id);
+    }
+    setSelected(null);
+    selectedRef.current = null;
+    setMessages([]);
+  }, [signalRService]);
 
   return {
     conversations,
@@ -194,7 +241,10 @@ export function useStaffChat() {
     loading,
     totalUnread,
     openConversation,
+    openConversationByClientId, // ✅ expose
     sendMessage,
     closeConversation,
+    hideConversation,
+    fetchConversations,
   };
 }

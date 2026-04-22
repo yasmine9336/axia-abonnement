@@ -11,10 +11,10 @@ export default function ClientChat() {
   const { unreadChat, resetUnreadChat } = useNotifications();
   const bottomRef = useAutoScroll(messages);
 
-
   const handleToggle = async () => {
     const next = !open;
     setOpenState(next);
+
     if (next) {
       await loadMessages();
       resetUnreadChat();
@@ -25,7 +25,6 @@ export default function ClientChat() {
     if (!input.trim()) return;
     await sendMessage(input);
     setInput("");
-    // SignalR ajoute le message via ReceiveMessage
   };
 
   const formatTime = (d: string) =>
@@ -37,17 +36,20 @@ export default function ClientChat() {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {open && (
-        <div className="w-80 h-112.5 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
-          <div className="bg-[#4F46E5] px-4 py-3 flex items-center justify-between">
+        <div className="w-80 h-112.5 bg-white rounded-2xl border border-gray-200 shadow-xl flex flex-col overflow-hidden">
+          <div className="bg-[#0F6CBD] px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-white font-semibold text-sm">
                 Support AxiaAbonnement
               </p>
-              <p className="text-indigo-200 text-xs">Nous répondons rapidement</p>
+              <p className="text-white/80 text-xs">
+                Nous répondons rapidement
+              </p>
             </div>
+
             <button
               onClick={() => void handleToggle()}
-              className="text-indigo-200 hover:text-white"
+              className="text-white/80 hover:text-white transition-colors"
             >
               <X size={18} />
             </button>
@@ -60,25 +62,28 @@ export default function ClientChat() {
                 Envoyez un message pour commencer
               </div>
             )}
+
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex ${
-                  msg.senderType === "Client" ? "justify-end" : "justify-start"
+                  msg.senderType === "Client"
+                    ? "justify-end"
+                    : "justify-start"
                 }`}
               >
                 <div
                   className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
                     msg.senderType === "Client"
-                      ? "bg-[#4F46E5] text-white rounded-br-sm"
-                      : "bg-white text-gray-800 shadow-sm rounded-bl-sm"
+                      ? "bg-[#0F6CBD] text-white rounded-br-sm"
+                      : "bg-white text-gray-800 shadow-sm rounded-bl-sm border border-gray-200"
                   }`}
                 >
                   <p>{msg.content}</p>
                   <p
                     className={`text-xs mt-1 ${
                       msg.senderType === "Client"
-                        ? "text-indigo-200"
+                        ? "text-white/75"
                         : "text-gray-400"
                     }`}
                   >
@@ -87,6 +92,7 @@ export default function ClientChat() {
                 </div>
               </div>
             ))}
+
             <div ref={bottomRef} />
           </div>
 
@@ -101,12 +107,13 @@ export default function ClientChat() {
                 }
               }}
               placeholder="Écrivez un message..."
-              className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4F46E5]"
+              className="flex-1 text-sm px-3 py-2 bg-gray-100 border border-transparent rounded-xl outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
             />
+
             <button
               onClick={() => void handleSend()}
               disabled={!input.trim() || sending}
-              className="p-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50 transition-colors"
+              className="p-2 bg-[#0F6CBD] hover:bg-[#0B5CAD] text-white rounded-xl disabled:opacity-50 transition-colors"
             >
               {sending ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -120,11 +127,12 @@ export default function ClientChat() {
 
       <button
         onClick={() => void handleToggle()}
-        className="w-14 h-14 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-full shadow-lg flex items-center justify-center transition-all relative"
+        className="w-14 h-14 bg-[#0F6CBD] hover:bg-[#0B5CAD] text-white rounded-full shadow-lg flex items-center justify-center transition-all relative"
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
+
         {!open && unreadChat > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
             {unreadChat > 9 ? "9+" : unreadChat}
           </span>
         )}

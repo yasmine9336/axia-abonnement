@@ -70,17 +70,8 @@ const responsableNav: NavItem[] = [
     ),
   },
   {
-    label: "Abonnements",
-    path: "/dashboard/responsable/subscriptions",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-      </svg>
-    ),
-  },
-  {
-    label: "Suivi clients",
-    path: "/dashboard/responsable/suivi-clients",
+    label: "Suivi abonnements",
+    path: "/dashboard/responsable/suivi-abonnements",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -219,32 +210,12 @@ export default function Sidebar() {
   const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } =
     useNotifications();
 
-  const isAdmin = user?.role === "Admin";
-  const isClient = user?.role === "Client";
-
-  const accent =
-    isAdmin ? "#7c3aed" :
-    isClient ? "#0284c7" : "#4F46E5";
-
-  const accentBg = isAdmin
-    ? "bg-violet-100 text-violet-700"
-    : isClient
-    ? "bg-sky-100 text-sky-700"
-    : "bg-[#4F46E5]/10 text-[#4F46E5]";
-
-  const accentIcon = isAdmin
-    ? "text-violet-600"
-    : isClient ? "text-sky-600" : "text-[#4F46E5]";
-
-  const accentAvatar = isAdmin
-    ? "bg-violet-600"
-    : isClient ? "bg-sky-600" : "bg-[#4F46E5]";
-
-  const accentLogout = isAdmin
-    ? "border-violet-500 text-violet-600 hover:bg-violet-500 hover:text-white"
-    : isClient
-    ? "border-sky-500 text-sky-600 hover:bg-sky-500 hover:text-white"
-    : "border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white";
+  const accent = "#0F6CBD";
+  const accentBg = "bg-[#EAF4FF] text-[#0F6CBD]";
+  const accentIcon = "text-[#0F6CBD]";
+  const accentAvatar = "bg-[#0F6CBD]";
+  const accentLogout =
+    "border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white";
 
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
@@ -264,11 +235,12 @@ export default function Sidebar() {
     fetchProfilePhoto();
   }, []);
 
-  const navItems = isAdmin
-    ? adminNav
-    : user?.role === "Responsable"
-    ? responsableNav
-    : clientNav;
+  const navItems =
+    user?.role === "Admin"
+      ? adminNav
+      : user?.role === "Responsable"
+        ? responsableNav
+        : clientNav;
 
   const handleLogout = () => {
     logout();
@@ -283,23 +255,28 @@ export default function Sidebar() {
         <h1 className="text-xl font-bold" style={{ color: accent }}>
           AxiaAbonnement
         </h1>
+
         <div className="mt-2">
-          {isAdmin ? (
-            <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 text-xs font-bold px-2.5 py-1 rounded-full">
+          {user?.role === "Admin" ? (
+            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-bold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               Portail Admin
             </span>
           ) : user?.role === "Responsable" ? (
-            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-semibold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Portail Responsable
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 bg-sky-50 text-sky-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-semibold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -330,6 +307,7 @@ export default function Sidebar() {
               <span className={isActive ? accentIcon : "text-gray-400"}>
                 {item.icon}
               </span>
+
               <span className="flex-1 text-left">{item.label}</span>
 
               {isMessages && unreadMessages > 0 && (
@@ -337,6 +315,7 @@ export default function Sidebar() {
                   {unreadMessages > 9 ? "9+" : unreadMessages}
                 </span>
               )}
+
               {isChat && unreadChat > 0 && (
                 <span className="w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                   {unreadChat > 9 ? "9+" : unreadChat}
@@ -362,6 +341,7 @@ export default function Sidebar() {
               {getInitial()}
             </div>
           )}
+
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">
               {user?.username}
@@ -369,6 +349,7 @@ export default function Sidebar() {
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>
+
         <button
           onClick={handleLogout}
           className={`w-full flex items-center justify-center gap-2 border font-semibold py-2.5 rounded-xl transition-colors text-sm ${accentLogout}`}

@@ -58,5 +58,13 @@ namespace AxiaAbonnement.Controllers
 
             return Ok(new { profileImageUrl = url, message = "Photo mise à jour." });
         }
+
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            var stats = await _profileService.GetStatsAsync(GetUserId(), role);
+            return Ok(stats);
+        }
     }
 }

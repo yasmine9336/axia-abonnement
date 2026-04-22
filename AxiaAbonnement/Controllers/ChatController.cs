@@ -87,4 +87,14 @@ public class ChatController(IChatService chatService) : ControllerBase
         var result = await _chatService.CloseConversationAsync(conversationId, GetUserId());
         return FromResult(result, _ => Ok(new { message = "Conversation fermée." }));
     }
+
+    // ── Responsable ──────────────────────────────────────────────
+
+    [HttpGet("conversations/by-client/{clientId:guid}")]
+    [Authorize(Policy = "ResponsableOnly")]
+    public async Task<IActionResult> GetOrCreateConversationByClient(Guid clientId)
+    {
+        var result = await _chatService.GetOrCreateConversationForClientAsync(clientId, GetUserId());
+        return FromResult(result, Ok);
+    }
 }

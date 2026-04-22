@@ -61,12 +61,11 @@ function App() {
         }
       >
         <Route index element={<ResponsableDashboard section="dashboard" />} />
-        <Route path="subscriptions" element={<ResponsableDashboard section="subscriptions" />} />
         <Route path="clients" element={<ResponsableDashboard section="clients" />} />
         <Route path="profile" element={<ResponsableDashboard section="profile" />} />
         <Route path="services" element={<ResponsableDashboard section="services" />} />
         <Route path="offres" element={<ResponsableDashboard section="offres" />} />
-        <Route path="suivi-clients" element={<ResponsableDashboard section="suivi-clients" />} />
+        <Route path="suivi-abonnements" element={<ResponsableDashboard section="suivi-abonnements" />} />
         <Route path="transactions" element={<ResponsableDashboard section="transactions" />} />
         <Route path="messages" element={<ResponsableDashboard section="messages" />} />
       </Route>

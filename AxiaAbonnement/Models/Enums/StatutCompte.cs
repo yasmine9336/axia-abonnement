@@ -1,4 +1,4 @@
-﻿namespace AxiaAbonnement.Models.Entities
+﻿namespace AxiaAbonnement.Models.Enums
 {
     public enum StatutCompte
     {

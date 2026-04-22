@@ -100,19 +100,45 @@ namespace AxiaAbonnement.Services.Implementations
         public async Task<List<UserDto>> GetClientsAsync()
         {
             var now = DateTime.UtcNow;
-            return await _ctx.Users
+
+            var users = await _ctx.Users
                 .Where(u => u.Role == UserRole.Client)
                 .OrderByDescending(u => u.CreatedAt)
-                .Select(u => new UserDto
+                .ToListAsync();
+
+            var result = new List<UserDto>();
+
+            foreach (var u in users)
+            {
+                var abonnement = await _ctx.Abonnements
+                    .Include(a => a.Offre)
+                    .Include(a => a.Service).ThenInclude(s => s!.Responsable)
+                    .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
+                        .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
+                    .Where(a => a.UserId == u.Id)
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                result.Add(new UserDto
                 {
                     Id = u.Id,
                     Username = u.Username,
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
-                    IsActive = _ctx.Abonnements
-                        .Any(a => a.UserId == u.Id && a.IsActive && a.DateFin > now)
-                })
-                .ToListAsync();
+                    CreatedAt = u.CreatedAt,
+                    IsActive = abonnement != null && abonnement.DateFin > now,
+                    AbonnementActif = abonnement?.Offre?.IntituleOffre
+                                   ?? abonnement?.Service?.IntituleService,
+                    MontantActif = abonnement?.Montant,
+                    StatutAbonnement = abonnement == null ? null
+                        : abonnement.DateFin < now ? "expiré" : "actif",
+                    ResponsableUsername = abonnement?.Service?.Responsable?.Username
+                        ?? abonnement?.Offre?.ServiceOffres
+                            .FirstOrDefault()?.Service?.Responsable?.Username
+                });
+            }
+
+            return result;
         }
         public async Task<List<UserDto>> GetClientsByResponsableAsync(Guid responsableId)
         {
@@ -132,19 +158,46 @@ namespace AxiaAbonnement.Services.Implementations
                 .Distinct()
                 .ToListAsync();
 
-            return await _ctx.Users
+            var users = await _ctx.Users
                 .Where(u => mesClientIds.Contains(u.Id))
                 .OrderByDescending(u => u.CreatedAt)
-                .Select(u => new UserDto
+                .ToListAsync();
+
+            var result = new List<UserDto>();
+
+            foreach (var u in users)
+            {
+                var abonnement = await _ctx.Abonnements
+                    .Include(a => a.Offre)
+                    .Include(a => a.Service).ThenInclude(s => s!.Responsable)
+                    .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
+                        .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
+                    .Where(a => a.UserId == u.Id &&
+                        ((a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                         (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))))
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                result.Add(new UserDto
                 {
                     Id = u.Id,
                     Username = u.Username,
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
-                    IsActive = _ctx.Abonnements
-                        .Any(a => a.UserId == u.Id && a.IsActive && a.DateFin > now)
-                })
-                .ToListAsync();
+                    CreatedAt = u.CreatedAt,
+                    IsActive = abonnement != null && abonnement.DateFin > now,
+                    AbonnementActif = abonnement?.Offre?.IntituleOffre
+                                   ?? abonnement?.Service?.IntituleService,
+                    MontantActif = abonnement?.Montant,
+                    StatutAbonnement = abonnement == null ? null
+                        : abonnement.DateFin < now ? "expiré" : "actif",
+                    ResponsableUsername = abonnement?.Service?.Responsable?.Username
+                        ?? abonnement?.Offre?.ServiceOffres
+                            .FirstOrDefault()?.Service?.Responsable?.Username
+                });
+            }
+
+            return result;
         }
 
     }

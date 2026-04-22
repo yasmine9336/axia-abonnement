@@ -8,9 +8,16 @@ namespace AxiaAbonnement.Controllers
 {
     [ApiController]
     [Route("api/payment")]
-    public class PaymentController(IPaymentService paymentService) : ControllerBase
+    public class PaymentController : ControllerBase
     {
-        private readonly IPaymentService _paymentService = paymentService;
+        private readonly IPaymentService _paymentService;
+        private readonly IPdfExportService _pdfExportService;
+
+        public PaymentController(IPaymentService paymentService, IPdfExportService pdfExportService)
+        {
+            _paymentService = paymentService;
+            _pdfExportService = pdfExportService;
+        }
 
         private Guid GetUserId() =>
             Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -65,11 +72,9 @@ namespace AxiaAbonnement.Controllers
                 return Ok(paiements);
             }
 
-            // Admin → tout voir
             var all = await _paymentService.GetAllPaiementsAsync();
             return Ok(all);
         }
-
 
         [AllowAnonymous]
         [HttpPost("create-responsable-account-session")]
@@ -81,6 +86,31 @@ namespace AxiaAbonnement.Controllers
             var url = await _paymentService.CreateResponsableAccountSessionAsync(dto);
             if (url == null) return BadRequest("Utilisateur responsable introuvable ou non éligible.");
             return Ok(new { url });
+        }
+
+        [HttpGet("history/{paymentId:guid}/receipt")]
+        [Authorize(Policy = "ClientOnly")]
+        public async Task<IActionResult> DownloadReceipt(Guid paymentId)
+        {
+            var paiement = await _paymentService.GetMyPaiementByIdAsync(GetUserId(), paymentId);
+            if (paiement == null)
+                return NotFound("Paiement introuvable.");
+
+            if (!string.Equals(paiement.Statut, "completed", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Le reçu est disponible uniquement pour un paiement complété.");
+
+            var clientName = User.FindFirstValue(ClaimTypes.Name) ?? paiement.ClientUsername ?? "Client";
+            var clientEmail = User.FindFirstValue(ClaimTypes.Email) ?? paiement.ClientEmail ?? "";
+
+            var bytes = _pdfExportService.GeneratePaymentReceiptPdf(paiement, clientName, clientEmail);
+
+            var safeName = string.IsNullOrWhiteSpace(paiement.IntituleOffre)
+                ? "recu_paiement"
+                : $"recu_{paiement.IntituleOffre.Replace(" ", "_")}";
+
+            var fileName = $"{safeName}_{paiement.CreatedAt:yyyy-MM-dd}.pdf";
+
+            return File(bytes, "application/pdf", fileName);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AxiaAbonnement.Data;
 using AxiaAbonnement.Models.DTOs.Auth;
-using AxiaAbonnement.Models.Entities;
 using AxiaAbonnement.Models.Enums;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;

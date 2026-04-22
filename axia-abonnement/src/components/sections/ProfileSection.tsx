@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { API_URL } from "../../api/config";
+import {
+  Users, UserCheck, CreditCard, TrendingUp, Package,
+  Briefcase, Clock, Shield,
+} from "lucide-react";
+import { GOUVERNORATS, getVillesByGouvernorat } from "../../data/villes";
 
 interface ProfileData {
   id: string;
@@ -9,25 +14,50 @@ interface ProfileData {
   phoneNumber: string | null;
   role: string;
   profileImageUrl?: string | null;
+  gouvernorat?: string | null;
+  ville?: string | null;
+  nomEntreprise?: string | null;
+  matriculeFiscal?: string | null;
+  secteurActivite?: string | null;
+  adresseProfessionnelle?: string | null;
+  createdAt?: string;
+}
+
+interface ProfileStats {
+  // Admin
+  nombreResponsables?: number;
+  nombreClients?: number;
+  abonnementsActifs?: number;
+  revenusMois?: number;
+  nombreServices?: number;
+  nombreOffres?: number;
+  // Responsable
+  mesServices?: number;
+  mesClients?: number;
+  mesOffres?: number;
+  // Client
+  abonnementsExpires?: number;
+  totalPaye?: number;
 }
 
 export default function ProfileSection() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [stats, setStats] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  // Formulaire profil
   const [profileForm, setProfileForm] = useState({
     username: "",
     email: "",
     phoneNumber: "",
+    gouvernorat: "",
+    ville: "",
   });
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState("");
   const [profileError, setProfileError] = useState("");
 
-  // Formulaire mot de passe
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -41,22 +71,28 @@ export default function ProfileSection() {
   const [photoError, setPhotoError] = useState("");
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchAll = async () => {
       try {
-        const response = await axiosInstance.get("/profile");
-        setProfile(response.data);
+        const [profileRes, statsRes] = await Promise.all([
+          axiosInstance.get("/profile"),
+          axiosInstance.get("/profile/stats"),
+        ]);
+        setProfile(profileRes.data);
         setProfileForm({
-          username: response.data.username,
-          email: response.data.email,
-          phoneNumber: response.data.phoneNumber || "",
+          username: profileRes.data.username,
+          email: profileRes.data.email,
+          phoneNumber: profileRes.data.phoneNumber || "",
+          gouvernorat: profileRes.data.gouvernorat || "",
+          ville: profileRes.data.ville || "",
         });
+        setStats(statsRes.data);
       } catch {
         setProfileError("Erreur lors du chargement du profil.");
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchAll();
   }, []);
 
   const handleProfileSubmit = async (e: React.BaseSyntheticEvent) => {
@@ -93,67 +129,36 @@ export default function ProfileSection() {
     try {
       await axiosInstance.patch("/profile/change-password", passwordForm);
       setPasswordSuccess("Mot de passe modifié avec succès.");
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordForm(false);
     } catch (err) {
       const error = err as { response?: { data?: string } };
-      setPasswordError(
-        error.response?.data || "Mot de passe actuel incorrect.",
-      );
+      setPasswordError(error.response?.data || "Mot de passe actuel incorrect.");
     } finally {
       setPasswordLoading(false);
     }
   };
 
-  const getInitial = () => profile?.username?.charAt(0).toUpperCase() || "U";
-
-  const getPhotoUrl = (photoPath?: string | null) => {
-    if (!photoPath) return null;
-    if (photoPath.startsWith("http")) return photoPath;
-    return `${API_URL}${photoPath}`;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   const handlePhotoUpload = async (file: File) => {
     setPhotoError("");
-
-    // Validation type
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       setPhotoError("Format invalide. Utilisez JPG, PNG ou WEBP.");
       return;
     }
-
-    // Validation taille (2 MB)
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (file.size > 2 * 1024 * 1024) {
       setPhotoError("Image trop volumineuse (max 2MB).");
       return;
     }
-
     const formData = new FormData();
     formData.append("photo", file);
-
     setPhotoLoading(true);
     try {
       const response = await axiosInstance.patch("/profile/photo", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      const newPhotoUrl = response.data?.profileImageUrl;
       setProfile((prev) =>
-        prev ? { ...prev, profileImageUrl: newPhotoUrl } : prev,
+        prev ? { ...prev, profileImageUrl: response.data?.profileImageUrl } : prev,
       );
     } catch {
       setPhotoError("Erreur lors de l'upload de la photo.");
@@ -162,459 +167,366 @@ export default function ProfileSection() {
     }
   };
 
+  const getInitial = () => profile?.username?.charAt(0).toUpperCase() || "U";
+  const getPhotoUrl = (p?: string | null) =>
+    !p ? null : p.startsWith("http") ? p : `${API_URL}${p}`;
+
+  const getRoleLabel = (role: string) => {
+    if (role === "Admin") return "Admin";
+    if (role === "Responsable") return "Responsable";
+    return "Client";
+  };
+
+  const formatMemberSince = (d?: string) => {
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const getStatCards = () => {
+    if (!stats || !profile) return [];
+    const role = profile.role;
+
+    if (role === "Admin")
+      return [
+        { label: "Responsables gérés", value: stats.nombreResponsables ?? 0, icon: <UserCheck className="w-4 h-4 text-blue-600" /> },
+        { label: "Clients plateforme", value: stats.nombreClients ?? 0, icon: <Users className="w-4 h-4 text-blue-500" /> },
+        { label: "Abonnements actifs", value: stats.abonnementsActifs ?? 0, icon: <CreditCard className="w-4 h-4 text-green-500" /> },
+        { label: "Revenus ce mois", value: `${(stats.revenusMois ?? 0).toFixed(2)} TND`, icon: <TrendingUp className="w-4 h-4 text-orange-500" /> },
+        { label: "Catalogue", value: `${stats.nombreServices ?? 0} services · ${stats.nombreOffres ?? 0} offres`, icon: <Package className="w-4 h-4 text-pink-500" /> },
+        { label: "Membre depuis", value: formatMemberSince(profile.createdAt), icon: <Clock className="w-4 h-4 text-gray-400" /> },
+      ];
+
+    if (role === "Responsable")
+      return [
+        { label: "Mes services", value: stats.mesServices ?? 0, icon: <Briefcase className="w-4 h-4 text-blue-600" /> },
+        { label: "Mes offres", value: stats.mesOffres ?? 0, icon: <Package className="w-4 h-4 text-indigo-500" /> },
+        { label: "Mes clients", value: stats.mesClients ?? 0, icon: <Users className="w-4 h-4 text-blue-500" /> },
+        { label: "Abonnements actifs", value: stats.abonnementsActifs ?? 0, icon: <CreditCard className="w-4 h-4 text-green-500" /> },
+        { label: "Revenus ce mois", value: `${(stats.revenusMois ?? 0).toFixed(2)} TND`, icon: <TrendingUp className="w-4 h-4 text-orange-500" /> },
+        { label: "Membre depuis", value: formatMemberSince(profile.createdAt), icon: <Clock className="w-4 h-4 text-gray-400" /> },
+      ];
+
+    // Client
+    return [
+      { label: "Abonnements actifs", value: stats.abonnementsActifs ?? 0, icon: <CreditCard className="w-4 h-4 text-green-500" /> },
+      { label: "Abonnements expirés", value: stats.abonnementsExpires ?? 0, icon: <Clock className="w-4 h-4 text-red-400" /> },
+      { label: "Total payé", value: `${(stats.totalPaye ?? 0).toFixed(2)} TND`, icon: <TrendingUp className="w-4 h-4 text-orange-500" /> },
+      { label: "Membre depuis", value: formatMemberSince(profile.createdAt), icon: <Clock className="w-4 h-4 text-gray-400" /> },
+    ];
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const statCards = getStatCards();
+  const villesDisponibles = getVillesByGouvernorat(profileForm.gouvernorat);
+  const isAdmin = profile?.role === "Admin";
+
   return (
     <div className="p-6 lg:p-8 w-full">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          Paramètres du profil
+          Profil {getRoleLabel(profile?.role ?? "")}
         </h1>
         <p className="text-gray-500 text-sm mt-1">
-          Gérez les informations de votre compte
+          Gérez vos informations et paramètres de sécurité.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl w-full mx-auto">
-        {/* Carte avatar */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center md:col-span-1 h-fit">
-          <div className="mb-4 flex justify-center">
-            {getPhotoUrl(profile?.profileImageUrl) ? (
-              <img
-                src={getPhotoUrl(profile?.profileImageUrl)!}
-                alt="Photo de profil"
-                className="w-24 h-24 rounded-full object-cover border border-gray-200"
-              />
-            ) : (
-              <div className="w-24 h-24 bg-[#4F46E5] rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                {getInitial()}
-              </div>
-            )}
-          </div>
-          <div className="mb-4">
-            <label className="inline-flex items-center justify-center border border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors cursor-pointer">
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* ── Colonne gauche : avatar + stats ── */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
+            <div className="mb-4 flex justify-center">
+              {getPhotoUrl(profile?.profileImageUrl) ? (
+                <img
+                  src={getPhotoUrl(profile?.profileImageUrl)!}
+                  alt="Photo"
+                  className="w-20 h-20 rounded-full object-cover border border-gray-200"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-[#0F6CBD] rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                  {getInitial()}
+                </div>
+              )}
+            </div>
+            <label className="inline-flex items-center justify-center border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer mb-3">
               {photoLoading ? "Upload..." : "Changer la photo"}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handlePhotoUpload(file);
-                  e.currentTarget.value = "";
-                }}
-              />
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.currentTarget.value = ""; }} />
             </label>
+            {photoError && <p className="text-xs text-red-600 mb-2">{photoError}</p>}
+            <h3 className="font-bold text-gray-900 text-base mt-2">{profile?.username}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{profile?.email}</p>
+            <span className="inline-block mt-3 bg-[#0F6CBD]/10 text-[#0F6CBD] text-xs font-semibold px-3 py-1 rounded-full">
+              {getRoleLabel(profile?.role ?? "")}
+            </span>
           </div>
 
-          {photoError && (
-            <p className="text-xs text-red-600 mb-3">{photoError}</p>
+          {statCards.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4">Activité</p>
+              <div className="space-y-3">
+                {statCards.map((s) => (
+                  <div key={s.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {s.icon}
+                      <span className="text-sm text-gray-600">{s.label}</span>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-          <h3 className="font-bold text-gray-900 text-lg mb-1">
-            {profile?.username}
-          </h3>
-          <p className="text-sm text-gray-500 mb-6">{profile?.email}</p>
-          <span className="inline-block bg-[#4F46E5]/10 text-[#4F46E5] text-xs font-semibold px-3 py-1 rounded-full">
-            {profile?.role}
-          </span>
         </div>
 
-        {/* Informations du compte */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 md:col-span-2">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-gray-900">
-              Informations du compte
-            </h2>
-            {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="border border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-              >
-                Modifier
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setProfileSuccess("");
-                    setProfileError("");
-                  }}
-                  className="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-                >
-                  Annuler
+        {/* ── Colonne droite : infos + sécurité ── */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Informations du compte */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold text-gray-900">Informations du compte</h2>
+              {!isEditing ? (
+                <button onClick={() => setIsEditing(true)}
+                  className="border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+                  Modifier
                 </button>
-                <button
-                  onClick={handleProfileSubmit}
-                  disabled={profileLoading}
-                  className="bg-[#4F46E5] hover:bg-[#3730A3] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
-                >
-                  {profileLoading ? "Enregistrement..." : "Enregistrer"}
-                </button>
-              </div>
-            )}
-          </div>
-
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            {/* Nom complet */}
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs text-gray-500 mb-1">
-                  Nom complet
-                </label>
-                <input
-                  type="text"
-                  value={profileForm.username}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, username: e.target.value })
-                  }
-                  disabled={!isEditing}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${
-                    isEditing
-                      ? "bg-gray-100 focus:ring-2 focus:ring-[#4F46E5]"
-                      : "bg-gray-50 cursor-default"
-                  }`}
-                />
-              </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setProfileSuccess("");
+                      setProfileError("");
+                      if (profile) {
+                        setProfileForm({
+                          username: profile.username,
+                          email: profile.email,
+                          phoneNumber: profile.phoneNumber || "",
+                          gouvernorat: profile.gouvernorat || "",
+                          ville: profile.ville || "",
+                        });
+                      }
+                    }}
+                    className="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button onClick={handleProfileSubmit} disabled={profileLoading}
+                    className="bg-[#0F6CBD] hover:bg-[#0C5A9E] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+                    {profileLoading ? "Enregistrement..." : "Enregistrer"}
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Email */}
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs text-gray-500 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={profileForm.email}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, email: e.target.value })
-                  }
+            <div className="grid grid-cols-2 gap-4">
+              {/* Nom */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">NOM</label>
+                <input type="text" value={profileForm.username}
+                  onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
                   disabled={!isEditing}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${
-                    isEditing
-                      ? "bg-gray-100 focus:ring-2 focus:ring-[#4F46E5]"
-                      : "bg-gray-50 cursor-default"
-                  }`}
-                />
+                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
               </div>
-            </div>
-
-            {/* Téléphone */}
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 6.338c0-1.01.559-1.887 1.406-2.312l2.47-1.235a1.125 1.125 0 011.394.38l1.91 2.865a1.125 1.125 0 01-.26 1.48l-1.154.866a8.992 8.992 0 003.957 3.956l.866-1.154a1.125 1.125 0 011.48-.26l2.864 1.91a1.125 1.125 0 01.38 1.394l-1.235 2.47a2.625 2.625 0 01-2.312 1.406C7.5 21 3 16.5 3 11.25a9 9 0 01-.75-4.912z"
-                  />
-                </svg>
+              {/* Email */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">EMAIL</label>
+                <input type="email" value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  disabled={!isEditing}
+                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
               </div>
-              <div className="flex-1">
-                <label className="block text-xs text-gray-500 mb-1">
-                  Téléphone
-                </label>
-                <input
-                  type="tel"
-                  value={profileForm.phoneNumber}
-                  onChange={(e) =>
-                    setProfileForm({
-                      ...profileForm,
-                      phoneNumber: e.target.value,
-                    })
-                  }
+              {/* Téléphone */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">TÉLÉPHONE</label>
+                <input type="tel" value={profileForm.phoneNumber}
+                  onChange={(e) => setProfileForm({ ...profileForm, phoneNumber: e.target.value })}
                   disabled={!isEditing}
                   placeholder={isEditing ? "Ex: 0612345678" : "Non renseigné"}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none transition-colors ${
-                    isEditing
-                      ? "bg-gray-100 focus:ring-2 focus:ring-[#4F46E5]"
-                      : "bg-gray-50 cursor-default"
-                  }`}
-                />
+                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
               </div>
+
+              {/* Rôle — Admin uniquement */}
+              {isAdmin && (
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">RÔLE</label>
+                  <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-500 bg-gray-50 cursor-default flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-gray-400" />
+                    {getRoleLabel(profile?.role ?? "")}
+                  </div>
+                </div>
+              )}
+
+              {/* Gouvernorat + Ville — masqués pour Admin */}
+              {!isAdmin && (
+                <>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">GOUVERNORAT</label>
+                    {isEditing ? (
+                      <select
+                        value={profileForm.gouvernorat}
+                        onChange={(e) => setProfileForm({ ...profileForm, gouvernorat: e.target.value, ville: "" })}
+                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD] outline-none"
+                      >
+                        <option value="">Sélectionner...</option>
+                        {GOUVERNORATS.map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50 cursor-default">
+                        {profile?.gouvernorat ?? "Non renseigné"}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">VILLE</label>
+                    {isEditing ? (
+                      <select
+                        value={profileForm.ville}
+                        onChange={(e) => setProfileForm({ ...profileForm, ville: e.target.value })}
+                        disabled={!profileForm.gouvernorat}
+                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD] outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {profileForm.gouvernorat ? "Sélectionner..." : "Choisir un gouvernorat"}
+                        </option>
+                        {villesDisponibles.map((v) => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50 cursor-default">
+                        {profile?.ville ?? "Non renseigné"}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Informations professionnelles — Responsable uniquement */}
+              {profile?.role === "Responsable" && (
+                <>
+                  <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
+                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      Informations professionnelles
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">NOM DE L'ENTREPRISE</label>
+                    <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50">
+                      {profile?.nomEntreprise ?? "Non renseigné"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">MATRICULE FISCAL</label>
+                    <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50">
+                      {profile?.matriculeFiscal ?? "Non renseigné"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">SECTEUR D'ACTIVITÉ</label>
+                    <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50">
+                      {profile?.secteurActivite ?? "Non renseigné"}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">ADRESSE PROFESSIONNELLE</label>
+                    <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50">
+                      {profile?.adresseProfessionnelle ?? "Non renseigné"}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {profileSuccess && (
-              <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-100 rounded-xl">
-                <svg
-                  className="w-5 h-5 text-green-500 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+              <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-xl">
                 <p className="text-sm text-green-700">{profileSuccess}</p>
               </div>
             )}
             {profileError && (
-              <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl">
-                <svg
-                  className="w-5 h-5 text-red-500 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                  />
-                </svg>
+              <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
                 <p className="text-sm text-red-700">{profileError}</p>
               </div>
             )}
-          </form>
-        </div>
+          </div>
 
-        {/* Paramètres de sécurité */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 md:col-span-3">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Paramètres de sécurité
-          </h2>
-          <div className="space-y-3">
-            {/* Mot de passe */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    Mot de passe
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Modifiez votre mot de passe
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowPasswordForm(!showPasswordForm);
-                  setPasswordSuccess("");
-                  setPasswordError("");
-                }}
-                className="border border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-              >
-                {showPasswordForm ? "Annuler" : "Changer le mot de passe"}
-              </button>
-            </div>
-
-            {/* Formulaire changement mot de passe */}
-            {showPasswordForm && (
-              <form
-                onSubmit={handlePasswordSubmit}
-                className="border border-gray-100 rounded-xl p-5 space-y-4"
-              >
-                <input
-                  type="text"
-                  autoComplete="username"
-                  style={{ display: "none" }}
-                  readOnly
-                />
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Mot de passe actuel
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.currentPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        currentPassword: e.target.value,
-                      })
-                    }
-                    placeholder="Entrez votre mot de passe actuel"
-                    className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#4F46E5]"
-                    autoComplete="current-password"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Nouveau mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.newPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        newPassword: e.target.value,
-                      })
-                    }
-                    placeholder="Entrez votre nouveau mot de passe"
-                    className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#4F46E5]"
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
-                </div>
-
-                {/* Password strength */}
-                {passwordForm.newPassword.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-400">
-                      Force du mot de passe :
-                    </p>
-                    <div className="flex gap-2">
-                      <div
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${passwordForm.newPassword.length > 0 ? "bg-[#C7C5F7]" : "bg-gray-200"}`}
-                      />
-                      <div
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${/[A-Z]/.test(passwordForm.newPassword) ? "bg-[#9B97F0]" : "bg-gray-200"}`}
-                      />
-                      <div
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) ? "bg-[#6F6AE9]" : "bg-gray-200"}`}
-                      />
-                      <div
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) && /[^a-zA-Z0-9]/.test(passwordForm.newPassword) && passwordForm.newPassword.length >= 8 ? "bg-[#4F46E5]" : "bg-gray-200"}`}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {!/[A-Z]/.test(passwordForm.newPassword) &&
-                        "Faible — ajoutez une majuscule"}
-                      {/[A-Z]/.test(passwordForm.newPassword) &&
-                        !/[0-9]/.test(passwordForm.newPassword) &&
-                        "Moyen — ajoutez un chiffre"}
-                      {/[A-Z]/.test(passwordForm.newPassword) &&
-                        /[0-9]/.test(passwordForm.newPassword) &&
-                        !/[^a-zA-Z0-9]/.test(passwordForm.newPassword) &&
-                        "Bon — ajoutez un symbole (!@#$...)"}
-                      {/[A-Z]/.test(passwordForm.newPassword) &&
-                        /[0-9]/.test(passwordForm.newPassword) &&
-                        /[^a-zA-Z0-9]/.test(passwordForm.newPassword) &&
-                        passwordForm.newPassword.length < 8 &&
-                        "Presque — minimum 8 caractères"}
-                      {/[A-Z]/.test(passwordForm.newPassword) &&
-                        /[0-9]/.test(passwordForm.newPassword) &&
-                        /[^a-zA-Z0-9]/.test(passwordForm.newPassword) &&
-                        passwordForm.newPassword.length >= 8 &&
-                        "Excellent !"}
-                    </p>
+          {/* Sécurité & Accès */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <h2 className="text-base font-bold text-gray-900 mb-4">Sécurité & Accès</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center shrink-0 text-xl">🔑</div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Mot de passe</p>
+                    <p className="text-xs text-gray-500">Modifiez votre mot de passe</p>
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
-                    Confirmer le mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordForm.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordForm({
-                        ...passwordForm,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    placeholder="Confirmez votre nouveau mot de passe"
-                    className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#4F46E5]"
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
                 </div>
-
-                {passwordSuccess && (
-                  <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-100 rounded-xl">
-                    <svg
-                      className="w-5 h-5 text-green-500 shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <p className="text-sm text-green-700">{passwordSuccess}</p>
-                  </div>
-                )}
-                {passwordError && (
-                  <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-xl">
-                    <svg
-                      className="w-5 h-5 text-red-500 shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                      />
-                    </svg>
-                    <p className="text-sm text-red-700">{passwordError}</p>
-                  </div>
-                )}
-
                 <button
-                  type="submit"
-                  disabled={passwordLoading}
-                  className="w-full bg-[#4F46E5] hover:bg-[#3730A3] text-white font-semibold py-3.5 rounded-xl transition-colors disabled:opacity-50"
+                  onClick={() => { setShowPasswordForm(!showPasswordForm); setPasswordSuccess(""); setPasswordError(""); }}
+                  className="border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
                 >
-                  {passwordLoading
-                    ? "Modification..."
-                    : "Modifier le mot de passe"}
+                  {showPasswordForm ? "Annuler" : "Changer"}
                 </button>
-              </form>
-            )}
+              </div>
+
+              {showPasswordForm && (
+                <form onSubmit={handlePasswordSubmit} className="border border-gray-100 rounded-xl p-5 space-y-4">
+                  <input type="text" autoComplete="username" style={{ display: "none" }} readOnly />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Mot de passe actuel</label>
+                    <input type="password" value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      placeholder="Entrez votre mot de passe actuel"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+                      autoComplete="current-password" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Nouveau mot de passe</label>
+                    <input type="password" value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      placeholder="Entrez votre nouveau mot de passe"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+                      autoComplete="new-password" minLength={8} />
+                  </div>
+                  {passwordForm.newPassword.length > 0 && (
+                    <div className="flex gap-2">
+                      <div className={`h-1.5 flex-1 rounded-full ${passwordForm.newPassword.length > 0 ? "bg-[#C7C5F7]" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) ? "bg-[#9B97F0]" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) ? "bg-[#6F6AE9]" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) && /[^a-zA-Z0-9]/.test(passwordForm.newPassword) && passwordForm.newPassword.length >= 8 ? "bg-[#0F6CBD]" : "bg-gray-200"}`} />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Confirmer le mot de passe</label>
+                    <input type="password" value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      placeholder="Confirmez votre nouveau mot de passe"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+                      autoComplete="new-password" minLength={8} />
+                  </div>
+                  {passwordSuccess && <p className="text-sm text-green-700 bg-green-50 p-3 rounded-xl">{passwordSuccess}</p>}
+                  {passwordError && <p className="text-sm text-red-700 bg-red-50 p-3 rounded-xl">{passwordError}</p>}
+                  <button type="submit" disabled={passwordLoading}
+                    className="w-full bg-[#0F6CBD] hover:bg-[#0F6CBD]/80 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50">
+                    {passwordLoading ? "Modification..." : "Modifier le mot de passe"}
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </div>

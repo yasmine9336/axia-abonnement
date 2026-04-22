@@ -18,6 +18,7 @@ namespace AxiaAbonnement.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ChatConversation> ChatConversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<LoginHistory> LoginHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -185,6 +186,14 @@ namespace AxiaAbonnement.Data
                     .HasForeignKey(m => m.SenderUserId)
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(false);
+            });
+
+            modelBuilder.Entity<LoginHistory>(entity =>
+            {
+                entity.HasOne(l => l.User)
+                    .WithMany()
+                    .HasForeignKey(l => l.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

@@ -11,5 +11,8 @@ namespace AxiaAbonnement.Models.DTOs.Profile
         public string Email { get; set; } = string.Empty;
 
         public string? PhoneNumber { get; set; }
+
+        public string? Gouvernorat { get; set; }
+        public string? Ville { get; set; }
     }
 }

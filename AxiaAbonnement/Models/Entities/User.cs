@@ -37,5 +37,7 @@ namespace AxiaAbonnement.Models.Entities
 
         // Navigation
         public ICollection<Abonnement> Abonnements { get; set; } = new List<Abonnement>();
+        public string? Gouvernorat { get; set; }
+        public string? Ville { get; set; }
     }
 }

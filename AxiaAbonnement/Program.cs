@@ -85,6 +85,8 @@ builder.Services.AddScoped<IChatService, ChatService>();
 
 builder.Services.AddSingleton<IPdfExportService, PdfExportService>();
 
+builder.Services.AddHttpContextAccessor();
+
 
 var emailConfig = builder.Configuration
     .GetSection("EmailConfiguration")

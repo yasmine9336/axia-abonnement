@@ -22,8 +22,8 @@ export default function DashboardLayout() {
         <main className="flex-1 overflow-auto">
           <div
             className={`h-1 ${
-              user?.role === "Admin" ? "bg-violet-500"
-              : user?.role === "Responsable" ? "bg-[#4F46E5]"
+              user?.role === "Admin" ? "bg-bleu-500"
+              : user?.role === "Responsable" ? "bg-[#0F6CBD]"
               : "bg-sky-400"
             }`}
           />

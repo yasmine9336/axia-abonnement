@@ -1,4 +1,5 @@
 ﻿using AxiaAbonnement.Models.DTOs.Payment;
+
 namespace AxiaAbonnement.Services.Interfaces
 {
     public interface IPaymentService
@@ -9,5 +10,6 @@ namespace AxiaAbonnement.Services.Interfaces
         Task<List<PaiementDto>> GetMyPaiementsAsync(Guid userId);
         Task<List<PaiementDto>> GetAllPaiementsAsync();
         Task<List<PaiementDto>> GetPaiementsByResponsableAsync(Guid responsableId);
+        Task<PaiementDto?> GetMyPaiementByIdAsync(Guid userId, Guid paiementId);
     }
 }

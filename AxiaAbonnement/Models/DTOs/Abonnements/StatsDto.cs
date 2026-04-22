@@ -10,6 +10,6 @@
         public List<RevenuMoisDto> RevenuParMois { get; set; } = new();
         public int AbonnementsActifs { get; set; }
         public int AbonnementsExpires { get; set; }
-        public int AbonnementsDesactives { get; set; }
+        public int AbonnementsEnAttente { get; set; } 
     }
 }

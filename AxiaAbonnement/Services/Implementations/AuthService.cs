@@ -19,17 +19,20 @@ namespace AxiaAbonnement.Services.Implementations
         private readonly IConfiguration _cfg;
         private readonly IEmailSender _emailSender;
         private readonly INotificationService _notifService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthService(
             AppDbContext ctx,
             IConfiguration cfg,
             IEmailSender emailSender,
-            INotificationService notifService)
+            INotificationService notifService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _ctx = ctx;
             _cfg = cfg;
             _emailSender = emailSender;
             _notifService = notifService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // ── Inscription ───────────────────────────────────────────────────
@@ -38,7 +41,6 @@ namespace AxiaAbonnement.Services.Implementations
             if (await _ctx.Users.AnyAsync(u => u.Email == dto.Email))
                 return null;
 
-            // ✅ Enum au lieu de string
             var role = dto.Role == "Responsable" ? UserRole.Responsable : UserRole.Client;
 
             var user = new User
@@ -48,6 +50,8 @@ namespace AxiaAbonnement.Services.Implementations
                 Email = dto.Email,
                 Role = role,
                 PhoneNumber = dto.PhoneNumber,
+                Gouvernorat = dto.Gouvernorat,
+                Ville = dto.Ville,
             };
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.Password);
 
@@ -68,7 +72,6 @@ namespace AxiaAbonnement.Services.Implementations
                 _ctx.Users.Add(user);
                 await _ctx.SaveChangesAsync();
 
-                // Notifier les admins
                 var admins = await _ctx.Users
                     .Where(u => u.Role == UserRole.Admin && u.Statut == StatutCompte.Active)
                     .ToListAsync();
@@ -96,7 +99,6 @@ namespace AxiaAbonnement.Services.Implementations
                 "success"
             );
 
-            // Notifier les responsables actifs
             var responsables = await _ctx.Users
                 .Where(u => u.Role == UserRole.Responsable && u.Statut == StatutCompte.Active)
                 .ToListAsync();
@@ -162,10 +164,7 @@ namespace AxiaAbonnement.Services.Implementations
                     Message = "Compte désactivé."
                 },
 
-                StatutCompte.Active => new LoginResultDto
-                {
-                    Token = await BuildTokenResponseAsync(user, dto.RememberMe)
-                },
+                StatutCompte.Active => await HandleActiveLoginAsync(user, dto),
 
                 _ => new LoginResultDto
                 {
@@ -175,12 +174,32 @@ namespace AxiaAbonnement.Services.Implementations
             };
         }
 
+        // ── Login réussi — enregistrer historique ─────────────────────────
+        private async Task<LoginResultDto> HandleActiveLoginAsync(User user, LoginDto dto)
+        {
+            var history = new LoginHistory
+            {
+                UserId = user.Id,
+                LoginAt = DateTime.UtcNow,
+                IpAddress = _httpContextAccessor.HttpContext?
+                    .Connection.RemoteIpAddress?.ToString(),
+                UserAgent = _httpContextAccessor.HttpContext?
+                    .Request.Headers["User-Agent"].ToString()
+            };
+            _ctx.LoginHistories.Add(history);
+            await _ctx.SaveChangesAsync();
+
+            return new LoginResultDto
+            {
+                Token = await BuildTokenResponseAsync(user, dto.RememberMe)
+            };
+        }
+
         // ── Refresh Token ─────────────────────────────────────────────────
         public async Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.RefreshToken)) return null;
 
-            // ✅ Vérifier le hash du refresh token
             var hash = HashToken(dto.RefreshToken);
 
             var user = await _ctx.Users.FirstOrDefaultAsync(u =>
@@ -220,12 +239,8 @@ namespace AxiaAbonnement.Services.Implementations
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
         {
             var user = await _ctx.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (user == null)
-            {
-                return false;
-            }
+            if (user == null) return false;
 
-            // ✅ Trim pour éviter les espaces parasites
             var tokenRecu = dto.Token?.Trim() ?? "";
             var tokenBd = user.ResetPasswordToken?.Trim() ?? "";
 
@@ -247,7 +262,6 @@ namespace AxiaAbonnement.Services.Implementations
             {
                 AccessToken = CreateJwt(user),
                 RefreshToken = await SaveRefreshTokenAsync(user, rememberMe),
-                // ✅ .ToString() pour convertir enum → string dans le DTO
                 Role = user.Role.ToString()
             };
 
@@ -258,7 +272,6 @@ namespace AxiaAbonnement.Services.Implementations
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
-                // ✅ .ToString() obligatoire pour le claim JWT
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
@@ -281,24 +294,20 @@ namespace AxiaAbonnement.Services.Implementations
         {
             if (!rememberMe)
             {
-                // ✅ Utiliser RefreshTokenHash
                 user.RefreshTokenHash = null;
                 user.RefreshTokenExpiryTime = null;
                 await _ctx.SaveChangesAsync();
                 return null;
             }
 
-            // ✅ Générer token brut + stocker son hash
             var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
             user.RefreshTokenHash = HashToken(rawToken);
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _ctx.SaveChangesAsync();
 
-            // ✅ Retourner le token brut au client (jamais le hash)
             return rawToken;
         }
 
-        // ✅ Hash SHA-256 du refresh token
         private static string HashToken(string token)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));

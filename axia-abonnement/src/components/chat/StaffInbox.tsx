@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
-import { Send, Loader2, MessageSquare, X, Clock } from "lucide-react";
+import { Send, Loader2, MessageSquare, Clock } from "lucide-react";
 import type { ChatMessage, Conversation } from "../../types";
 import { useStaffChat } from "../../hooks/useChat";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -14,7 +15,9 @@ export default function StaffInbox() {
     loading,
     totalUnread,
     openConversation,
+    openConversationByClientId,
     sendMessage,
+    hideConversation,
     closeConversation,
   } = useStaffChat();
 
@@ -22,7 +25,23 @@ export default function StaffInbox() {
   const [input, setInput] = useState("");
   const bottomRef = useAutoScroll(messages);
 
+  const [sp, setSearchParams] = useSearchParams();
+  const clientId = sp.get("clientId");
 
+  useEffect(() => {
+    if (!clientId) return;
+
+    const run = async () => {
+      try {
+        await openConversationByClientId(clientId);
+        resetUnreadMessages();
+      } catch {
+        // optional
+      }
+    };
+
+    run();
+  }, [clientId, openConversationByClientId, resetUnreadMessages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -36,8 +55,22 @@ export default function StaffInbox() {
   };
 
   const handleClose = async () => {
-    if (!selected || !confirm("Fermer cette conversation ?")) return;
-    await closeConversation(selected);
+    if (!selected) return;
+
+    const isEmpty = messages.length === 0 && !selected.lastMessage;
+
+    if (isEmpty) {
+      // supprime (backend + state)
+      await closeConversation(selected);
+
+      // ✅ nettoyer l'URL: /messages (sans ?clientId=...)
+      setSearchParams({}, { replace: true });
+
+      return;
+    }
+
+    // sinon: juste masquer
+    await hideConversation();
   };
 
   const formatTime = (d: string) =>
@@ -60,10 +93,11 @@ export default function StaffInbox() {
       </div>
 
       <div className="flex gap-6 h-150">
+        {/* Liste conversations */}
         <div className="w-72 bg-white rounded-2xl border border-gray-200 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="animate-spin text-[#4F46E5]" size={24} />
+              <Loader2 className="animate-spin text-[#0F6CBD]" size={24} />
             </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -77,7 +111,7 @@ export default function StaffInbox() {
                 onClick={() => void handleOpenConversation(conv)}
                 className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                   selected?.id === conv.id
-                    ? "bg-indigo-50 border-l-2 border-l-[#4F46E5]"
+                    ? "bg-[#EAF4FF] border-l-2 border-l-[#0F6CBD]"
                     : ""
                 }`}
               >
@@ -93,16 +127,18 @@ export default function StaffInbox() {
                         </span>
                       )}
                     </div>
+
                     <p className="text-xs text-gray-400 truncate mt-0.5">
                       {conv.lastMessage?.content ?? "Aucun message"}
                     </p>
                   </div>
+
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <span className="text-xs text-gray-400">
                       {formatTime(conv.updatedAt)}
                     </span>
-                    {conv.unreadCount > 0 && (
-                      <span className="w-5 h-5 bg-[#4F46E5] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {(conv.unreadCount ?? 0) > 0 && (
+                      <span className="w-5 h-5 bg-[#0F6CBD] text-white text-xs font-bold rounded-full flex items-center justify-center">
                         {conv.unreadCount}
                       </span>
                     )}
@@ -113,6 +149,7 @@ export default function StaffInbox() {
           )}
         </div>
 
+        {/* Chat */}
         <div className="flex-1 bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden">
           {!selected ? (
             <div className="flex items-center justify-center h-full text-gray-400">
@@ -128,14 +165,17 @@ export default function StaffInbox() {
                   <p className="font-semibold text-gray-900">
                     {selected.clientName}
                   </p>
-                  <p className="text-xs text-gray-400">{selected.clientEmail}</p>
+                  <p className="text-xs text-gray-400">
+                    {selected.clientEmail}
+                  </p>
                 </div>
+
                 {selected.statut === "Open" && (
                   <button
                     onClick={() => void handleClose()}
-                    className="flex items-center gap-1.5 text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200"
                   >
-                    <X size={13} /> Fermer
+                    Fermer
                   </button>
                 )}
               </div>
@@ -154,7 +194,7 @@ export default function StaffInbox() {
                       className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
                         msg.senderType === "Client"
                           ? "bg-white text-gray-800 shadow-sm rounded-bl-sm"
-                          : "bg-[#4F46E5] text-white rounded-br-sm"
+                          : "bg-[#0F6CBD] text-white rounded-br-sm"
                       }`}
                     >
                       {msg.senderType !== "Client" && (
@@ -192,13 +232,13 @@ export default function StaffInbox() {
                         void handleSend();
                       }
                     }}
-                    placeholder="Répondre au client..."
-                    className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4F46E5]"
+                    placeholder="Répondre au client."
+                    className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#0F6CBD]"
                   />
                   <button
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || sending}
-                    className="p-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50"
+                    className="p-2 bg-[#0F6CBD] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50"
                   >
                     {sending ? (
                       <Loader2 size={16} className="animate-spin" />

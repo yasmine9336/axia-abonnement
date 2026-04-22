@@ -5,7 +5,7 @@ import ResponsablesSection from "../../components/sections/ResponsablesSection";
 import AbonnementsAdminSection from "../../components/sections/AbonnementsAdminSection";
 import CatalogueAdminSection from "../../components/sections/CatalogueAdminSection";
 import ArchiveAdminSection from "../../components/sections/ArchiveAdminSection";
-import TransactionsAdminSection from "../../components/sections/TransactionsAdminSection";
+import TransactionsAdminSection from "../../components/sections/TransactionsSection";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../../components/common/ExportButton";
 import {
@@ -43,10 +43,12 @@ interface AbonnementRecent {
   clientUsername: string;
   clientEmail: string;
 }
+
 interface RevenuMois {
   mois: string;
   revenu: number;
 }
+
 interface ResponsableItem {
   id: string;
   username: string;
@@ -55,6 +57,7 @@ interface ResponsableItem {
   nombreAbonnes: number;
   createdAt: string;
 }
+
 interface Paiement {
   id: string;
   montant: number;
@@ -65,6 +68,7 @@ interface Paiement {
   clientUsername: string;
   clientEmail: string;
 }
+
 interface Stats {
   totalAbonnes: number;
   revenuMensuel: number;
@@ -128,7 +132,9 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
 
   useEffect(() => {
     if (section !== "dashboard") return;
+
     let cancelled = false;
+
     Promise.all([
       axiosInstance.get("/abonnements/stats"),
       axiosInstance.get("/users/responsables"),
@@ -146,6 +152,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
@@ -174,14 +181,15 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
       <div
         className="mb-6 rounded-2xl p-6 text-white"
         style={{
-          background: "linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)",
+          background: "linear-gradient(135deg, #0F6CBD 0%, #0B5CAD 100%)",
         }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold text-violet-200 uppercase tracking-wider mb-2">
+            <p className="text-xs font-semibold text-blue-100 uppercase tracking-wider mb-2">
               TABLEAU DE BORD ADMIN · {currentMonth}
             </p>
+
             {loading ? (
               <div className="w-48 h-10 bg-white/20 rounded-xl animate-pulse mb-2" />
             ) : (
@@ -189,33 +197,40 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                 {stats.revenuMensuel} TND
               </p>
             )}
-            <p className="text-violet-200 text-sm">
+
+            <p className="text-blue-100 text-sm">
               Revenu total consolidé de la plateforme
             </p>
           </div>
+
           {!loading && (
             <div className="hidden lg:flex gap-10">
               <div className="text-center">
                 <p className="text-2xl font-bold">{responsables.length}</p>
-                <p className="text-xs text-violet-200 mt-0.5">Responsables</p>
+                <p className="text-xs text-blue-100 mt-0.5">Responsables</p>
               </div>
+
               <div className="text-center">
                 <p className="text-2xl font-bold">{stats.totalAbonnes}</p>
-                <p className="text-xs text-violet-200 mt-0.5">Clients actifs</p>
+                <p className="text-xs text-blue-100 mt-0.5">Clients actifs</p>
               </div>
+
               <div className="text-center">
                 <p className="text-2xl font-bold">{stats.abonnementsActifs}</p>
-                <p className="text-xs text-violet-200 mt-0.5">
+                <p className="text-xs text-blue-100 mt-0.5">
                   Abonnements actifs
                 </p>
               </div>
+
               <div className="text-center">
                 <p
-                  className={`text-2xl font-bold ${stats.demandesEnAttente > 0 ? "text-yellow-300" : ""}`}
+                  className={`text-2xl font-bold ${
+                    stats.demandesEnAttente > 0 ? "text-yellow-300" : ""
+                  }`}
                 >
                   {stats.demandesEnAttente}
                 </p>
-                <p className="text-xs text-violet-200 mt-0.5">En attente</p>
+                <p className="text-xs text-blue-100 mt-0.5">En attente</p>
               </div>
             </div>
           )}
@@ -266,7 +281,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
               label="Abonnements actifs"
               value={stats.abonnementsActifs}
               sub="en cours"
-              borderColor="#0ea5e9"
+              borderColor="#0F6CBD"
             />
             <KpiCard
               emoji="⏳"
@@ -286,6 +301,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             <h2 className="text-base font-bold text-gray-900">
               Évolution des revenus
             </h2>
+
             <ExportButton
               data={stats.revenuParMois}
               columns={[
@@ -324,7 +340,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="revenu" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="revenu" fill="#0F6CBD" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -334,22 +350,21 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
           <h2 className="text-base font-bold text-gray-900 mb-4">
             Répartition abonnements
           </h2>
+
           {loading ? (
             <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
           ) : (
             (() => {
               const total = pieData.reduce((s, d) => s + d.value, 0);
+
               return (
                 <div className="flex items-center gap-6">
-                  {/* Donut */}
                   <div
                     className="relative shrink-0"
                     style={{ width: 150, height: 150 }}
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart
-                        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-                      >
+                      <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                         <Pie
                           data={pieData}
                           cx="50%"
@@ -375,7 +390,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                         />
                       </PieChart>
                     </ResponsiveContainer>
-                    {/* Centre label — cx="50%" → left:"50%" exact */}
+
                     <div
                       className="absolute pointer-events-none text-center"
                       style={{
@@ -391,11 +406,11 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                     </div>
                   </div>
 
-                  {/* Légende custom */}
                   <div className="space-y-3 flex-1">
                     {pieData.map((item, i) => {
                       const pct =
                         total > 0 ? Math.round((item.value / total) * 100) : 0;
+
                       return (
                         <div
                           key={item.name}
@@ -435,11 +450,12 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             </h2>
             <button
               onClick={() => navigate("/dashboard/admin/responsables")}
-              className="text-xs font-semibold text-violet-600 hover:underline"
+              className="text-xs font-semibold text-[#0F6CBD] hover:underline"
             >
               Voir tous →
             </button>
           </div>
+
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -454,7 +470,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
               {responsables.slice(0, 5).map((r) => (
                 <div key={r.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-violet-100 rounded-full flex items-center justify-center text-xs font-bold text-violet-600">
+                    <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-xs font-bold text-blue-700">
                       {r.username.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -469,6 +485,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   </div>
                 </div>
               ))}
+
               {responsables.length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-4">
                   Aucun responsable
@@ -486,11 +503,12 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             </h2>
             <button
               onClick={() => navigate("/dashboard/admin/abonnements")}
-              className="text-xs font-semibold text-violet-600 hover:underline"
+              className="text-xs font-semibold text-[#0F6CBD] hover:underline"
             >
               Voir tous →
             </button>
           </div>
+
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -528,6 +546,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   </div>
                 </div>
               ))}
+
               {!stats.abonnementsRecents.length && (
                 <p className="text-sm text-gray-400 text-center py-4">
                   Aucun abonnement
@@ -545,11 +564,12 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
             </h2>
             <button
               onClick={() => navigate("/dashboard/admin/transactions")}
-              className="text-xs font-semibold text-violet-600 hover:underline"
+              className="text-xs font-semibold text-[#0F6CBD] hover:underline"
             >
               Voir toutes →
             </button>
           </div>
+
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -593,6 +613,7 @@ export default function AdminDashboard({ section = "dashboard" }: Props) {
                   </p>
                 </div>
               ))}
+
               {paiements.length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-4">
                   Aucune transaction
