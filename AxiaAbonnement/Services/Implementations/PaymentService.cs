@@ -106,12 +106,10 @@ namespace AxiaAbonnement.Services.Implementations
             return session.Url;
         }
 
-        public async Task<string?> CreateResponsableAccountSessionAsync(
-            CreateResponsableAccountSessionDto dto)
+        public async Task<string?> CreateResponsableAccountSessionAsync(CreateResponsableAccountSessionDto dto)
         {
             var user = await _ctx.Users.FindAsync(dto.UserId);
 
-            // ✅ Enum au lieu de string
             if (user == null || user.Role != UserRole.Responsable) return null;
 
             var metadata = new Dictionary<string, string>
@@ -151,8 +149,7 @@ namespace AxiaAbonnement.Services.Implementations
             return session.Url;
         }
 
-        public async Task HandleWebhookAsync(
-            string json, string stripeSignature, string webhookSecret)
+        public async Task HandleWebhookAsync(string json, string stripeSignature, string webhookSecret)
         {
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
 
@@ -171,17 +168,24 @@ namespace AxiaAbonnement.Services.Implementations
 
         private async Task HandleSubscriptionPaymentAsync(Session session)
         {
-            var userId = Guid.Parse(session.Metadata["userId"]);
-            var type = session.Metadata["type"];
+            if (!TryGetMetadataGuid(session, "userId", out var userId))
+                return;
+
+            if (!session.Metadata.TryGetValue("type", out var type) || string.IsNullOrWhiteSpace(type))
+                return;
 
             var user = await _ctx.Users.FindAsync(userId);
             if (user == null) return;
 
             Guid? offreId = session.Metadata.TryGetValue("offreId", out var rawOffre)
-                ? Guid.Parse(rawOffre) : null;
+                && Guid.TryParse(rawOffre, out var parsedOffreId)
+                ? parsedOffreId
+                : null;
 
             Guid? serviceId = session.Metadata.TryGetValue("serviceId", out var rawService)
-                ? Guid.Parse(rawService) : null;
+                && Guid.TryParse(rawService, out var parsedServiceId)
+                ? parsedServiceId
+                : null;
 
             string productName;
             decimal montant;
@@ -218,7 +222,6 @@ namespace AxiaAbonnement.Services.Implementations
                 DateFin = dateFin,
                 StripeSessionId = session.Id,
                 IsActive = true,
-                // ✅ Statut explicite
                 Statut = StatutAbonnement.Actif
             };
             _ctx.Abonnements.Add(abonnement);
@@ -229,7 +232,8 @@ namespace AxiaAbonnement.Services.Implementations
                 UserId = userId,
                 Montant = montant,
                 Statut = "completed",
-                StripePaymentIntentId = session.PaymentIntentId
+                StripePaymentIntentId = session.PaymentIntentId,
+                PaymentType = "subscription"
             };
             _ctx.Paiements.Add(paiement);
 
@@ -244,11 +248,12 @@ namespace AxiaAbonnement.Services.Implementations
                 $"<p>Valable jusqu'au : {dateFin:dd/MM/yyyy}</p>"
             );
 
-            await _notifService.SendAsync(user.Id,
-                $"Votre abonnement \"{productName}\" est maintenant actif.", "success",
+            await _notifService.SendAsync(
+                user.Id,
+                $"Votre abonnement \"{productName}\" est maintenant actif.",
+                "success",
                 "/dashboard/client/subscriptions");
 
-            // ✅ Notifier uniquement les responsables du service souscrit
             var responsableIds = new List<Guid>();
 
             if (serviceId != null)
@@ -275,18 +280,21 @@ namespace AxiaAbonnement.Services.Implementations
 
             foreach (var respId in responsableIds)
             {
-                await _notifService.SendAsync(respId,
-                    $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\"...", "info",
+                await _notifService.SendAsync(
+                    respId,
+                    $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\"...",
+                    "info",
                     "/dashboard/responsable/transactions");
             }
         }
 
         private async Task HandleResponsableAccountPaymentAsync(Session session)
         {
-            var userId = Guid.Parse(session.Metadata["userId"]);
+            if (!TryGetMetadataGuid(session, "userId", out var userId))
+                return;
+
             var user = await _ctx.Users.FindAsync(userId);
 
-            // ✅ Enum au lieu de string
             if (user == null || user.Role != UserRole.Responsable) return;
 
             user.Statut = StatutCompte.Active;
@@ -298,21 +306,23 @@ namespace AxiaAbonnement.Services.Implementations
                 UserId = userId,
                 Montant = ResponsableAccountFee,
                 Statut = "completed",
-                StripePaymentIntentId = session.PaymentIntentId
+                StripePaymentIntentId = session.PaymentIntentId,
+                PaymentType = "responsable-account"
             };
             _ctx.Paiements.Add(paiement);
 
             await _ctx.SaveChangesAsync();
 
-            // ✅ Enum au lieu de string
             var admins = await _ctx.Users
                 .Where(u => u.Role == UserRole.Admin && u.IsActive)
                 .ToListAsync();
 
             foreach (var admin in admins)
             {
-                await _notifService.SendAsync(admin.Id,
-                    $"Nouveau responsable actif : {user.Username}.", "info",
+                await _notifService.SendAsync(
+                    admin.Id,
+                    $"Nouveau responsable actif : {user.Username}.",
+                    "info",
                     "/dashboard/admin/responsables");
             }
         }
@@ -368,6 +378,7 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
         }
+
         public async Task<List<PaiementDto>> GetPaiementsByResponsableAsync(Guid responsableId)
         {
             var mesServiceIds = await _ctx.Services
@@ -434,5 +445,11 @@ namespace AxiaAbonnement.Services.Implementations
                 .FirstOrDefaultAsync();
         }
 
+        private static bool TryGetMetadataGuid(Session session, string key, out Guid value)
+        {
+            value = Guid.Empty;
+            return session.Metadata.TryGetValue(key, out var rawValue)
+                && Guid.TryParse(rawValue, out value);
+        }
     }
 }

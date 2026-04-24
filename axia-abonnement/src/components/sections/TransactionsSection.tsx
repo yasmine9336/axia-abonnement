@@ -4,6 +4,8 @@ import { Search, TrendingUp, Calendar, Receipt } from "lucide-react";
 import ExportButton from "../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
 import { useAuth } from "../../hooks/useAuth";
+import UiCard from "../common/UiCard";
+import StatusBadge from "../common/StatusBadge";
 
 interface Paiement {
   id: string;
@@ -17,7 +19,12 @@ interface Paiement {
 }
 
 function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 const AVATAR_COLORS = [
@@ -83,10 +90,7 @@ export default function TransactionsAdminSection() {
   const revenuMoisCi = useMemo(() => {
     const debut = new Date(now.getFullYear(), now.getMonth(), 1);
     return paiements
-      .filter(
-        (p) =>
-          p.statut === "completed" && new Date(p.createdAt) >= debut,
-      )
+      .filter((p) => p.statut === "completed" && new Date(p.createdAt) >= debut)
       .reduce((s, p) => s + p.montant, 0);
   }, [paiements]);
 
@@ -125,13 +129,15 @@ export default function TransactionsAdminSection() {
   const totalFiltered = filtered.reduce((s, p) => s + p.montant, 0);
 
   const statutBadge = (statut: string) => {
-    if (statut === "completed" || statut === "succeeded") {
-      return { cls: "bg-green-100 text-green-700", label: "Complété" };
+    const s = (statut || "").toLowerCase();
+
+    if (s === "completed" || s === "succeeded") {
+      return { variant: "success" as const, label: "Complété" };
     }
-    if (statut === "pending") {
-      return { cls: "bg-yellow-100 text-yellow-700", label: "En attente" };
+    if (s === "pending") {
+      return { variant: "warning" as const, label: "En attente" };
     }
-    return { cls: "bg-red-100 text-red-700", label: "Échoué" };
+    return { variant: "danger" as const, label: "Échoué" };
   };
 
   const kpiCards = [
@@ -167,25 +173,20 @@ export default function TransactionsAdminSection() {
   }, [paiements]);
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="ui-title">Transactions</h1>
+        <p className="ui-subtitle">
           {paiements.length} transaction(s) · {revenuTotal.toFixed(2)} TND total
         </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {kpiCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
-          >
+          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
-                  {card.label}
-                </p>
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
                 <p className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}>
                   {card.value}
                 </p>
@@ -193,11 +194,11 @@ export default function TransactionsAdminSection() {
               </div>
               <div className="mt-1">{card.icon}</div>
             </div>
-          </div>
+          </UiCard>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+      <UiCard className="p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           {isAdmin && (
             <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
@@ -215,7 +216,7 @@ export default function TransactionsAdminSection() {
                     onClick={() => setFilterSource(t)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       filterSource === t
-                        ? "bg-white text-[#0F6CBD] shadow-sm"
+                        ? "bg-white text-(--color-primary) shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -228,14 +229,11 @@ export default function TransactionsAdminSection() {
           )}
 
           <div className="relative flex-1 min-w-48">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Rechercher par client, email ou offre..."
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+              className="ui-input pl-9 pr-4"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -276,29 +274,29 @@ export default function TransactionsAdminSection() {
             pdfTitle="Historique des transactions"
           />
         </div>
-      </div>
+      </UiCard>
 
       {loading ? (
         <div className="flex items-center justify-center min-h-40">
-          <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+          <div className="ui-spinner" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm">
-          Aucune transaction
-        </div>
+        <div className="text-center py-16 text-gray-400 text-sm">Aucune transaction</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <UiCard className="p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {["Référence", "Date", "Client", "Offre / Service", "Type", "Montant", "Statut"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
-                  >
-                    {h}
-                  </th>
-                ))}
+                {["Référence", "Date", "Client", "Offre / Service", "Type", "Montant", "Statut"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
 
@@ -310,7 +308,7 @@ export default function TransactionsAdminSection() {
                 return (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-4 px-5">
-                      <span className="text-[#0F6CBD] font-semibold text-xs">
+                      <span className="text-(--color-primary) font-semibold text-xs">
                         {txnRef(i)}
                       </span>
                     </td>
@@ -335,9 +333,7 @@ export default function TransactionsAdminSection() {
                       </div>
                     </td>
 
-                    <td className="py-4 px-5 font-medium text-gray-900">
-                      {p.intituleOffre}
-                    </td>
+                    <td className="py-4 px-5 font-medium text-gray-900">{p.intituleOffre}</td>
 
                     <td className="py-4 px-5">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -364,9 +360,7 @@ export default function TransactionsAdminSection() {
                     </td>
 
                     <td className="py-4 px-5">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${badge.cls}`}>
-                        {badge.label}
-                      </span>
+                      <StatusBadge label={badge.label} variant={badge.variant} />
                     </td>
                   </tr>
                 );
@@ -380,7 +374,7 @@ export default function TransactionsAdminSection() {
               Total : <span className="text-green-600">{totalFiltered.toFixed(2)} TND</span>
             </p>
           </div>
-        </div>
+        </UiCard>
       )}
     </div>
   );

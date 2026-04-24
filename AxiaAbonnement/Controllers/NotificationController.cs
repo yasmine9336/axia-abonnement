@@ -12,10 +12,14 @@ public class NotificationController(INotificationService notifService) : Control
 {
     private readonly INotificationService _notifService = notifService;
 
+    private bool TryGetUserId(out Guid userId) =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
+
     [HttpGet]
     public async Task<IActionResult> GetUnread()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Utilisateur non authentifié");
         var notifs = await _notifService.GetUnreadAsync(userId);
         return Ok(notifs.Select(n => new
         {
@@ -30,7 +34,8 @@ public class NotificationController(INotificationService notifService) : Control
     [HttpPatch("{id}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Utilisateur non authentifié");
         var success = await _notifService.MarkAsReadAsync(id, userId);
         return success ? NoContent() : NotFound();
     }
@@ -39,7 +44,8 @@ public class NotificationController(INotificationService notifService) : Control
     [HttpPatch("read-all")]
     public async Task<IActionResult> MarkAllAsRead()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Utilisateur non authentifié");
         await _notifService.MarkAllAsReadAsync(userId);
         return NoContent();
     }

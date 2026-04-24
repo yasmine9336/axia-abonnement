@@ -207,15 +207,14 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } =
-    useNotifications();
+  const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } = useNotifications();
 
-  const accent = "#0F6CBD";
-  const accentBg = "bg-[#EAF4FF] text-[#0F6CBD]";
-  const accentIcon = "text-[#0F6CBD]";
-  const accentAvatar = "bg-[#0F6CBD]";
+  const accent = "var(--color-primary)";
+  const accentBg = "bg-[var(--color-primary-soft)] text-[var(--color-primary)]";
+  const accentIcon = "text-[var(--color-primary)]";
+  const accentAvatar = "bg-[var(--color-primary)]";
   const accentLogout =
-    "border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white";
+    "border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white";
 
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
@@ -236,11 +235,7 @@ export default function Sidebar() {
   }, []);
 
   const navItems =
-    user?.role === "Admin"
-      ? adminNav
-      : user?.role === "Responsable"
-        ? responsableNav
-        : clientNav;
+    user?.role === "Admin" ? adminNav : user?.role === "Responsable" ? responsableNav : clientNav;
 
   const handleLogout = () => {
     logout();
@@ -248,6 +243,8 @@ export default function Sidebar() {
   };
 
   const getInitial = () => user?.username?.charAt(0).toUpperCase() || "U";
+
+  const profilePhoto = getPhotoUrl(profileImageUrl);
 
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 flex flex-col">
@@ -258,7 +255,7 @@ export default function Sidebar() {
 
         <div className="mt-2">
           {user?.role === "Admin" ? (
-            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-bold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-(--color-primary-soft) text-(--color-primary) text-xs font-bold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -269,14 +266,14 @@ export default function Sidebar() {
               Portail Admin
             </span>
           ) : user?.role === "Responsable" ? (
-            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-(--color-primary-soft) text-(--color-primary) text-xs font-semibold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Portail Responsable
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 bg-[#EAF4FF] text-[#0F6CBD] text-xs font-semibold px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 bg-(--color-primary-soft) text-(--color-primary) text-xs font-semibold px-2.5 py-1 rounded-full">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -304,9 +301,7 @@ export default function Sidebar() {
                 isActive ? accentBg : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              <span className={isActive ? accentIcon : "text-gray-400"}>
-                {item.icon}
-              </span>
+              <span className={isActive ? accentIcon : "text-gray-400"}>{item.icon}</span>
 
               <span className="flex-1 text-left">{item.label}</span>
 
@@ -328,9 +323,9 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center gap-3 mb-4">
-          {getPhotoUrl(profileImageUrl) ? (
+          {profilePhoto ? (
             <img
-              src={getPhotoUrl(profileImageUrl)!}
+              src={profilePhoto}
               alt="Photo profil"
               className="w-10 h-10 rounded-full object-cover border border-gray-200"
             />
@@ -343,9 +338,7 @@ export default function Sidebar() {
           )}
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">
-              {user?.username}
-            </p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{user?.username}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>

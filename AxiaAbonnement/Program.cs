@@ -14,6 +14,32 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtToken = builder.Configuration["AppSettings:Token"];
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+var emailConfig = builder.Configuration
+    .GetSection("EmailConfiguration")
+    .Get<EmailConfiguration>();
+
+if (string.IsNullOrWhiteSpace(jwtToken))
+    throw new InvalidOperationException("Configuration manquante: AppSettings:Token.");
+
+if (string.IsNullOrWhiteSpace(defaultConnection))
+    throw new InvalidOperationException("Configuration manquante: ConnectionStrings:DefaultConnection.");
+
+if (allowedOrigins is null || allowedOrigins.Length == 0)
+    throw new InvalidOperationException("Configuration manquante: AllowedOrigins.");
+
+if (emailConfig is null ||
+    string.IsNullOrWhiteSpace(emailConfig.From) ||
+    string.IsNullOrWhiteSpace(emailConfig.SmtpServer) ||
+    emailConfig.Port <= 0 ||
+    string.IsNullOrWhiteSpace(emailConfig.Username) ||
+    string.IsNullOrWhiteSpace(emailConfig.Password))
+{
+    throw new InvalidOperationException("Configuration EmailConfiguration invalide ou incomplète.");
+}
+
 // 1. Contrôleurs API 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -33,16 +59,12 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = 429;
 });
 
-
 builder.Services.AddSignalR();
-
 
 // 2. OpenAPI + Scalar (remplace Swashbuckle/Swagger sous .NET 10)
 builder.Services.AddOpenApi();
 
 // 3. CORS — autoriser React
-var allowedOrigins = builder.Configuration
-    .GetSection("AllowedOrigins").Get<string[]>()!;
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactPolicy", policy =>
@@ -53,45 +75,26 @@ builder.Services.AddCors(options =>
 
 // 4. Base de données EF Core 10
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(defaultConnection));
 
 // 5. Injection de dépendance
 builder.Services.AddScoped<IAuthService, AuthService>();
-
 builder.Services.AddScoped<IDemandeResponsableService, DemandeResponsableService>();
-
 builder.Services.AddScoped<IProfileService, ProfileService>();
-
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
-
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
 builder.Services.AddScoped<IUserService, UserService>();
-
 builder.Services.AddScoped<IOffreService, OffreService>();
-
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-
 builder.Services.AddScoped<IAbonnementService, AbonnementService>();
-
 builder.Services.AddScoped<IDemandeService, DemandeService>();
-
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-
 builder.Services.AddScoped<INotificationService, NotificationService>();
-
 builder.Services.AddScoped<IChatService, ChatService>();
-
 builder.Services.AddSingleton<IPdfExportService, PdfExportService>();
-
 builder.Services.AddHttpContextAccessor();
 
-
-var emailConfig = builder.Configuration
-    .GetSection("EmailConfiguration")
-    .Get<EmailConfiguration>();
-builder.Services.AddSingleton(emailConfig!);
+builder.Services.AddSingleton(emailConfig);
 
 // 6. Authentification JWT Bearer
 builder.Services
@@ -107,7 +110,7 @@ builder.Services
             ValidIssuer = builder.Configuration["AppSettings:Issuer"],
             ValidAudience = builder.Configuration["AppSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!))
+                Encoding.UTF8.GetBytes(jwtToken))
         };
 
         options.Events = new JwtBearerEvents
@@ -118,14 +121,18 @@ builder.Services
 
                 var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (userId != null)
+                if (Guid.TryParse(userId, out var parsedUserId))
                 {
-                    var user = await dbContext.Users.FindAsync(Guid.Parse(userId));
+                    var user = await dbContext.Users.FindAsync(parsedUserId);
 
                     if (user == null || !user.IsActive)
                     {
                         context.Fail("Compte désactivé");
                     }
+                }
+                else
+                {
+                    context.Fail("Token invalide: NameIdentifier manquant ou invalide.");
                 }
             },
 
@@ -155,7 +162,6 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 // 8. Seed BDD au démarrage
-
 using (var scope = app.Services.CreateScope())
 {
     try

@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
-import ExportButton from "./../common/ExportButton";
+import ExportButton from "../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
 import { ClipboardList, CheckCircle, Clock, Hourglass, TrendingUp } from "lucide-react";
+import UiCard from "../common/UiCard";
 
 interface Abonnement {
   id: string;
@@ -30,7 +31,7 @@ function getInitials(name: string) {
 
 const AVATAR_COLORS = [
   "bg-blue-100 text-blue-700",
-  "bg-blue-100 text-blue-700",
+  "bg-sky-100 text-sky-700",
   "bg-green-100 text-green-700",
   "bg-orange-100 text-orange-700",
   "bg-pink-100 text-pink-700",
@@ -83,20 +84,22 @@ export default function AbonnementsAdminSection() {
 
   const filtered = useMemo(() => {
     let result = abonnements;
+
     if (tab === "actifs") result = result.filter((a) => a.statut === "actif");
     if (tab === "expirés") result = result.filter((a) => a.statut === "expiré");
-    if (tab === "en_attente")
-      result = result.filter((a) => a.statut === "en_attente");
-    if (searchTerm)
+    if (tab === "en_attente") result = result.filter((a) => a.statut === "en_attente");
+
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       result = result.filter(
         (a) =>
-          a.clientUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.clientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.intituleOffre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.responsableUsername
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()),
+          a.clientUsername?.toLowerCase().includes(q) ||
+          a.clientEmail?.toLowerCase().includes(q) ||
+          a.intituleOffre?.toLowerCase().includes(q) ||
+          a.responsableUsername?.toLowerCase().includes(q),
       );
+    }
+
     return result;
   }, [abonnements, tab, searchTerm]);
 
@@ -123,7 +126,7 @@ export default function AbonnementsAdminSection() {
       border: "border-t-red-400",
     },
     {
-      label: "EN ATTENTE", // ← ajout
+      label: "EN ATTENTE",
       value: totalEnAttente,
       sub: "en cours de traitement",
       icon: <Hourglass className="w-6 h-6 text-yellow-400" />,
@@ -140,77 +143,62 @@ export default function AbonnementsAdminSection() {
   ];
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Abonnements globaux
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {totalActifs} actif(s) · {totalExpires} expiré(s) · {totalEnAttente}{" "}
-          en attente · {abonnements.length} total
+        <h1 className="ui-title">Abonnements globaux</h1>
+        <p className="ui-subtitle">
+          {totalActifs} actif(s) · {totalExpires} expiré(s) · {totalEnAttente} en attente ·{" "}
+          {abonnements.length} total
         </p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {kpiCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
-          >
+          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
-                  {card.label}
-                </p>
-                <p
-                  className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}
-                >
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
+                <p className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}>
                   {card.value}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
               <span className="text-2xl">{card.icon}</span>
             </div>
-          </div>
+          </UiCard>
         ))}
       </div>
 
-      {/* Filters + Search + Export */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+      <UiCard className="p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Tabs */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            {(["tous", "actifs", "expirés", "en_attente"] as FilterTab[]).map(
-              (t) => {
-                const count =
-                  t === "tous"
-                    ? abonnements.length
-                    : t === "actifs"
-                      ? totalActifs
-                      : t === "expirés"
-                        ? totalExpires
-                        : totalEnAttente;
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      tab === t
-                        ? "bg-white text-[#0F6CBD] shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    {t === "en_attente" ? "En attente" : capitalize(t)}{" "}
-                    <span className="ml-1 text-xs font-semibold">{count}</span>
-                  </button>
-                );
-              },
-            )}
+            {(["tous", "actifs", "expirés", "en_attente"] as FilterTab[]).map((t) => {
+              const count =
+                t === "tous"
+                  ? abonnements.length
+                  : t === "actifs"
+                    ? totalActifs
+                    : t === "expirés"
+                      ? totalExpires
+                      : totalEnAttente;
+
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    tab === t
+                      ? "bg-white text-(--color-primary) shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {t === "en_attente" ? "En attente" : capitalize(t)}
+                  <span className="ml-1 text-xs font-semibold">{count}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Search */}
           <div className="relative flex-1 min-w-48">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -230,11 +218,10 @@ export default function AbonnementsAdminSection() {
               placeholder="Rechercher par client, responsable ou offre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+              className="ui-input pl-9 pr-4"
             />
           </div>
 
-          {/* Export */}
           <ExportButton
             data={filtered}
             columns={[
@@ -244,16 +231,8 @@ export default function AbonnementsAdminSection() {
               { key: "intituleOffre", label: "Offre / Service" },
               { key: "type", label: "Type" },
               { key: "montant", label: "Montant (TND)" },
-              {
-                key: "dateDebut",
-                label: "Date début",
-                format: (v) => formatDateFR(v),
-              },
-              {
-                key: "dateFin",
-                label: "Date fin",
-                format: (v) => formatDateFR(v),
-              },
+              { key: "dateDebut", label: "Date début", format: (v) => formatDateFR(v) },
+              { key: "dateFin", label: "Date fin", format: (v) => formatDateFR(v) },
               { key: "statut", label: "Statut" },
             ]}
             filename="abonnements"
@@ -262,7 +241,7 @@ export default function AbonnementsAdminSection() {
             pdfTitle="Abonnements globaux"
           />
         </div>
-      </div>
+      </UiCard>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
@@ -270,75 +249,69 @@ export default function AbonnementsAdminSection() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <UiCard className="p-0 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+            <div className="ui-spinner" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 text-sm">
-            Aucun abonnement trouvé
-          </div>
+          <div className="text-center py-16 text-gray-400 text-sm">Aucun abonnement trouvé</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {[
-                  "Client",
-                  "Responsable",
-                  "Offre / Service",
-                  "Période",
-                  "Type",
-                  "Montant",
-                  "Statut",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
-                  >
-                    {h}
-                  </th>
-                ))}
+                {["Client", "Responsable", "Offre / Service", "Période", "Type", "Montant", "Statut"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-50">
               {filtered.map((a) => (
                 <tr key={a.id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-5">
                     <div className="flex items-center gap-2">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(a.clientUsername)}`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(
+                          a.clientUsername,
+                        )}`}
                       >
                         {getInitials(a.clientUsername)}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
-                          {a.clientUsername}
-                        </p>
+                        <p className="font-semibold text-gray-900">{a.clientUsername}</p>
                         <p className="text-xs text-gray-400">{a.clientEmail}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-5 text-gray-600">
-                    {a.responsableUsername ?? "—"}
-                  </td>
+
+                  <td className="py-4 px-5 text-gray-600">{a.responsableUsername ?? "—"}</td>
+
                   <td className="py-4 px-5">
-                    <span className="text-[#0F6CBD] font-medium">
-                      {a.intituleOffre}
-                    </span>
+                    <span className="text-(--color-primary) font-medium">{a.intituleOffre}</span>
                   </td>
+
                   <td className="py-4 px-5 text-gray-500 text-xs whitespace-nowrap">
                     {formatDate(a.dateDebut)} → {formatDate(a.dateFin)}
                   </td>
+
                   <td className="py-4 px-5">
                     <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-lg">
                       {capitalize(a.type)}
                     </span>
                   </td>
+
                   <td className="py-4 px-5 font-semibold text-gray-900 whitespace-nowrap">
                     {a.montant} TND
                   </td>
+
                   <td className="py-4 px-5">
                     <div className="flex items-center gap-2">
                       <span
@@ -378,7 +351,7 @@ export default function AbonnementsAdminSection() {
             </tbody>
           </table>
         )}
-      </div>
+      </UiCard>
     </div>
   );
 }

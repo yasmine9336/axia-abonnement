@@ -45,8 +45,16 @@ export default function ExportButton<T>({
       }
     };
 
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEsc);
+    };
   }, []);
 
   const handleExport = async (type: "csv" | "excel" | "pdf") => {
@@ -79,9 +87,13 @@ export default function ExportButton<T>({
   return (
     <div className="relative" ref={ref}>
       <button
+        type="button"
+        aria-label={signing ? "Export en cours" : "Ouvrir les options d'export"}
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         disabled={signing}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F6CBD] text-white text-sm font-medium rounded-xl hover:bg-[#0B5CAD] transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-60"
+        style={{ background: "var(--color-primary)" }}
       >
         {signing ? (
           <Loader2 size={16} className="animate-spin" />
@@ -102,6 +114,7 @@ export default function ExportButton<T>({
       {open && (
         <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-10">
           <button
+            type="button"
             onClick={() => handleExport("csv")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
@@ -110,6 +123,7 @@ export default function ExportButton<T>({
           </button>
 
           <button
+            type="button"
             onClick={() => handleExport("excel")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
@@ -118,6 +132,7 @@ export default function ExportButton<T>({
           </button>
 
           <button
+            type="button"
             onClick={() => handleExport("pdf")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
@@ -125,7 +140,13 @@ export default function ExportButton<T>({
             Exporter en PDF
 
             {isAdmin && (
-              <span className="ml-auto text-xs bg-[#EAF4FF] text-[#0F6CBD] px-1.5 py-0.5 rounded-full font-medium">
+              <span
+                className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium"
+                style={{
+                  background: "var(--color-primary-soft)",
+                  color: "var(--color-primary)",
+                }}
+              >
                 Signé
               </span>
             )}

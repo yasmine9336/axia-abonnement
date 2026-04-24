@@ -1,24 +1,164 @@
 @import "tailwindcss";
+
+/* ---------- Theme tokens (default = Responsable) ---------- */
+:root {
+  --color-primary: #4f46e5;
+  --color-primary-strong: #4338ca;
+  --color-primary-soft: #eef2ff;
+
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --surface: #ffffff;
+  --surface-muted: #f9fafb;
+  --border: #e5e7eb;
+
+  --radius-card: 1rem;   /* rounded-2xl like */
+  --radius-input: 0.75rem;
+}
+
+/* Role themes */
+.theme-admin {
+  --color-primary: #0f6cbd;        /* bleu soutenu */
+  --color-primary-strong: #0b5cad; /* hover */
+  --color-primary-soft: #eaf4ff;   /* fonds doux */
+}
+
+.theme-client {
+  --color-primary: #0284c7;        /* bleu cyan */
+  --color-primary-strong: #0369a1;
+  --color-primary-soft: #e0f2fe;
+}
+
+.theme-responsable {
+  --color-primary: #1d4ed8;        /* bleu royal */
+  --color-primary-strong: #1e40af;
+  --color-primary-soft: #dbeafe;
+}
+
+/* ---------- Base ---------- */
 * {
   scroll-behavior: smooth;
 }
 
+body {
+  color: var(--text-main);
+  background: var(--surface-muted);
+}
+
+/* ---------- Reusable UI classes ---------- */
+.ui-page {
+  @apply p-6 lg:p-8;
+}
+
+.ui-title {
+  @apply text-2xl font-bold;
+  color: var(--text-main);
+}
+
+.ui-subtitle {
+  @apply text-sm mt-1;
+  color: var(--text-muted);
+}
+
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  @apply p-5;
+}
+
+.ui-card-soft {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  @apply p-4;
+}
+
+.ui-input {
+  @apply w-full px-3 py-2 text-sm outline-none;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+}
+
+.ui-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.ui-btn-primary {
+  @apply px-3 py-2 text-sm font-semibold transition-colors;
+  border-radius: 0.7rem;
+  color: #fff;
+  background: var(--color-primary);
+}
+.ui-btn-primary:hover {
+  background: var(--color-primary-strong);
+}
+
+.ui-btn-secondary {
+  @apply px-3 py-2 text-sm font-medium transition-colors;
+  border-radius: 0.7rem;
+  color: var(--text-main);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.ui-btn-secondary:hover {
+  background: var(--surface-muted);
+}
+
+.ui-badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full;
+}
+.ui-badge-success {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+}
+.ui-badge-warning {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+.ui-badge-danger {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+.ui-badge-neutral {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.ui-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid color-mix(in srgb, var(--color-primary) 35%, #fff);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Existing helpers */
 @keyframes scroll-loop {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
-.animate-scroll-loop {
-  animation: scroll-loop 120s linear infinite;
-}
-
-.animate-scroll-loop:hover {
-  animation-play-state: paused;
-}
+.animate-scroll-loop { animation: scroll-loop 120s linear infinite; }
+.animate-scroll-loop:hover { animation-play-state: paused; }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-.scroll-instant {
-  scroll-behavior: auto !important;
-}
+.scroll-instant { scroll-behavior: auto !important; }

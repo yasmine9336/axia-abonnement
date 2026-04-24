@@ -1,15 +1,49 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-interface Theme { accent: string; }
-const ThemeContext = createContext<Theme>({ accent: "#4F46E5" });
+type RoleTheme = "admin" | "client" | "responsable";
+
+interface ThemeContextValue {
+  roleTheme: RoleTheme;
+  accent: string;
+}
+
+const ThemeContext = createContext<ThemeContextValue>({
+  roleTheme: "responsable",
+  accent: "#4F46E5",
+});
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+
+  const roleTheme: RoleTheme =
+    user?.role === "Admin"
+      ? "admin"
+      : user?.role === "Client"
+        ? "client"
+        : "responsable";
+
   const accent =
-    user?.role === "Admin" ? "#059669" :
-    user?.role === "Client" ? "#0284c7" : "#4F46E5";
-  return <ThemeContext.Provider value={{ accent }}>{children}</ThemeContext.Provider>;
+    roleTheme === "admin"
+      ? "#0F6CBD"
+      : roleTheme === "client"
+        ? "#0284C7"
+        : "#1D4ED8";
+
+  useEffect(() => {
+    document.body.classList.remove(
+      "theme-admin",
+      "theme-client",
+      "theme-responsable",
+    );
+    document.body.classList.add(`theme-${roleTheme}`);
+  }, [roleTheme]);
+
+  return (
+    <ThemeContext.Provider value={{ roleTheme, accent }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

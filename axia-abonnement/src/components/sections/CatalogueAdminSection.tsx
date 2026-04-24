@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
 import { ClipboardList, CheckCircle, Tag, Zap } from "lucide-react";
+import UiCard from "../common/UiCard";
+import StatusBadge from "../common/StatusBadge";
 
 interface ServiceItem {
   id: string;
@@ -60,13 +62,13 @@ export default function CatalogueAdminSection() {
   const totalServicesPages = Math.ceil(services.length / pageSize);
   const paginatedServices = services.slice(
     (currentServicesPage - 1) * pageSize,
-    currentServicesPage * pageSize
+    currentServicesPage * pageSize,
   );
 
   const totalOffresPages = Math.ceil(offres.length / pageSize);
   const paginatedOffres = offres.slice(
     (currentOffresPage - 1) * pageSize,
-    currentOffresPage * pageSize
+    currentOffresPage * pageSize,
   );
 
   const kpiCards = [
@@ -103,28 +105,23 @@ export default function CatalogueAdminSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-40">
-        <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+        <div className="ui-spinner" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Catalogue</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="ui-title">Catalogue</h1>
+        <p className="ui-subtitle">
           {services.length} service(s) · {offres.length} offre(s)
         </p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {kpiCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
-          >
+          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
@@ -135,7 +132,7 @@ export default function CatalogueAdminSection() {
               </div>
               <div className="mt-1">{card.icon}</div>
             </div>
-          </div>
+          </UiCard>
         ))}
       </div>
 
@@ -145,7 +142,6 @@ export default function CatalogueAdminSection() {
         </div>
       )}
 
-      {/* ── Services ── */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Services</h2>
@@ -167,7 +163,7 @@ export default function CatalogueAdminSection() {
           />
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <UiCard className="p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
@@ -181,35 +177,25 @@ export default function CatalogueAdminSection() {
                 ))}
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-50">
               {paginatedServices.map((s) => (
                 <tr key={s.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-5 font-semibold text-gray-900">
-                    {s.intituleService}
-                  </td>
-                  <td className="py-4 px-5 text-gray-500 max-w-xs truncate">
-                    {s.description}
-                  </td>
-                  <td className="py-4 px-5 font-semibold text-[#0F6CBD]">
-                    {s.parMois} TND
-                  </td>
+                  <td className="py-4 px-5 font-semibold text-gray-900">{s.intituleService}</td>
+                  <td className="py-4 px-5 text-gray-500 max-w-xs truncate">{s.description}</td>
+                  <td className="py-4 px-5 font-semibold text-(--color-primary)">{s.parMois} TND</td>
                   <td className="py-4 px-5 text-gray-600">{s.parAnnee} TND</td>
                   <td className="py-4 px-5 text-center">
-                    <span className="bg-[#EAF4FF] text-[#0F6CBD] text-xs font-semibold px-2.5 py-1 rounded-lg">
+                    <span className="bg-(--color-primary-soft) text-(--color-primary) text-xs font-semibold px-2.5 py-1 rounded-lg">
                       {s.nbOffres} offre{s.nbOffres !== 1 ? "s" : ""}
                     </span>
                   </td>
                   <td className="py-4 px-5 text-gray-500">{s.creePar}</td>
                   <td className="py-4 px-5">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        s.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {s.isActive ? "Actif" : "Inactif"}
-                    </span>
+                    <StatusBadge
+                      label={s.isActive ? "Actif" : "Inactif"}
+                      variant={s.isActive ? "success" : "neutral"}
+                    />
                   </td>
                 </tr>
               ))}
@@ -226,7 +212,7 @@ export default function CatalogueAdminSection() {
                 <button
                   onClick={() => setCurrentServicesPage((p) => p - 1)}
                   disabled={currentServicesPage === 1}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Précédent
                 </button>
@@ -236,17 +222,16 @@ export default function CatalogueAdminSection() {
                 <button
                   onClick={() => setCurrentServicesPage((p) => p + 1)}
                   disabled={currentServicesPage === totalServicesPages}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Suivant
                 </button>
               </div>
             </div>
           )}
-        </div>
+        </UiCard>
       </div>
 
-      {/* ── Offres ── */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Offres</h2>
@@ -256,7 +241,11 @@ export default function CatalogueAdminSection() {
               { key: "intituleOffre", label: "Intitulé" },
               { key: "parMois", label: "Prix/mois (TND)" },
               { key: "parAnnee", label: "Prix/an (TND)" },
-              { key: "services", label: "Services inclus", format: (v) => (Array.isArray(v) ? v.join(", ") : "") },
+              {
+                key: "services",
+                label: "Services inclus",
+                format: (v) => (Array.isArray(v) ? v.join(", ") : ""),
+              },
               { key: "creePar", label: "Créé par" },
               { key: "isActive", label: "Statut", format: (v) => (v ? "Active" : "Inactive") },
             ]}
@@ -267,7 +256,7 @@ export default function CatalogueAdminSection() {
           />
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <UiCard className="p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
@@ -281,15 +270,12 @@ export default function CatalogueAdminSection() {
                 ))}
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-50">
               {paginatedOffres.map((o) => (
                 <tr key={o.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-5 font-semibold text-gray-900">
-                    {o.intituleOffre}
-                  </td>
-                  <td className="py-4 px-5 font-semibold text-[#0F6CBD]">
-                    {o.parMois} TND
-                  </td>
+                  <td className="py-4 px-5 font-semibold text-gray-900">{o.intituleOffre}</td>
+                  <td className="py-4 px-5 font-semibold text-(--color-primary)">{o.parMois} TND</td>
                   <td className="py-4 px-5 text-gray-600">{o.parAnnee} TND</td>
                   <td className="py-4 px-5">
                     {o.services.length > 0 ? (
@@ -297,7 +283,7 @@ export default function CatalogueAdminSection() {
                         {o.services.map((s, i) => (
                           <span
                             key={i}
-                            className="bg-[#EAF4FF] text-[#0F6CBD] text-xs px-2 py-0.5 rounded-full"
+                            className="bg-(--color-primary-soft) text-(--color-primary) text-xs px-2 py-0.5 rounded-full"
                           >
                             {s}
                           </span>
@@ -309,15 +295,10 @@ export default function CatalogueAdminSection() {
                   </td>
                   <td className="py-4 px-5 text-gray-500">{o.creePar}</td>
                   <td className="py-4 px-5">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        o.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {o.isActive ? "Active" : "Inactive"}
-                    </span>
+                    <StatusBadge
+                      label={o.isActive ? "Active" : "Inactive"}
+                      variant={o.isActive ? "success" : "neutral"}
+                    />
                   </td>
                 </tr>
               ))}
@@ -334,7 +315,7 @@ export default function CatalogueAdminSection() {
                 <button
                   onClick={() => setCurrentOffresPage((p) => p - 1)}
                   disabled={currentOffresPage === 1}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Précédent
                 </button>
@@ -344,14 +325,14 @@ export default function CatalogueAdminSection() {
                 <button
                   onClick={() => setCurrentOffresPage((p) => p + 1)}
                   disabled={currentOffresPage === totalOffresPages}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Suivant
                 </button>
               </div>
             </div>
           )}
-        </div>
+        </UiCard>
       </div>
     </div>
   );

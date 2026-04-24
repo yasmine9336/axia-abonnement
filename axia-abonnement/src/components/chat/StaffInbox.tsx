@@ -5,6 +5,7 @@ import { Send, Loader2, MessageSquare, Clock } from "lucide-react";
 import type { ChatMessage, Conversation } from "../../types";
 import { useStaffChat } from "../../hooks/useChat";
 import { useNotifications } from "../../hooks/useNotifications";
+import UiCard from "../common/UiCard";
 
 export default function StaffInbox() {
   const {
@@ -60,16 +61,11 @@ export default function StaffInbox() {
     const isEmpty = messages.length === 0 && !selected.lastMessage;
 
     if (isEmpty) {
-      // supprime (backend + state)
       await closeConversation(selected);
-
-      // ✅ nettoyer l'URL: /messages (sans ?clientId=...)
       setSearchParams({}, { replace: true });
-
       return;
     }
 
-    // sinon: juste masquer
     await hideConversation();
   };
 
@@ -82,22 +78,22 @@ export default function StaffInbox() {
     });
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="ui-title">Messages</h1>
+        <p className="ui-subtitle">
           {totalUnread > 0
             ? `${totalUnread} message(s) non lu(s)`
             : `${conversations.length} conversation(s)`}
         </p>
       </div>
 
-      <div className="flex gap-6 h-150">
+      <div className="flex gap-6 h-[38rem]">
         {/* Liste conversations */}
-        <div className="w-72 bg-white rounded-2xl border border-gray-200 overflow-y-auto">
+        <UiCard className="w-72 p-0 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="animate-spin text-[#0F6CBD]" size={24} />
+              <Loader2 className="animate-spin text-[var(--color-primary)]" size={24} />
             </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -110,17 +106,21 @@ export default function StaffInbox() {
                 key={conv.id}
                 onClick={() => void handleOpenConversation(conv)}
                 className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  selected?.id === conv.id
-                    ? "bg-[#EAF4FF] border-l-2 border-l-[#0F6CBD]"
-                    : ""
+                  selected?.id === conv.id ? "border-l-2" : ""
                 }`}
+                style={
+                  selected?.id === conv.id
+                    ? {
+                        background: "var(--color-primary-soft)",
+                        borderLeftColor: "var(--color-primary)",
+                      }
+                    : undefined
+                }
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {conv.clientName}
-                      </p>
+                      <p className="text-sm font-semibold text-gray-900 truncate">{conv.clientName}</p>
                       {conv.statut === "Closed" && (
                         <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full shrink-0">
                           Fermé
@@ -134,11 +134,12 @@ export default function StaffInbox() {
                   </div>
 
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-xs text-gray-400">
-                      {formatTime(conv.updatedAt)}
-                    </span>
+                    <span className="text-xs text-gray-400">{formatTime(conv.updatedAt)}</span>
                     {(conv.unreadCount ?? 0) > 0 && (
-                      <span className="w-5 h-5 bg-[#0F6CBD] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                      <span
+                        className="w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                        style={{ background: "var(--color-primary)" }}
+                      >
                         {conv.unreadCount}
                       </span>
                     )}
@@ -147,10 +148,10 @@ export default function StaffInbox() {
               </button>
             ))
           )}
-        </div>
+        </UiCard>
 
         {/* Chat */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden">
+        <UiCard className="flex-1 p-0 flex flex-col overflow-hidden">
           {!selected ? (
             <div className="flex items-center justify-center h-full text-gray-400">
               <div className="text-center">
@@ -162,12 +163,8 @@ export default function StaffInbox() {
             <>
               <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {selected.clientName}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {selected.clientEmail}
-                  </p>
+                  <p className="font-semibold text-gray-900">{selected.clientName}</p>
+                  <p className="text-xs text-gray-400">{selected.clientEmail}</p>
                 </div>
 
                 {selected.statut === "Open" && (
@@ -184,30 +181,27 @@ export default function StaffInbox() {
                 {messages.map((msg: ChatMessage) => (
                   <div
                     key={msg.id}
-                    className={`flex ${
-                      msg.senderType === "Client"
-                        ? "justify-start"
-                        : "justify-end"
-                    }`}
+                    className={`flex ${msg.senderType === "Client" ? "justify-start" : "justify-end"}`}
                   >
                     <div
                       className={`max-w-[70%] px-3 py-2 rounded-2xl text-sm ${
                         msg.senderType === "Client"
                           ? "bg-white text-gray-800 shadow-sm rounded-bl-sm"
-                          : "bg-[#0F6CBD] text-white rounded-br-sm"
+                          : "text-white rounded-br-sm"
                       }`}
+                      style={
+                        msg.senderType !== "Client"
+                          ? { background: "var(--color-primary)" }
+                          : undefined
+                      }
                     >
                       {msg.senderType !== "Client" && (
-                        <p className="text-xs text-indigo-200 mb-1">
-                          {msg.senderType}
-                        </p>
+                        <p className="text-xs text-white/75 mb-1">{msg.senderType}</p>
                       )}
                       <p>{msg.content}</p>
                       <p
                         className={`text-xs mt-1 ${
-                          msg.senderType === "Client"
-                            ? "text-gray-400"
-                            : "text-indigo-200"
+                          msg.senderType === "Client" ? "text-gray-400" : "text-white/75"
                         }`}
                       >
                         {new Date(msg.createdAt).toLocaleTimeString("fr-FR", {
@@ -233,18 +227,15 @@ export default function StaffInbox() {
                       }
                     }}
                     placeholder="Répondre au client."
-                    className="flex-1 text-sm px-3 py-2 bg-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#0F6CBD]"
+                    className="ui-input flex-1"
                   />
                   <button
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || sending}
-                    className="p-2 bg-[#0F6CBD] hover:bg-[#4338CA] text-white rounded-xl disabled:opacity-50"
+                    className="p-2 text-white rounded-xl disabled:opacity-50"
+                    style={{ background: "var(--color-primary)" }}
                   >
-                    {sending ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Send size={16} />
-                    )}
+                    {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   </button>
                 </div>
               ) : (
@@ -254,7 +245,7 @@ export default function StaffInbox() {
               )}
             </>
           )}
-        </div>
+        </UiCard>
       </div>
     </div>
   );

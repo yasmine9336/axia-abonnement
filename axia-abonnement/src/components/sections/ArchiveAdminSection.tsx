@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search, Users, CheckCircle, Clock } from "lucide-react";
 import ExportButton from "../common/ExportButton";
+import UiCard from "../common/UiCard";
 
 interface Client {
   id: string;
@@ -16,6 +17,8 @@ interface Client {
   responsableUsername: string | null;
 }
 
+type FilterTab = "tous" | "actif" | "inactif";
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -27,7 +30,7 @@ function getInitials(name: string) {
 
 const AVATAR_COLORS = [
   "bg-blue-100 text-blue-700",
-  "bg-blue-100 text-blue-700",
+  "bg-sky-100 text-sky-700",
   "bg-green-100 text-green-700",
   "bg-orange-100 text-orange-700",
   "bg-pink-100 text-pink-700",
@@ -53,16 +56,11 @@ function ResponsableAvatar({ name }: { name: string }) {
   );
 }
 
-// ✅ Remplacer
-type FilterTab = "tous" | "actif" | "inactif";
-
 export default function ArchiveAdminSection() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-
-  // ✅ Remplacer
   const [filterStatut, setFilterStatut] = useState<FilterTab>("tous");
 
   useEffect(() => {
@@ -75,7 +73,6 @@ export default function ArchiveAdminSection() {
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("fr-FR");
 
-  // ✅ Remplacer KPI counts
   const totalActifs = useMemo(
     () => clients.filter((c) => c.statutAbonnement === "actif").length,
     [clients],
@@ -88,27 +85,27 @@ export default function ArchiveAdminSection() {
   const filtered = useMemo(() => {
     let result = clients;
 
-    if (searchTerm)
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       result = result.filter(
         (c) =>
-          c.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.responsableUsername
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          c.abonnementActif?.toLowerCase().includes(searchTerm.toLowerCase()),
+          c.username.toLowerCase().includes(q) ||
+          c.email.toLowerCase().includes(q) ||
+          c.responsableUsername?.toLowerCase().includes(q) ||
+          c.abonnementActif?.toLowerCase().includes(q),
       );
+    }
 
-    // ✅ Remplacer le filtre
-    if (filterStatut === "actif")
+    if (filterStatut === "actif") {
       result = result.filter((c) => c.statutAbonnement === "actif");
-    if (filterStatut === "inactif")
-      result = result.filter((c) => c.statutAbonnement !== "actif"); // expiré + null
+    }
+    if (filterStatut === "inactif") {
+      result = result.filter((c) => c.statutAbonnement !== "actif");
+    }
 
     return result;
   }, [clients, searchTerm, filterStatut]);
 
-  // ✅ Remplacer les KPI cards
   const kpiCards = [
     {
       label: "TOTAL CLIENTS",
@@ -134,22 +131,15 @@ export default function ArchiveAdminSection() {
   ];
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Archive clients</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {clients.length} client(s) au total
-        </p>
+        <h1 className="ui-title">Archive clients</h1>
+        <p className="ui-subtitle">{clients.length} client(s) au total</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {kpiCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
-          >
+          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
@@ -160,23 +150,20 @@ export default function ArchiveAdminSection() {
               </div>
               <div className="mt-1">{card.icon}</div>
             </div>
-          </div>
+          </UiCard>
         ))}
       </div>
 
-      {/* Search + Filter + Export */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+      <UiCard className="p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Tabs */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            {/* ✅ Remplacer les tabs */}
             {(["tous", "actif", "inactif"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterStatut(t)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   filterStatut === t
-                    ? "bg-white text-[#0F6CBD] shadow-sm"
+                    ? "bg-white text-(--color-primary) shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -185,7 +172,6 @@ export default function ArchiveAdminSection() {
             ))}
           </div>
 
-          {/* Search */}
           <div className="relative flex-1 min-w-48">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -194,13 +180,12 @@ export default function ArchiveAdminSection() {
             <input
               type="text"
               placeholder="Rechercher par nom, email, responsable ou offre..."
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+              className="ui-input pl-9 pr-4"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          {/* Export */}
           <ExportButton
             data={filtered}
             columns={[
@@ -223,18 +208,18 @@ export default function ArchiveAdminSection() {
             pdfTitle="Archive clients"
           />
         </div>
-      </div>
+      </UiCard>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
           {error}
         </div>
       )}
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+
+      <UiCard className="p-0 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+            <div className="ui-spinner" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-gray-400 text-sm">
@@ -262,10 +247,10 @@ export default function ArchiveAdminSection() {
                   ))}
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    {/* Client */}
                     <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
                         <div
@@ -276,9 +261,7 @@ export default function ArchiveAdminSection() {
                           {getInitials(c.username)}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">
-                            {c.username}
-                          </p>
+                          <p className="font-semibold text-gray-900">{c.username}</p>
                           <p className="text-xs text-gray-400">
                             Membre depuis {formatDate(c.createdAt)}
                           </p>
@@ -286,12 +269,8 @@ export default function ArchiveAdminSection() {
                       </div>
                     </td>
 
-                    {/* Email */}
-                    <td className="py-4 px-5 text-gray-500 text-xs">
-                      {c.email}
-                    </td>
+                    <td className="py-4 px-5 text-gray-500 text-xs">{c.email}</td>
 
-                    {/* Responsable */}
                     <td className="py-4 px-5">
                       {c.responsableUsername ? (
                         <ResponsableAvatar name={c.responsableUsername} />
@@ -300,10 +279,9 @@ export default function ArchiveAdminSection() {
                       )}
                     </td>
 
-                    {/* Abonnement */}
                     <td className="py-4 px-5">
                       {c.abonnementActif ? (
-                        <span className="text-[#0F6CBD] font-medium">
+                        <span className="text-(--color-primary) font-medium">
                           {c.abonnementActif}
                         </span>
                       ) : (
@@ -311,12 +289,10 @@ export default function ArchiveAdminSection() {
                       )}
                     </td>
 
-                    {/* Montant */}
                     <td className="py-4 px-5 font-semibold text-gray-900 whitespace-nowrap">
                       {c.montantActif != null ? `${c.montantActif} TND` : "—"}
                     </td>
 
-                    {/* Statut */}
                     <td className="py-4 px-5">
                       {c.statutAbonnement ? (
                         <span
@@ -339,7 +315,6 @@ export default function ArchiveAdminSection() {
               </tbody>
             </table>
 
-            {/* Footer */}
             <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
               <p className="text-xs text-gray-500">
                 {filtered.length} client(s) affiché(s)
@@ -347,7 +322,7 @@ export default function ArchiveAdminSection() {
             </div>
           </>
         )}
-      </div>
+      </UiCard>
     </div>
   );
 }

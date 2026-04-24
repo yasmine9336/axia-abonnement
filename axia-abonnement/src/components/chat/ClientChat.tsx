@@ -36,15 +36,14 @@ export default function ClientChat() {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {open && (
-        <div className="w-80 h-112.5 bg-white rounded-2xl border border-gray-200 shadow-xl flex flex-col overflow-hidden">
-          <div className="bg-[#0F6CBD] px-4 py-3 flex items-center justify-between">
+        <div className="w-80 h-[28rem] bg-white rounded-2xl border border-gray-200 shadow-xl flex flex-col overflow-hidden">
+          <div
+            className="px-4 py-3 flex items-center justify-between"
+            style={{ background: "var(--color-primary)" }}
+          >
             <div>
-              <p className="text-white font-semibold text-sm">
-                Support AxiaAbonnement
-              </p>
-              <p className="text-white/80 text-xs">
-                Nous répondons rapidement
-              </p>
+              <p className="text-white font-semibold text-sm">Support AxiaAbonnement</p>
+              <p className="text-white/80 text-xs">Nous répondons rapidement</p>
             </div>
 
             <button
@@ -66,25 +65,24 @@ export default function ClientChat() {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${
-                  msg.senderType === "Client"
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
+                className={`flex ${msg.senderType === "Client" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
                     msg.senderType === "Client"
-                      ? "bg-[#0F6CBD] text-white rounded-br-sm"
+                      ? "text-white rounded-br-sm"
                       : "bg-white text-gray-800 shadow-sm rounded-bl-sm border border-gray-200"
                   }`}
+                  style={
+                    msg.senderType === "Client"
+                      ? { background: "var(--color-primary)" }
+                      : undefined
+                  }
                 >
                   <p>{msg.content}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      msg.senderType === "Client"
-                        ? "text-white/75"
-                        : "text-gray-400"
+                      msg.senderType === "Client" ? "text-white/75" : "text-gray-400"
                     }`}
                   >
                     {formatTime(msg.createdAt)}
@@ -107,19 +105,16 @@ export default function ClientChat() {
                 }
               }}
               placeholder="Écrivez un message..."
-              className="flex-1 text-sm px-3 py-2 bg-gray-100 border border-transparent rounded-xl outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+              className="ui-input flex-1"
             />
 
             <button
               onClick={() => void handleSend()}
               disabled={!input.trim() || sending}
-              className="p-2 bg-[#0F6CBD] hover:bg-[#0B5CAD] text-white rounded-xl disabled:opacity-50 transition-colors"
+              className="p-2 text-white rounded-xl disabled:opacity-50 transition-colors"
+              style={{ background: "var(--color-primary)" }}
             >
-              {sending ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Send size={16} />
-              )}
+              {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>
           </div>
         </div>
@@ -127,7 +122,8 @@ export default function ClientChat() {
 
       <button
         onClick={() => void handleToggle()}
-        className="w-14 h-14 bg-[#0F6CBD] hover:bg-[#0B5CAD] text-white rounded-full shadow-lg flex items-center justify-center transition-all relative"
+        className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative"
+        style={{ background: "var(--color-primary)" }}
       >
         {open ? <X size={22} /> : <MessageCircle size={22} />}
 
