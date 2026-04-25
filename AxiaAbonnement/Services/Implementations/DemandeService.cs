@@ -160,7 +160,14 @@ namespace AxiaAbonnement.Services.Implementations
             demande.Statut = "acceptée";
             demande.TraiteeAt = DateTime.UtcNow;
 
-            _db.Paiements.Add(new Paiement { });
+            _db.Paiements.Add(new Paiement
+            {
+                AbonnementId = a.Id,
+                UserId = a.UserId,
+                Montant = a.Montant,
+                Statut = "pending",
+                PaymentType = "renewal"
+            });
 
             await _db.SaveChangesAsync();
             await _notifService.SendAsync(
