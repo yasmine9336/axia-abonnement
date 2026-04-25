@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
+import { PackageCheck } from "lucide-react";
 
 interface Abonnement {
   id: string;
@@ -123,19 +124,47 @@ function KpiCard({
   value: React.ReactNode;
   accent: "green" | "red" | "blue";
 }) {
-  const left =
+  const border =
     accent === "green"
-      ? "before:bg-green-500"
+      ? "border-t-green-500"
       : accent === "red"
-        ? "before:bg-red-500"
-        : "before:bg-blue-500";
+        ? "border-t-red-500"
+        : "border-t-blue-500";
+
+  const icon =
+    accent === "green" ? (
+      <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+        <span className="w-2.5 h-2.5 rounded-full bg-green-500 block" />
+      </div>
+    ) : accent === "red" ? (
+      <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+        <span className="w-2.5 h-2.5 rounded-full bg-red-500 block" />
+      </div>
+    ) : (
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center"
+        style={{ background: "var(--color-primary-soft)" }}
+      >
+        <span
+          className="w-2.5 h-2.5 rounded-full block"
+          style={{ background: "var(--color-primary)" }}
+        />
+      </div>
+    );
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-200 p-4 relative overflow-hidden before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${left}`}
+      className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${border} p-5`}
     >
-      <p className="text-xs uppercase tracking-wide text-gray-400">{label}</p>
-      <div className="mt-1 text-2xl font-extrabold text-gray-900">{value}</div>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs text-gray-400 font-medium tracking-wide mb-2 uppercase">
+            {label}
+          </p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className="mt-1">{icon}</div>
+      </div>
     </div>
   );
 }
@@ -163,11 +192,16 @@ function AbonnementCardV2({
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       {/* Bandeau */}
-      <div className="px-6 py-5 bg-linear-to-r from-sky-500 to-sky-400 text-white">
+      <div
+        className="px-6 py-5 text-white"
+        style={{ background: "var(--color-primary)" }}
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h3 className="text-xl font-extrabold truncate">{a.intituleOffre}</h3>
+              <h3 className="text-xl font-extrabold truncate">
+                {a.intituleOffre}
+              </h3>
               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20">
                 {a.statut === "en_attente" ? "En attente" : a.statut}
               </span>
@@ -180,7 +214,9 @@ function AbonnementCardV2({
           <div className="text-right shrink-0">
             <div className="text-3xl font-extrabold leading-none">
               {a.montant.toFixed(2)}
-              <span className="text-base font-semibold ml-2">TND/{a.type === "annuel" ? "mois" : "mois"}</span>
+              <span className="text-base font-semibold ml-2">
+                TND/{a.type === "annuel" ? "mois" : "mois"}
+              </span>
             </div>
             <div className="text-white/80 text-sm mt-1">
               {a.type === "annuel" ? "Annuel" : "Mensuel"}
@@ -194,23 +230,33 @@ function AbonnementCardV2({
         {/* Infos en tuiles */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">Début</p>
-            <p className="font-semibold text-gray-900">{formatDateFR(a.dateDebut)}</p>
+            <p className="text-[11px] uppercase tracking-wide text-gray-400">
+              Début
+            </p>
+            <p className="font-semibold text-gray-900">
+              {formatDateFR(a.dateDebut)}
+            </p>
           </div>
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
             <p className="text-[11px] uppercase tracking-wide text-gray-400">
               {isExpired ? "Terminé" : "Renouvellement"}
             </p>
-            <p className="font-semibold text-gray-900">{formatDateFR(a.dateFin)}</p>
+            <p className="font-semibold text-gray-900">
+              {formatDateFR(a.dateFin)}
+            </p>
           </div>
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">Tarif</p>
+            <p className="text-[11px] uppercase tracking-wide text-gray-400">
+              Tarif
+            </p>
             <p className="font-semibold text-gray-900">
               {a.montant.toFixed(2)} TND/{a.type === "annuel" ? "an" : "mois"}
             </p>
           </div>
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">Période</p>
+            <p className="text-[11px] uppercase tracking-wide text-gray-400">
+              Période
+            </p>
             <p className="font-semibold text-gray-900 capitalize">{a.type}</p>
           </div>
         </div>
@@ -220,18 +266,28 @@ function AbonnementCardV2({
           <div className="mt-5">
             <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
               <span>Progression du cycle</span>
-              <span className="font-semibold text-sky-600">{progress}%</span>
+              <span
+                className="font-semibold"
+                style={{ color: "var(--color-primary)" }}
+              >
+                {progress}%
+              </span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-sky-500 h-2.5 rounded-full transition-all"
-                style={{ width: `${progress}%` }}
+                className="h-2.5 rounded-full transition-all"
+                style={{
+                  width: `${progress}%`,
+                  background: "var(--color-primary)",
+                }}
               />
             </div>
 
             <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
               <span>
-                {joursRestants >= 0 ? `${joursRestants} jours restants` : "Échu"}
+                {joursRestants >= 0
+                  ? `${joursRestants} jours restants`
+                  : "Échu"}
               </span>
               <span className="text-gray-400">
                 Prochaine facturation : {formatDateFR(a.dateFin)}
@@ -265,7 +321,17 @@ function AbonnementCardV2({
             {a.statutDemande !== "en_attente" && (
               <button
                 onClick={() => onRenouveler(a.id)}
-                className="px-4 py-2 rounded-xl border border-sky-500 text-sky-600 hover:bg-sky-500 hover:text-white text-sm font-semibold transition"
+                className="px-4 py-2 rounded-xl border text-sm font-semibold transition hover:text-white"
+                style={{
+                  borderColor: "var(--color-primary)",
+                  color: "var(--color-primary)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--color-primary)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
               >
                 {a.statutDemande === "refusée" ? "Réessayer" : "Renouveler"}
               </button>
@@ -356,18 +422,16 @@ export default function SubscriptionsSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-100">
-        <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+        <div className="ui-spinner" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mes Abonnements</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Gérez et suivez tous vos abonnements
-        </p>
+        <h1 className="ui-title">Mes Abonnements</h1>
+        <p className="ui-subtitle">Gérez et suivez tous vos abonnements</p>
       </div>
 
       {/* KPI (comme la 2ème image) */}
@@ -417,7 +481,11 @@ export default function SubscriptionsSection() {
             ) : (
               <div className="space-y-4">
                 {actifs.map((a) => (
-                  <AbonnementCardV2 key={a.id} a={a} onRenouveler={renouveler} />
+                  <AbonnementCardV2
+                    key={a.id}
+                    a={a}
+                    onRenouveler={renouveler}
+                  />
                 ))}
               </div>
             )}
@@ -431,7 +499,11 @@ export default function SubscriptionsSection() {
               </h2>
               <div className="space-y-4">
                 {enAttente.map((a) => (
-                  <AbonnementCardV2 key={a.id} a={a} onRenouveler={renouveler} />
+                  <AbonnementCardV2
+                    key={a.id}
+                    a={a}
+                    onRenouveler={renouveler}
+                  />
                 ))}
               </div>
             </section>
@@ -445,15 +517,25 @@ export default function SubscriptionsSection() {
 
             {expires.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                  <span className="text-gray-400 text-xl">✉️</span>
+                <div
+                  className="mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                  style={{ background: "var(--color-primary-soft)" }}
+                >
+                  <PackageCheck
+                    className="w-6 h-6"
+                    style={{ color: "var(--color-primary)" }}
+                  />
                 </div>
                 <p className="text-gray-500">Aucun abonnement expiré</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {expires.map((a) => (
-                  <AbonnementCardV2 key={a.id} a={a} onRenouveler={renouveler} />
+                  <AbonnementCardV2
+                    key={a.id}
+                    a={a}
+                    onRenouveler={renouveler}
+                  />
                 ))}
               </div>
             )}

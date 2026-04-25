@@ -45,7 +45,6 @@ export default function PaymentSection() {
       setOffres(offresData);
       setServices(servicesData);
 
-      // Pré-sélection depuis la landing
       const pendingOffreId = localStorage.getItem("pendingOffreId");
       const pendingServiceId = localStorage.getItem("pendingServiceId");
 
@@ -54,9 +53,7 @@ export default function PaymentSection() {
         if (found) {
           setSelection({ kind: "service", item: found });
           setRelatedOffres(
-            offresData.filter((o) =>
-              o.services.includes(found.intituleService),
-            ),
+            offresData.filter((o) => o.services.includes(found.intituleService)),
           );
         }
         localStorage.removeItem("pendingServiceId");
@@ -72,9 +69,7 @@ export default function PaymentSection() {
 
   const selectService = (s: Service) => {
     setSelection({ kind: "service", item: s });
-    setRelatedOffres(
-      offres.filter((o) => o.services.includes(s.intituleService)),
-    );
+    setRelatedOffres(offres.filter((o) => o.services.includes(s.intituleService)));
   };
 
   const selectOffre = (o: Offre) => {
@@ -103,17 +98,12 @@ export default function PaymentSection() {
   const handlePay = async () => {
     if (!selection) return;
     setLoading(true);
-
     try {
       const body =
         selection.kind === "offre"
           ? { offreId: selection.item.id, type }
           : { serviceId: selection.item.id, type };
-
-      const res = await axiosInstance.post(
-        "/payment/create-checkout-session",
-        body,
-      );
+      const res = await axiosInstance.post("/payment/create-checkout-session", body);
       window.location.href = res.data.url;
     } catch {
       setLoading(false);
@@ -122,36 +112,40 @@ export default function PaymentSection() {
 
   const shownOffres = selection?.kind === "service" ? relatedOffres : offres;
 
+  const cardClass = (isSelected: boolean) =>
+    `text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+      isSelected
+        ? "ring-4"
+        : "border-gray-200"
+    }`;
+
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Paiement</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="ui-title">Paiement</h1>
+        <p className="ui-subtitle">
           Choisissez un service ou une offre et complétez votre abonnement.
         </p>
       </div>
 
-      {/* Switch Mensuel/Annuel (global) */}
+      {/* Switch Mensuel/Annuel */}
       <div className="mb-6">
         <div className="inline-flex p-1 rounded-2xl border border-gray-200 bg-white shadow-sm">
           <button
             onClick={() => setType("mensuel")}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-              type === "mensuel"
-                ? "bg-[#0F6CBD] text-white"
-                : "text-gray-600 hover:bg-gray-50"
+              type === "mensuel" ? "text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
+            style={type === "mensuel" ? { background: "var(--color-primary)" } : undefined}
           >
             Mensuel
           </button>
           <button
             onClick={() => setType("annuel")}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
-              type === "annuel"
-                ? "bg-[#0F6CBD] text-white"
-                : "text-gray-600 hover:bg-gray-50"
+              type === "annuel" ? "text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
+            style={type === "annuel" ? { background: "var(--color-primary)" } : undefined}
           >
             Annuel
           </button>
@@ -167,7 +161,6 @@ export default function PaymentSection() {
             <h2 className="text-xs font-bold tracking-widest text-gray-400 mb-4">
               SERVICES
             </h2>
-
             <div className="grid sm:grid-cols-2 gap-4">
               {services.map((s) => {
                 const isSelected =
@@ -178,21 +171,20 @@ export default function PaymentSection() {
                   <button
                     key={s.id}
                     onClick={() => selectService(s)}
-                    className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+                    className={cardClass(isSelected)}
+                    style={
                       isSelected
-                        ? "border-[#0F6CBD] ring-4 ring-[#0F6CBD]/10"
-                        : "border-gray-200 hover:border-[#0F6CBD]/50"
-                    }`}
+                        ? {
+                            borderColor: "var(--color-primary)",
+                            boxShadow: `0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent)`,
+                          }
+                        : undefined
+                    }
                   >
-                    <p className="font-bold text-gray-900">
-                      {s.intituleService}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                      {s.description}
-                    </p>
-
+                    <p className="font-bold text-gray-900">{s.intituleService}</p>
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{s.description}</p>
                     <div className="mt-4">
-                      <p className="text-2xl font-extrabold text-[#0F6CBD]">
+                      <p className="text-2xl font-extrabold" style={{ color: "var(--color-primary)" }}>
                         {price}{" "}
                         <span className="text-sm font-semibold text-gray-400">
                           TND/{type === "annuel" ? "an" : "mois"}
@@ -205,14 +197,12 @@ export default function PaymentSection() {
             </div>
           </div>
 
-          {/* OFFRES / PACKS (ou OFFRES LIÉES) */}
+          {/* OFFRES / PACKS */}
           <div>
             <div className="flex items-end justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-xs font-bold tracking-widest text-gray-400">
-                  {selection?.kind === "service"
-                    ? "OFFRES LIÉES"
-                    : "OFFRES / PACKS"}
+                  {selection?.kind === "service" ? "OFFRES LIÉES" : "OFFRES / PACKS"}
                 </h2>
                 {selection?.kind === "service" && (
                   <p className="text-xs text-green-600 mt-1">
@@ -239,25 +229,25 @@ export default function PaymentSection() {
                     <button
                       key={o.id}
                       onClick={() => selectOffre(o)}
-                      className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+                      className={cardClass(isSelected)}
+                      style={
                         isSelected
-                          ? "border-[#0F6CBD] ring-4 ring-[#0F6CBD]/10"
-                          : "border-gray-200 hover:border-[#0F6CBD]/50"
-                      }`}
+                          ? {
+                              borderColor: "var(--color-primary)",
+                              boxShadow: `0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent)`,
+                            }
+                          : undefined
+                      }
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-bold text-gray-900 truncate">
-                            {o.intituleOffre}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                            {o.description}
-                          </p>
+                          <p className="font-bold text-gray-900 truncate">{o.intituleOffre}</p>
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{o.description}</p>
                         </div>
                       </div>
 
                       <div className="mt-4">
-                        <p className="text-2xl font-extrabold text-[#0F6CBD]">
+                        <p className="text-2xl font-extrabold" style={{ color: "var(--color-primary)" }}>
                           {price}{" "}
                           <span className="text-sm font-semibold text-gray-400">
                             TND/{type === "annuel" ? "an" : "mois"}
@@ -270,7 +260,11 @@ export default function PaymentSection() {
                           {o.services.slice(0, 4).map((srv) => (
                             <span
                               key={srv}
-                              className="px-3 py-1 rounded-full text-xs font-semibold bg-[#EAF4FF] text-[#0F6CBD]"
+                              className="px-3 py-1 rounded-full text-xs font-semibold"
+                              style={{
+                                background: "var(--color-primary-soft)",
+                                color: "var(--color-primary)",
+                              }}
                             >
                               {srv}
                             </span>
@@ -292,9 +286,7 @@ export default function PaymentSection() {
 
         {/* Colonne droite — Récap sticky */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:sticky lg:top-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Récapitulatif
-          </h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Récapitulatif</h2>
 
           {!selection ? (
             <div className="flex items-center justify-center h-56 text-gray-400 text-sm">
@@ -324,11 +316,10 @@ export default function PaymentSection() {
               <button
                 onClick={handlePay}
                 disabled={loading}
-                className="w-full py-3 bg-[#0F6CBD] text-white rounded-xl font-semibold text-sm hover:bg-[#0C5A9E] transition-all disabled:opacity-50"
+                className="w-full py-3 text-white rounded-xl font-semibold text-sm transition-all disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
               >
-                {loading
-                  ? "Redirection vers Stripe..."
-                  : `Payer ${montant} TND`}
+                {loading ? "Redirection vers Stripe..." : `Payer ${montant} TND`}
               </button>
             </>
           )}

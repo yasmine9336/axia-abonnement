@@ -173,7 +173,7 @@ export default function TransactionsAdminSection() {
   }, [paiements]);
 
   return (
-    <div className="ui-page">
+    <div className="ui-page pl-8">
       <div className="mb-6">
         <h1 className="ui-title">Transactions</h1>
         <p className="ui-subtitle">

@@ -74,7 +74,10 @@ export default function HistoriqueSection() {
       .filter((p) => {
         if (!isCompleted(p.statut)) return false;
         const d = new Date(p.createdAt);
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
       })
       .reduce((s, p) => s + p.montant, 0);
   }, [paiements]);
@@ -95,7 +98,10 @@ export default function HistoriqueSection() {
           formatStatut(p.statut).toLowerCase().includes(qq)
         );
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
   }, [paiements, filter, q]);
 
   const downloadReceiptPdf = async (p: Paiement) => {
@@ -152,13 +158,9 @@ export default function HistoriqueSection() {
   ];
 
   return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
+    <div className="ui-page">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Historique des transactions</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {paiements.length} transaction{paiements.length !== 1 ? "s" : ""}
-        </p>
+        <h1 className="ui-title">Historique des transactions</h1>
       </div>
 
       {/* KPI Cards */}
@@ -171,8 +173,12 @@ export default function HistoriqueSection() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                    {card.label}
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {card.value}
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
                 </div>
                 <div className="mt-1">{card.icon}</div>
@@ -184,7 +190,7 @@ export default function HistoriqueSection() {
 
       {loading ? (
         <div className="flex items-center justify-center min-h-40">
-          <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+          <div className="ui-spinner" />
         </div>
       ) : error ? (
         <div className="text-center py-16 text-red-500 text-sm">{error}</div>
@@ -196,7 +202,9 @@ export default function HistoriqueSection() {
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           {/* Header bloc */}
           <div className="px-5 py-4 border-b border-gray-100 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <h2 className="text-sm font-semibold text-gray-900">Toutes les transactions</h2>
+            <h2 className="text-sm font-semibold text-gray-900 no-underline">
+              Toutes les transactions
+            </h2>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               {/* Tabs */}
@@ -204,7 +212,9 @@ export default function HistoriqueSection() {
                 <button
                   onClick={() => setFilter("all")}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-                    filter === "all" ? "bg-white shadow-sm text-[#0F6CBD]" : "text-gray-500 hover:text-gray-700"
+                    filter === "all"
+                      ? "bg-white shadow-sm text-(--color-primary)"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   Tous
@@ -212,7 +222,9 @@ export default function HistoriqueSection() {
                 <button
                   onClick={() => setFilter("completed")}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
-                    filter === "completed" ? "bg-white shadow-sm text-[#0F6CBD]" : "text-gray-500 hover:text-gray-700"
+                    filter === "completed"
+                      ? "bg-white shadow-sm text-(--color-primary)"
+                      : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   Complétées
@@ -229,7 +241,7 @@ export default function HistoriqueSection() {
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Rechercher..."
-                  className="w-full sm:w-72 pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD] transition-all"
+                  className="ui-input w-full sm:w-72 pl-10 pr-3"
                 />
               </div>
             </div>
@@ -240,11 +252,22 @@ export default function HistoriqueSection() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {["Service", "Date", "Période", "Montant", "Statut", "Reçu"].map((h, i) => (
+                  {[
+                    "Service",
+                    "Date",
+                    "Période",
+                    "Montant",
+                    "Statut",
+                    "Reçu",
+                  ].map((h, i) => (
                     <th
                       key={h}
                       className={`text-xs text-gray-400 font-medium uppercase tracking-wide px-5 py-3 ${
-                        i === 3 ? "text-right" : i === 5 ? "text-center w-40" : "text-left"
+                        i === 3
+                          ? "text-right"
+                          : i === 5
+                            ? "text-center w-40"
+                            : "text-left"
                       }`}
                     >
                       {h}
@@ -259,15 +282,26 @@ export default function HistoriqueSection() {
                   const isDownloading = downloadingId === p.id;
 
                   return (
-                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={p.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-5 py-4">
-                        <div className="font-semibold text-gray-900">{p.intituleOffre}</div>
-                        <div className="text-xs text-gray-400">{p.id.slice(0, 8).toUpperCase()}</div>
+                        <div className="font-semibold text-gray-900">
+                          {p.intituleOffre}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {p.id.slice(0, 8).toUpperCase()}
+                        </div>
                       </td>
 
-                      <td className="px-5 py-4 text-gray-500 text-xs">{formatDateFR(p.createdAt)}</td>
+                      <td className="px-5 py-4 text-gray-500 text-xs">
+                        {formatDateFR(p.createdAt)}
+                      </td>
 
-                      <td className="px-5 py-4 text-gray-600 capitalize">{p.typeAbonnement}</td>
+                      <td className="px-5 py-4 text-gray-600 capitalize">
+                        {p.typeAbonnement}
+                      </td>
 
                       <td className="px-5 py-4 text-right font-bold text-gray-900 whitespace-nowrap">
                         {p.montant.toFixed(2)} TND
@@ -287,7 +321,7 @@ export default function HistoriqueSection() {
                           disabled={!canDownload || isDownloading}
                           className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition ${
                             canDownload
-                              ? "border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white"
+                              ? "border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white"
                               : "border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50"
                           } ${isDownloading ? "opacity-60 cursor-wait" : ""}`}
                           title={
@@ -307,14 +341,17 @@ export default function HistoriqueSection() {
             </table>
 
             {filtered.length === 0 && (
-              <div className="text-center py-12 text-gray-400 text-sm">Aucun résultat</div>
+              <div className="text-center py-12 text-gray-400 text-sm">
+                Aucun résultat
+              </div>
             )}
           </div>
 
           {/* Footer */}
           <div className="px-5 py-3 border-t border-gray-100 bg-gray-50">
             <p className="text-xs text-gray-500">
-              Affichage de {filtered.length} sur {paiements.length} transaction{paiements.length !== 1 ? "s" : ""}
+              Affichage de {filtered.length} sur {paiements.length} transaction
+              {paiements.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>

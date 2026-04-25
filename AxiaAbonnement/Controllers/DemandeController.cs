@@ -15,7 +15,6 @@ namespace AxiaAbonnement.Controllers
         private Guid GetUserId() =>
             Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // Client — envoyer une demande
         [HttpPost("{abonnementId}/renouveler")]
         [Authorize(Policy = "ClientOnly")]
         public async Task<IActionResult> Demander(Guid abonnementId)
@@ -25,7 +24,6 @@ namespace AxiaAbonnement.Controllers
             return Ok(new { Message = "Demande envoyée avec succès." });
         }
 
-        // Client — voir le statut de sa demande
         [HttpGet("{abonnementId}/statut")]
         [Authorize(Policy = "ClientOnly")]
         public async Task<IActionResult> GetStatut(Guid abonnementId)
@@ -34,13 +32,15 @@ namespace AxiaAbonnement.Controllers
             return Ok(new { statut });
         }
 
-        // Responsable — voir toutes les demandes
         [HttpGet]
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetDemandes()
         {
-            var demandes = await _demandeService.GetDemandesAsync();
-            return Ok(demandes);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Responsable")
+                return Ok(await _demandeService.GetDemandesByResponsableAsync(GetUserId()));
+
+            return Ok(await _demandeService.GetDemandesAsync());
         }
 
         [HttpPatch("{id}/accepter")]
@@ -60,6 +60,5 @@ namespace AxiaAbonnement.Controllers
             if (!ok) return BadRequest("Impossible de refuser.");
             return Ok(new { Message = "Demande refusée." });
         }
-
     }
 }

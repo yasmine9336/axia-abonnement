@@ -1,10 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
+
 @import "tailwindcss";
 
-/* ---------- Theme tokens (default = Responsable) ---------- */
 :root {
-  --color-primary: #4f46e5;
-  --color-primary-strong: #4338ca;
-  --color-primary-soft: #eef2ff;
+  --color-primary: #3d5afe;
+  --color-primary-strong: #2c47e8;
+  --color-primary-soft: #eef0ff;
 
   --color-success: #16a34a;
   --color-success-soft: #dcfce7;
@@ -20,28 +21,27 @@
   --surface: #ffffff;
   --surface-muted: #f9fafb;
   --border: #e5e7eb;
-
-  --radius-card: 1rem;   /* rounded-2xl like */
+  --radius-card: 1rem;
   --radius-input: 0.75rem;
+  --font-ui: "Lato", sans-serif;
 }
 
-/* Role themes */
 .theme-admin {
-  --color-primary: #0f6cbd;        /* bleu soutenu */
-  --color-primary-strong: #0b5cad; /* hover */
-  --color-primary-soft: #eaf4ff;   /* fonds doux */
+  --color-primary: #3d5afe;
+  --color-primary-strong: #2c47e8;
+  --color-primary-soft: #eef0ff;
 }
 
 .theme-client {
-  --color-primary: #0284c7;        /* bleu cyan */
-  --color-primary-strong: #0369a1;
-  --color-primary-soft: #e0f2fe;
+  --color-primary: #2979ff;
+  --color-primary-strong: #1565c0;
+  --color-primary-soft: #e3f0ff;
 }
 
 .theme-responsable {
-  --color-primary: #1d4ed8;        /* bleu royal */
-  --color-primary-strong: #1e40af;
-  --color-primary-soft: #dbeafe;
+  --color-primary: #3d5afe;
+  --color-primary-strong: #2c47e8;
+  --color-primary-soft: #eef0ff;
 }
 
 /* ---------- Base ---------- */
@@ -50,22 +50,43 @@
 }
 
 body {
+  font-family: var(--font-ui);
   color: var(--text-main);
   background: var(--surface-muted);
 }
 
+/* ---------- Autofill fix ---------- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* ---------- Reusable UI classes ---------- */
 .ui-page {
-  @apply p-6 lg:p-8;
+  padding: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .ui-page {
+    padding: 2.5rem 2.5rem 2.5rem 3rem;
+  }
 }
 
 .ui-title {
-  @apply text-2xl font-bold;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
   color: var(--text-main);
 }
 
 .ui-subtitle {
-  @apply text-sm mt-1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin-top: 0.25rem;
   color: var(--text-muted);
 }
 
@@ -73,18 +94,21 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  @apply p-5;
+  padding: 1.25rem;
 }
 
 .ui-card-soft {
   background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  @apply p-4;
+  padding: 1rem;
 }
 
 .ui-input {
-  @apply w-full px-3 py-2 text-sm outline-none;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
   background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
@@ -92,11 +116,17 @@ body {
 
 .ui-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 22%, transparent);
 }
 
 .ui-btn-primary {
-  @apply px-3 py-2 text-sm font-semibold transition-colors;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-duration: 150ms;
   border-radius: 0.7rem;
   color: #fff;
   background: var(--color-primary);
@@ -106,7 +136,12 @@ body {
 }
 
 .ui-btn-secondary {
-  @apply px-3 py-2 text-sm font-medium transition-colors;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-duration: 150ms;
   border-radius: 0.7rem;
   color: var(--text-main);
   background: var(--surface);
@@ -117,7 +152,13 @@ body {
 }
 
 .ui-badge {
-  @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  border-radius: 9999px;
 }
 .ui-badge-success {
   color: var(--color-success);
@@ -150,15 +191,30 @@ body {
   }
 }
 
-/* Existing helpers */
+/* ---------- Animations ---------- */
 @keyframes scroll-loop {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
-.animate-scroll-loop { animation: scroll-loop 120s linear infinite; }
-.animate-scroll-loop:hover { animation-play-state: paused; }
+.animate-scroll-loop {
+  animation: scroll-loop 120s linear infinite;
+}
+.animate-scroll-loop:hover {
+  animation-play-state: paused;
+}
 
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-.scroll-instant { scroll-behavior: auto !important; }
+.scroll-instant {
+  scroll-behavior: auto !important;
+}

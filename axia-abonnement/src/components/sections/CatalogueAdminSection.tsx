@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
 import { ClipboardList, CheckCircle, Tag, Zap } from "lucide-react";
-import UiCard from "../common/UiCard";
 import StatusBadge from "../common/StatusBadge";
 
 interface ServiceItem {
@@ -121,7 +120,7 @@ export default function CatalogueAdminSection() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {kpiCards.map((card) => (
-          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
+          <div key={card.label} className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
@@ -132,7 +131,7 @@ export default function CatalogueAdminSection() {
               </div>
               <div className="mt-1">{card.icon}</div>
             </div>
-          </UiCard>
+          </div>
         ))}
       </div>
 
@@ -163,7 +162,7 @@ export default function CatalogueAdminSection() {
           />
         </div>
 
-        <UiCard className="p-0 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
@@ -229,7 +228,7 @@ export default function CatalogueAdminSection() {
               </div>
             </div>
           )}
-        </UiCard>
+        </div>
       </div>
 
       <div>
@@ -256,7 +255,7 @@ export default function CatalogueAdminSection() {
           />
         </div>
 
-        <UiCard className="p-0 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
@@ -332,7 +331,7 @@ export default function CatalogueAdminSection() {
               </div>
             </div>
           )}
-        </UiCard>
+        </div>
       </div>
     </div>
   );

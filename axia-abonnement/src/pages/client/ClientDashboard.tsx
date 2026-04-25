@@ -10,43 +10,19 @@ import axiosInstance from "../../api/axiosInstance";
 import { useNotifications } from "../../hooks/useNotifications";
 import { Package, Wallet, Bell, BarChart3, Plus, CreditCard, History, User } from "lucide-react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 
-type Section =
-  | "dashboard"
-  | "payment"
-  | "subscriptions"
-  | "history"
-  | "chat"
-  | "profile";
-
-interface Props {
-  section?: Section;
-}
+type Section = "dashboard" | "payment" | "subscriptions" | "history" | "chat" | "profile";
+interface Props { section?: Section; }
 
 interface AbonnementItem {
-  id: string;
-  intituleOffre: string;
-  type: string;
-  montant: number;
-  dateFin: string;
-  dateDebut: string;
-  statut: string;
+  id: string; intituleOffre: string; type: string;
+  montant: number; dateFin: string; dateDebut: string; statut: string;
 }
 
 interface PaiementItem {
-  id: string;
-  intituleOffre: string;
-  montant: number;
-  statut: string;
-  createdAt: string;
+  id: string; intituleOffre: string; montant: number; statut: string; createdAt: string;
 }
 
 export default function ClientDashboard({ section = "dashboard" }: Props) {
@@ -58,7 +34,6 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
   const [loadingData, setLoadingData] = useState(section === "dashboard");
   const [now] = useState(() => Date.now());
 
-  // ── Tous les useMemo AVANT les early returns ──────────────────────────────
   const abonnementsActifs = useMemo(
     () => abonnements.filter((a) => a.statut === "actif"),
     [abonnements]
@@ -96,7 +71,6 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
     });
   }, [paiements]);
 
-  // ── useEffect AVANT les early returns ─────────────────────────────────────
   useEffect(() => {
     if (section !== "dashboard") return;
     let cancelled = false;
@@ -109,21 +83,17 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
         setAbonnements(abRes.data);
         setPaiements(paRes.data);
       })
-      .catch(() => {
-        if (!cancelled) { setAbonnements([]); setPaiements([]); }
-      })
+      .catch(() => { if (!cancelled) { setAbonnements([]); setPaiements([]); } })
       .finally(() => { if (!cancelled) setLoadingData(false); });
     return () => { cancelled = true; };
   }, [section]);
 
-  // ── Early returns APRÈS tous les hooks ────────────────────────────────────
   if (section === "profile") return <ProfileSection />;
   if (section === "payment") return <PaymentSection />;
   if (section === "subscriptions") return <SubscriptionsSection />;
   if (section === "chat") return <ClientChat />;
   if (section === "history") return <HistoriqueSection />;
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   const getProgress = (dateDebut: string, dateFin: string) => {
     const debut = new Date(dateDebut).getTime();
     const fin = new Date(dateFin).getTime();
@@ -187,7 +157,7 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
       label: "Nouvel abonnement",
       sub: "Parcourir les offres",
       path: "/",
-      icon: <Plus className="w-6 h-6 text-[#0F6CBD]" />,
+      icon: <Plus className="w-6 h-6" style={{ color: "var(--color-primary)" }} />,
     },
     {
       label: "Mes abonnements",
@@ -212,25 +182,28 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
   const chartLabel = `${depensesParMois[0]?.mois} — ${new Date().toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}`;
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="ui-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="ui-title">Tableau de bord</h1>
+        <p className="ui-subtitle">
           Bienvenue {user?.username} ! Voici un aperçu de vos abonnements.
         </p>
       </div>
 
       {/* Bannière renouvellement */}
       {prochainRenouvellement && joursAvantRenouvellement !== null && joursAvantRenouvellement <= 30 && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
+        <div
+          className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 border"
+          style={{ background: "var(--color-primary-soft)", borderColor: "var(--color-primary-soft)" }}
+        >
           <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6 text-blue-500 shrink-0" />
+            <BarChart3 className="w-6 h-6 shrink-0" style={{ color: "var(--color-primary)" }} />
             <div>
-              <p className="text-sm font-semibold text-blue-800">
+              <p className="text-sm font-semibold" style={{ color: "var(--color-primary)" }}>
                 Renouvellement dans {joursAvantRenouvellement} jours
               </p>
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-gray-500">
                 {prochainRenouvellement.intituleOffre} — {prochainRenouvellement.montant} TND le{" "}
                 {new Date(prochainRenouvellement.dateFin).toLocaleDateString("fr-FR", {
                   day: "numeric", month: "long", year: "numeric",
@@ -240,7 +213,8 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
           </div>
           <button
             onClick={() => navigate("/dashboard/client/subscriptions")}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+            className="shrink-0 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+            style={{ background: "var(--color-primary)" }}
           >
             Gérer →
           </button>
@@ -293,8 +267,8 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
               <AreaChart data={depensesParMois}>
                 <defs>
                   <linearGradient id="colorDepense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0F6CBD" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0F6CBD" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -307,10 +281,10 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
                 <Area
                   type="monotone"
                   dataKey="depense"
-                  stroke="#0F6CBD"
+                  stroke="var(--color-primary)"
                   strokeWidth={2.5}
                   fill="url(#colorDepense)"
-                  dot={{ fill: "#0F6CBD", r: 4 }}
+                  dot={{ fill: "var(--color-primary)", r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </AreaChart>
@@ -328,7 +302,8 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
               <p className="text-gray-400 text-sm">Aucun abonnement actif</p>
               <button
                 onClick={() => navigate("/")}
-                className="mt-3 text-xs text-[#0F6CBD] font-semibold hover:underline"
+                className="mt-3 text-xs font-semibold hover:underline"
+                style={{ color: "var(--color-primary)" }}
               >
                 Explorer les offres →
               </button>
@@ -351,14 +326,17 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
                       {a.type === "annuel" ? "Annuel" : "Mensuel"} · renouvelle le{" "}
                       {new Date(a.dateFin).toLocaleDateString("fr-FR")}
                     </p>
-                    <p className="text-xl font-extrabold text-[#0F6CBD] mb-3">
+                    <p className="text-xl font-extrabold mb-3" style={{ color: "var(--color-primary)" }}>
                       {a.montant}{" "}
                       <span className="text-xs font-semibold text-gray-400">
                         TND/{a.type === "annuel" ? "an" : "mois"}
                       </span>
                     </p>
                     <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
-                      <div className="bg-[#0F6CBD] h-1.5 rounded-full" style={{ width: `${prog}%` }} />
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{ width: `${prog}%`, background: "var(--color-primary)" }}
+                      />
                     </div>
                     <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>{jr} jours restants</span>

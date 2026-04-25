@@ -24,18 +24,15 @@ interface ProfileData {
 }
 
 interface ProfileStats {
-  // Admin
   nombreResponsables?: number;
   nombreClients?: number;
   abonnementsActifs?: number;
   revenusMois?: number;
   nombreServices?: number;
   nombreOffres?: number;
-  // Responsable
   mesServices?: number;
   mesClients?: number;
   mesOffres?: number;
-  // Client
   abonnementsExpires?: number;
   totalPaye?: number;
 }
@@ -180,9 +177,7 @@ export default function ProfileSection() {
   const formatMemberSince = (d?: string) => {
     if (!d) return "—";
     return new Date(d).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
+      day: "2-digit", month: "long", year: "numeric",
     });
   };
 
@@ -210,7 +205,6 @@ export default function ProfileSection() {
         { label: "Membre depuis", value: formatMemberSince(profile.createdAt), icon: <Clock className="w-4 h-4 text-gray-400" /> },
       ];
 
-    // Client
     return [
       { label: "Abonnements actifs", value: stats.abonnementsActifs ?? 0, icon: <CreditCard className="w-4 h-4 text-green-500" /> },
       { label: "Abonnements expirés", value: stats.abonnementsExpires ?? 0, icon: <Clock className="w-4 h-4 text-red-400" /> },
@@ -222,7 +216,7 @@ export default function ProfileSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+        <div className="ui-spinner" />
       </div>
     );
   }
@@ -231,15 +225,16 @@ export default function ProfileSection() {
   const villesDisponibles = getVillesByGouvernorat(profileForm.gouvernorat);
   const isAdmin = profile?.role === "Admin";
 
+  const inputClass = (editing: boolean) =>
+    `w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${
+      editing ? "bg-gray-100 focus:ring-2 focus:ring-(--color-primary)" : "bg-gray-50 cursor-default"
+    }`;
+
   return (
-    <div className="p-6 lg:p-8 w-full">
+    <div className="ui-page w-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Profil {getRoleLabel(profile?.role ?? "")}
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Gérez vos informations et paramètres de sécurité.
-        </p>
+        <h1 className="ui-title">Profil {getRoleLabel(profile?.role ?? "")}</h1>
+        <p className="ui-subtitle">Gérez vos informations et paramètres de sécurité.</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -254,20 +249,41 @@ export default function ProfileSection() {
                   className="w-20 h-20 rounded-full object-cover border border-gray-200"
                 />
               ) : (
-                <div className="w-20 h-20 bg-[#0F6CBD] rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold"
+                  style={{ background: "var(--color-primary)" }}
+                >
                   {getInitial()}
                 </div>
               )}
             </div>
-            <label className="inline-flex items-center justify-center border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer mb-3">
+
+            <label
+              className="inline-flex items-center justify-center text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer mb-3 border"
+              style={{ borderColor: "var(--color-primary)", color: "var(--color-primary)" }}
+            >
               {photoLoading ? "Upload..." : "Changer la photo"}
-              <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.currentTarget.value = ""; }} />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handlePhotoUpload(f);
+                  e.currentTarget.value = "";
+                }}
+              />
             </label>
+
             {photoError && <p className="text-xs text-red-600 mb-2">{photoError}</p>}
+
             <h3 className="font-bold text-gray-900 text-base mt-2">{profile?.username}</h3>
             <p className="text-xs text-gray-500 mt-0.5">{profile?.email}</p>
-            <span className="inline-block mt-3 bg-[#0F6CBD]/10 text-[#0F6CBD] text-xs font-semibold px-3 py-1 rounded-full">
+
+            <span
+              className="inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full"
+              style={{ background: "var(--color-primary-soft)", color: "var(--color-primary)" }}
+            >
               {getRoleLabel(profile?.role ?? "")}
             </span>
           </div>
@@ -297,8 +313,11 @@ export default function ProfileSection() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-bold text-gray-900">Informations du compte</h2>
               {!isEditing ? (
-                <button onClick={() => setIsEditing(true)}
-                  className="border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border"
+                  style={{ borderColor: "var(--color-primary)", color: "var(--color-primary)" }}
+                >
                   Modifier
                 </button>
               ) : (
@@ -322,8 +341,12 @@ export default function ProfileSection() {
                   >
                     Annuler
                   </button>
-                  <button onClick={handleProfileSubmit} disabled={profileLoading}
-                    className="bg-[#0F6CBD] hover:bg-[#0C5A9E] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+                  <button
+                    onClick={handleProfileSubmit}
+                    disabled={profileLoading}
+                    className="text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+                    style={{ background: "var(--color-primary)" }}
+                  >
                     {profileLoading ? "Enregistrement..." : "Enregistrer"}
                   </button>
                 </div>
@@ -331,33 +354,38 @@ export default function ProfileSection() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Nom */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">NOM</label>
-                <input type="text" value={profileForm.username}
+                <input
+                  type="text"
+                  value={profileForm.username}
                   onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
                   disabled={!isEditing}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
+                  className={inputClass(isEditing)}
+                />
               </div>
-              {/* Email */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">EMAIL</label>
-                <input type="email" value={profileForm.email}
+                <input
+                  type="email"
+                  value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                   disabled={!isEditing}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
+                  className={inputClass(isEditing)}
+                />
               </div>
-              {/* Téléphone */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">TÉLÉPHONE</label>
-                <input type="tel" value={profileForm.phoneNumber}
+                <input
+                  type="tel"
+                  value={profileForm.phoneNumber}
                   onChange={(e) => setProfileForm({ ...profileForm, phoneNumber: e.target.value })}
                   disabled={!isEditing}
                   placeholder={isEditing ? "Ex: 0612345678" : "Non renseigné"}
-                  className={`w-full rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none transition-colors ${isEditing ? "bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD]" : "bg-gray-50 cursor-default"}`} />
+                  className={inputClass(isEditing)}
+                />
               </div>
 
-              {/* Rôle — Admin uniquement */}
               {isAdmin && (
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">RÔLE</label>
@@ -368,7 +396,6 @@ export default function ProfileSection() {
                 </div>
               )}
 
-              {/* Gouvernorat + Ville — masqués pour Admin */}
               {!isAdmin && (
                 <>
                   <div>
@@ -377,12 +404,10 @@ export default function ProfileSection() {
                       <select
                         value={profileForm.gouvernorat}
                         onChange={(e) => setProfileForm({ ...profileForm, gouvernorat: e.target.value, ville: "" })}
-                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD] outline-none"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-(--color-primary) outline-none"
                       >
                         <option value="">Sélectionner...</option>
-                        {GOUVERNORATS.map((g) => (
-                          <option key={g} value={g}>{g}</option>
-                        ))}
+                        {GOUVERNORATS.map((g) => <option key={g} value={g}>{g}</option>)}
                       </select>
                     ) : (
                       <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50 cursor-default">
@@ -397,14 +422,12 @@ export default function ProfileSection() {
                         value={profileForm.ville}
                         onChange={(e) => setProfileForm({ ...profileForm, ville: e.target.value })}
                         disabled={!profileForm.gouvernorat}
-                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-[#0F6CBD] outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-100 focus:ring-2 focus:ring-(--color-primary) outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="">
                           {profileForm.gouvernorat ? "Sélectionner..." : "Choisir un gouvernorat"}
                         </option>
-                        {villesDisponibles.map((v) => (
-                          <option key={v} value={v}>{v}</option>
-                        ))}
+                        {villesDisponibles.map((v) => <option key={v} value={v}>{v}</option>)}
                       </select>
                     ) : (
                       <div className="w-full rounded-xl px-4 py-3 text-sm text-gray-700 bg-gray-50 cursor-default">
@@ -415,7 +438,6 @@ export default function ProfileSection() {
                 </>
               )}
 
-              {/* Informations professionnelles — Responsable uniquement */}
               {profile?.role === "Responsable" && (
                 <>
                   <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
@@ -477,7 +499,8 @@ export default function ProfileSection() {
                 </div>
                 <button
                   onClick={() => { setShowPasswordForm(!showPasswordForm); setPasswordSuccess(""); setPasswordError(""); }}
-                  className="border border-[#0F6CBD] text-[#0F6CBD] hover:bg-[#0F6CBD] hover:text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                  className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors border"
+                  style={{ borderColor: "var(--color-primary)", color: "var(--color-primary)" }}
                 >
                   {showPasswordForm ? "Annuler" : "Changer"}
                 </button>
@@ -486,42 +509,74 @@ export default function ProfileSection() {
               {showPasswordForm && (
                 <form onSubmit={handlePasswordSubmit} className="border border-gray-100 rounded-xl p-5 space-y-4">
                   <input type="text" autoComplete="username" style={{ display: "none" }} readOnly />
+
                   <div>
                     <label className="block text-sm font-medium text-gray-800 mb-1">Mot de passe actuel</label>
-                    <input type="password" value={passwordForm.currentPassword}
+                    <input
+                      type="password"
+                      value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                       placeholder="Entrez votre mot de passe actuel"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
-                      autoComplete="current-password" />
+                      className="ui-input"
+                      autoComplete="current-password"
+                    />
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-800 mb-1">Nouveau mot de passe</label>
-                    <input type="password" value={passwordForm.newPassword}
+                    <input
+                      type="password"
+                      value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       placeholder="Entrez votre nouveau mot de passe"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
-                      autoComplete="new-password" minLength={8} />
+                      className="ui-input"
+                      autoComplete="new-password"
+                      minLength={8}
+                    />
                   </div>
+
                   {passwordForm.newPassword.length > 0 && (
                     <div className="flex gap-2">
-                      <div className={`h-1.5 flex-1 rounded-full ${passwordForm.newPassword.length > 0 ? "bg-[#C7C5F7]" : "bg-gray-200"}`} />
-                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) ? "bg-[#9B97F0]" : "bg-gray-200"}`} />
-                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) ? "bg-[#6F6AE9]" : "bg-gray-200"}`} />
-                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) && /[^a-zA-Z0-9]/.test(passwordForm.newPassword) && passwordForm.newPassword.length >= 8 ? "bg-[#0F6CBD]" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${passwordForm.newPassword.length > 0 ? "bg-blue-200" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) ? "bg-blue-300" : "bg-gray-200"}`} />
+                      <div className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) ? "bg-blue-500" : "bg-gray-200"}`} />
+                      <div
+                        className={`h-1.5 flex-1 rounded-full ${/[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) && /[^a-zA-Z0-9]/.test(passwordForm.newPassword) && passwordForm.newPassword.length >= 8 ? "" : "bg-gray-200"}`}
+                        style={
+                          /[A-Z]/.test(passwordForm.newPassword) && /[0-9]/.test(passwordForm.newPassword) && /[^a-zA-Z0-9]/.test(passwordForm.newPassword) && passwordForm.newPassword.length >= 8
+                            ? { background: "var(--color-primary)" }
+                            : undefined
+                        }
+                      />
                     </div>
                   )}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-800 mb-1">Confirmer le mot de passe</label>
-                    <input type="password" value={passwordForm.confirmPassword}
+                    <input
+                      type="password"
+                      value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       placeholder="Confirmez votre nouveau mot de passe"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
-                      autoComplete="new-password" minLength={8} />
+                      className="ui-input"
+                      autoComplete="new-password"
+                      minLength={8}
+                    />
                   </div>
-                  {passwordSuccess && <p className="text-sm text-green-700 bg-green-50 p-3 rounded-xl">{passwordSuccess}</p>}
-                  {passwordError && <p className="text-sm text-red-700 bg-red-50 p-3 rounded-xl">{passwordError}</p>}
-                  <button type="submit" disabled={passwordLoading}
-                    className="w-full bg-[#0F6CBD] hover:bg-[#0F6CBD]/80 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50">
+
+                  {passwordSuccess && (
+                    <p className="text-sm text-green-700 bg-green-50 p-3 rounded-xl">{passwordSuccess}</p>
+                  )}
+                  {passwordError && (
+                    <p className="text-sm text-red-700 bg-red-50 p-3 rounded-xl">{passwordError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="w-full text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
+                    style={{ background: "var(--color-primary)" }}
+                  >
                     {passwordLoading ? "Modification..." : "Modifier le mot de passe"}
                   </button>
                 </form>

@@ -2,8 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import ExportButton from "../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
-import { ClipboardList, CheckCircle, Clock, Hourglass, TrendingUp } from "lucide-react";
-import UiCard from "../common/UiCard";
+import {
+  ClipboardList,
+  CheckCircle,
+  Clock,
+  Hourglass,
+  TrendingUp,
+} from "lucide-react";
 
 interface Abonnement {
   id: string;
@@ -87,7 +92,8 @@ export default function AbonnementsAdminSection() {
 
     if (tab === "actifs") result = result.filter((a) => a.statut === "actif");
     if (tab === "expirés") result = result.filter((a) => a.statut === "expiré");
-    if (tab === "en_attente") result = result.filter((a) => a.statut === "en_attente");
+    if (tab === "en_attente")
+      result = result.filter((a) => a.statut === "en_attente");
 
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
@@ -147,56 +153,65 @@ export default function AbonnementsAdminSection() {
       <div className="mb-6">
         <h1 className="ui-title">Abonnements globaux</h1>
         <p className="ui-subtitle">
-          {totalActifs} actif(s) · {totalExpires} expiré(s) · {totalEnAttente} en attente ·{" "}
-          {abonnements.length} total
+          {totalActifs} actif(s) · {totalExpires} expiré(s) · {totalEnAttente}{" "}
+          en attente · {abonnements.length} total
         </p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {kpiCards.map((card) => (
-          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
+          <div
+            key={card.label}
+            className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}
+          >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
-                <p className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}>
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                  {card.label}
+                </p>
+                <p
+                  className={`font-bold text-gray-900 ${card.large ? "text-2xl" : "text-3xl"}`}
+                >
                   {card.value}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
-              <span className="text-2xl">{card.icon}</span>
+              <span className="mt-1">{card.icon}</span>
             </div>
-          </UiCard>
+          </div>
         ))}
       </div>
 
-      <UiCard className="p-4 mb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            {(["tous", "actifs", "expirés", "en_attente"] as FilterTab[]).map((t) => {
-              const count =
-                t === "tous"
-                  ? abonnements.length
-                  : t === "actifs"
-                    ? totalActifs
-                    : t === "expirés"
-                      ? totalExpires
-                      : totalEnAttente;
+            {(["tous", "actifs", "expirés", "en_attente"] as FilterTab[]).map(
+              (t) => {
+                const count =
+                  t === "tous"
+                    ? abonnements.length
+                    : t === "actifs"
+                      ? totalActifs
+                      : t === "expirés"
+                        ? totalExpires
+                        : totalEnAttente;
 
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    tab === t
-                      ? "bg-white text-(--color-primary) shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {t === "en_attente" ? "En attente" : capitalize(t)}
-                  <span className="ml-1 text-xs font-semibold">{count}</span>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      tab === t
+                        ? "bg-white text-(--color-primary) shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {t === "en_attente" ? "En attente" : capitalize(t)}
+                    <span className="ml-1 text-xs font-semibold">{count}</span>
+                  </button>
+                );
+              },
+            )}
           </div>
 
           <div className="relative flex-1 min-w-48">
@@ -231,8 +246,16 @@ export default function AbonnementsAdminSection() {
               { key: "intituleOffre", label: "Offre / Service" },
               { key: "type", label: "Type" },
               { key: "montant", label: "Montant (TND)" },
-              { key: "dateDebut", label: "Date début", format: (v) => formatDateFR(v) },
-              { key: "dateFin", label: "Date fin", format: (v) => formatDateFR(v) },
+              {
+                key: "dateDebut",
+                label: "Date début",
+                format: (v) => formatDateFR(v),
+              },
+              {
+                key: "dateFin",
+                label: "Date fin",
+                format: (v) => formatDateFR(v),
+              },
               { key: "statut", label: "Statut" },
             ]}
             filename="abonnements"
@@ -241,7 +264,7 @@ export default function AbonnementsAdminSection() {
             pdfTitle="Abonnements globaux"
           />
         </div>
-      </UiCard>
+      </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
@@ -249,27 +272,35 @@ export default function AbonnementsAdminSection() {
         </div>
       )}
 
-      <UiCard className="p-0 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div className="ui-spinner" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 text-sm">Aucun abonnement trouvé</div>
+          <div className="text-center py-16 text-gray-400 text-sm">
+            Aucun abonnement trouvé
+          </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {["Client", "Responsable", "Offre / Service", "Période", "Type", "Montant", "Statut"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Client",
+                  "Responsable",
+                  "Offre / Service",
+                  "Période",
+                  "Type",
+                  "Montant",
+                  "Statut",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="text-left py-3 px-5 text-xs text-gray-400 font-medium uppercase tracking-wide"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
 
@@ -286,16 +317,22 @@ export default function AbonnementsAdminSection() {
                         {getInitials(a.clientUsername)}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{a.clientUsername}</p>
+                        <p className="font-semibold text-gray-900">
+                          {a.clientUsername}
+                        </p>
                         <p className="text-xs text-gray-400">{a.clientEmail}</p>
                       </div>
                     </div>
                   </td>
 
-                  <td className="py-4 px-5 text-gray-600">{a.responsableUsername ?? "—"}</td>
+                  <td className="py-4 px-5 text-gray-600">
+                    {a.responsableUsername ?? "—"}
+                  </td>
 
                   <td className="py-4 px-5">
-                    <span className="text-(--color-primary) font-medium">{a.intituleOffre}</span>
+                    <span className="text-(--color-primary) font-medium">
+                      {a.intituleOffre}
+                    </span>
                   </td>
 
                   <td className="py-4 px-5 text-gray-500 text-xs whitespace-nowrap">
@@ -351,7 +388,7 @@ export default function AbonnementsAdminSection() {
             </tbody>
           </table>
         )}
-      </UiCard>
+      </div>
     </div>
   );
 }

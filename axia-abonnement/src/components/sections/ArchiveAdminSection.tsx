@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Search, Users, CheckCircle, Clock } from "lucide-react";
 import ExportButton from "../common/ExportButton";
-import UiCard from "../common/UiCard";
 
 interface Client {
   id: string;
@@ -139,7 +138,7 @@ export default function ArchiveAdminSection() {
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {kpiCards.map((card) => (
-          <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
+          <div key={card.label} className={`bg-white rounded-2xl border border-gray-200 border-t-4 ${card.border} p-5`}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
@@ -150,11 +149,11 @@ export default function ArchiveAdminSection() {
               </div>
               <div className="mt-1">{card.icon}</div>
             </div>
-          </UiCard>
+          </div>
         ))}
       </div>
 
-      <UiCard className="p-4 mb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
             {(["tous", "actif", "inactif"] as const).map((t) => (
@@ -208,7 +207,7 @@ export default function ArchiveAdminSection() {
             pdfTitle="Archive clients"
           />
         </div>
-      </UiCard>
+      </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
@@ -216,7 +215,7 @@ export default function ArchiveAdminSection() {
         </div>
       )}
 
-      <UiCard className="p-0 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div className="ui-spinner" />
@@ -322,7 +321,7 @@ export default function ArchiveAdminSection() {
             </div>
           </>
         )}
-      </UiCard>
+      </div>
     </div>
   );
 }

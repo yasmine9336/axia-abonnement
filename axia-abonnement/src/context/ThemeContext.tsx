@@ -10,7 +10,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue>({
   roleTheme: "responsable",
-  accent: "#4F46E5",
+  accent: "#3d5afe",
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -25,10 +25,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const accent =
     roleTheme === "admin"
-      ? "#0F6CBD"
+      ? "#3d5afe"
       : roleTheme === "client"
-        ? "#0284C7"
-        : "#1D4ED8";
+        ? "#2979ff"
+        : "#3d5afe";
 
   useEffect(() => {
     document.body.classList.remove(

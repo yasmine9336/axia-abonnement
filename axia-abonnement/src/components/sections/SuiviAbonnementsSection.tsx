@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
-import { Search } from "lucide-react";
+import { Search, MailCheck } from "lucide-react";
 import ExportButton from "../common/ExportButton";
 import { formatDateFR } from "../../utils/exportUtils";
 
 type AbonnementTab = "actifs" | "expires";
-
 type DemandeStatut = "en_attente" | "acceptée" | "refusée";
 type AbonnementStatut = "actif" | "expiré" | "aucun" | string;
 
@@ -69,9 +68,9 @@ function progressPercent(dateDebut: string, dateFin?: string) {
   const start = new Date(dateDebut).getTime();
   const end = new Date(dateFin).getTime();
   const now = Date.now();
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
-  const p = ((now - start) / (end - start)) * 100;
-  return clamp(Math.round(p), 0, 100);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)
+    return 0;
+  return clamp(Math.round(((now - start) / (end - start)) * 100), 0, 100);
 }
 
 function StatusPill({ statut }: { statut: string }) {
@@ -81,9 +80,10 @@ function StatusPill({ statut }: { statut: string }) {
       : statut === "expiré"
         ? "bg-red-100 text-red-700"
         : "bg-gray-100 text-gray-600";
-
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${cls}`}>
+    <span
+      className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${cls}`}
+    >
       {statut}
     </span>
   );
@@ -93,16 +93,16 @@ export default function SuiviAbonnementsSection() {
   const [abonnements, setAbonnements] = useState<Abonnement[]>([]);
   const [demandes, setDemandes] = useState<Demande[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [tab, setTab] = useState<AbonnementTab>("actifs");
   const [searchAbo, setSearchAbo] = useState("");
-
-  const [submittingDemandeId, setSubmittingDemandeId] = useState<string | null>(null);
+  const [submittingDemandeId, setSubmittingDemandeId] = useState<string | null>(
+    null,
+  );
 
   const loadData = async () => {
     const [d, a] = await Promise.all([
       axiosInstance.get("/demandes"),
-      axiosInstance.get("/abonnements/all"),
+      axiosInstance.get("/abonnements/mes-abonnements-clients"),
     ]);
     setDemandes(d.data ?? []);
     setAbonnements(a.data ?? []);
@@ -147,13 +147,10 @@ export default function SuiviAbonnementsSection() {
     }
   };
 
-  // DEMANDES
   const enAttente = useMemo(
     () => demandes.filter((d) => d.statut === "en_attente"),
     [demandes],
   );
-
-  // KPI abonnements
   const totalActifs = useMemo(
     () => abonnements.filter((a) => a.statut === "actif").length,
     [abonnements],
@@ -163,21 +160,19 @@ export default function SuiviAbonnementsSection() {
     [abonnements],
   );
 
-  // Tabs counts (Actifs / Expirés)
-  const tabCounts = useMemo(() => {
-    const actifs = abonnements.filter((a) => a.statut === "actif").length;
-    const expires = abonnements.filter((a) => a.statut === "expiré").length;
-    return { actifs, expires };
-  }, [abonnements]);
+  const tabCounts = useMemo(
+    () => ({
+      actifs: abonnements.filter((a) => a.statut === "actif").length,
+      expires: abonnements.filter((a) => a.statut === "expiré").length,
+    }),
+    [abonnements],
+  );
 
-  // Liste abonnements filtrée
   const filteredAbos = useMemo(() => {
     const q = searchAbo.trim().toLowerCase();
     let res = [...abonnements];
-
     if (tab === "actifs") res = res.filter((a) => a.statut === "actif");
     if (tab === "expires") res = res.filter((a) => a.statut === "expiré");
-
     if (q) {
       res = res.filter(
         (a) =>
@@ -192,22 +187,23 @@ export default function SuiviAbonnementsSection() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-100">
-        <div className="w-8 h-8 border-4 border-[#0F6CBD] border-t-transparent rounded-full animate-spin" />
+        <div className="ui-spinner" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8">
+    <div className="ui-page">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Suivi clients</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Gérez les demandes de renouvellement et consultez l’historique des abonnements.
+        <h1 className="ui-title">Suivi clients</h1>
+        <p className="ui-subtitle">
+          Gérez les demandes de renouvellement et consultez l'historique des
+          abonnements.
         </p>
       </div>
 
-      {/* KPI  */}
+      {/* KPI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-2xl border border-gray-200 border-t-4 border-t-blue-400 p-5">
           <div className="flex items-start justify-between">
@@ -215,8 +211,12 @@ export default function SuiviAbonnementsSection() {
               <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
                 TOTAL ABONNEMENTS
               </p>
-              <p className="text-3xl font-bold text-gray-900">{abonnements.length}</p>
-              <p className="text-xs text-gray-400 mt-1">tous statuts confondus</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {abonnements.length}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                tous statuts confondus
+              </p>
             </div>
             <div className="mt-1 w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
               <span className="text-blue-500 font-bold">▦</span>
@@ -227,7 +227,9 @@ export default function SuiviAbonnementsSection() {
         <div className="bg-white rounded-2xl border border-gray-200 border-t-4 border-t-green-400 p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">ACTIFS</p>
+              <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                ACTIFS
+              </p>
               <p className="text-3xl font-bold text-gray-900">{totalActifs}</p>
               <p className="text-xs text-gray-400 mt-1">abonnements en cours</p>
             </div>
@@ -240,7 +242,9 @@ export default function SuiviAbonnementsSection() {
         <div className="bg-white rounded-2xl border border-gray-200 border-t-4 border-t-red-400 p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">EXPIRÉS</p>
+              <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                EXPIRÉS
+              </p>
               <p className="text-3xl font-bold text-gray-900">{totalExpires}</p>
               <p className="text-xs text-gray-400 mt-1">à renouveler</p>
             </div>
@@ -254,7 +258,9 @@ export default function SuiviAbonnementsSection() {
       {/* DEMANDES */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Demandes de renouvellement</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Demandes de renouvellement
+          </h2>
           {enAttente.length > 0 && (
             <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {enAttente.length}
@@ -262,15 +268,24 @@ export default function SuiviAbonnementsSection() {
           )}
         </div>
 
-        {/* ✅ Empty state compact */}
         {enAttente.length === 0 ? (
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex items-center justify-center">
             <div className="text-center">
-              <div className="mx-auto mb-2 w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">📭</span>
+              <div
+                className="mx-auto mb-2 w-10 h-10 rounded-2xl flex items-center justify-center"
+                style={{ background: "var(--color-primary-soft)" }}
+              >
+                <MailCheck
+                  className="w-5 h-5"
+                  style={{ color: "var(--color-primary)" }}
+                />
               </div>
-              <p className="font-semibold text-gray-700">Aucune demande en attente</p>
-              <p className="text-sm text-gray-400 mt-1">Les nouvelles demandes apparaîtront ici.</p>
+              <p className="font-semibold text-gray-700">
+                Aucune demande en attente
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                Les nouvelles demandes apparaîtront ici.
+              </p>
             </div>
           </div>
         ) : (
@@ -283,23 +298,29 @@ export default function SuiviAbonnementsSection() {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900">{d.clientUsername}</p>
-                      <span className="text-xs text-gray-400">{d.clientEmail}</span>
+                      <p className="font-semibold text-gray-900">
+                        {d.clientUsername}
+                      </p>
+                      <span className="text-xs text-gray-400">
+                        {d.clientEmail}
+                      </span>
                     </div>
-
                     <p className="text-sm text-gray-600">
                       Offre :{" "}
-                      <span className="font-medium text-gray-900">{d.intituleOffre}</span>
+                      <span className="font-medium text-gray-900">
+                        {d.intituleOffre}
+                      </span>
                     </p>
-
                     <p className="text-sm text-gray-600">
-                      Type : <span className="capitalize font-medium">{d.type}</span>
-                      {" · "}Montant : <span className="font-medium">{d.montant} TND</span>
+                      Type :{" "}
+                      <span className="capitalize font-medium">{d.type}</span>
+                      {" · "}Montant :{" "}
+                      <span className="font-medium">{d.montant} TND</span>
                     </p>
-
-                    <p className="text-xs text-gray-400">Envoyée le {formatDate(d.createdAt)}</p>
+                    <p className="text-xs text-gray-400">
+                      Envoyée le {formatDate(d.createdAt)}
+                    </p>
                   </div>
-
                   <div className="flex gap-2 shrink-0">
                     <button
                       disabled={submittingDemandeId === d.id}
@@ -325,22 +346,24 @@ export default function SuiviAbonnementsSection() {
 
       {/* HISTORIQUE ABONNEMENTS */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        {/* ✅ Header aligné: titre à gauche, controls à droite */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Historique des abonnements</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Historique des abonnements
+          </h2>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Tabs */}
             <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
               {(["actifs", "expires"] as const).map((t) => {
-                const count = t === "actifs" ? tabCounts.actifs : tabCounts.expires;
+                const count =
+                  t === "actifs" ? tabCounts.actifs : tabCounts.expires;
                 return (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       tab === t
-                        ? "bg-white text-[#0F6CBD] shadow-sm"
+                        ? "bg-white shadow-sm text-(--color-primary)"
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
@@ -360,7 +383,7 @@ export default function SuiviAbonnementsSection() {
               <input
                 type="text"
                 placeholder="Rechercher par client, email ou offre..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD]"
+                className="ui-input w-full pl-10 pr-4"
                 value={searchAbo}
                 onChange={(e) => setSearchAbo(e.target.value)}
               />
@@ -376,8 +399,16 @@ export default function SuiviAbonnementsSection() {
                   { key: "intituleOffre", label: "Offre" },
                   { key: "type", label: "Type" },
                   { key: "montant", label: "Montant (TND)" },
-                  { key: "dateDebut", label: "Début", format: (v) => formatDateFR(v) },
-                  { key: "dateFin", label: "Fin", format: (v) => formatDateFR(v) },
+                  {
+                    key: "dateDebut",
+                    label: "Début",
+                    format: (v) => formatDateFR(v),
+                  },
+                  {
+                    key: "dateFin",
+                    label: "Fin",
+                    format: (v) => formatDateFR(v),
+                  },
                   { key: "statut", label: "Statut" },
                 ]}
                 filename="abonnements"
@@ -390,49 +421,75 @@ export default function SuiviAbonnementsSection() {
         </div>
 
         {filteredAbos.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 text-sm">Aucun abonnement trouvé</div>
+          <div className="text-center py-16 text-gray-400 text-sm">
+            Aucun abonnement trouvé
+          </div>
         ) : (
           <div className="space-y-3">
             {filteredAbos.map((a) => {
               const left = daysLeft(a.dateFin);
               const progress =
-                a.statut === "actif" ? progressPercent(a.dateDebut, a.dateFin) : 0;
+                a.statut === "actif"
+                  ? progressPercent(a.dateDebut, a.dateFin)
+                  : 0;
 
               return (
-                <div key={a.id} className="rounded-2xl border border-gray-200 p-5 bg-white">
+                <div
+                  key={a.id}
+                  className="rounded-2xl border border-gray-200 p-5 bg-white"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold"
+                        style={{
+                          background: "var(--color-primary-soft)",
+                          color: "var(--color-primary)",
+                        }}
+                      >
                         {getInitials(a.clientUsername)}
                       </div>
 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-gray-900">{a.clientUsername}</p>
-                          <span className="text-xs text-gray-400">{a.clientEmail}</span>
+                          <p className="font-semibold text-gray-900">
+                            {a.clientUsername}
+                          </p>
+                          <span className="text-xs text-gray-400">
+                            {a.clientEmail}
+                          </span>
                         </div>
-
                         <p className="text-sm text-gray-700">
-                          <span className="text-[#0F6CBD] font-semibold">{a.intituleOffre}</span>
+                          <span
+                            className="font-semibold"
+                            style={{ color: "var(--color-primary)" }}
+                          >
+                            {a.intituleOffre}
+                          </span>
                           {" · "}
                           <span className="capitalize">{a.type}</span>
                           {" · "}
-                          <span className="font-semibold">{Number(a.montant).toFixed(2)} TND</span>
+                          <span className="font-semibold">
+                            {Number(a.montant).toFixed(2)} TND
+                          </span>
                         </p>
-
                         <p className="text-xs text-gray-400">
-                          Du {formatDate(a.dateDebut)} au {a.dateFin ? formatDate(a.dateFin) : "—"}
+                          Du {formatDate(a.dateDebut)} au{" "}
+                          {a.dateFin ? formatDate(a.dateFin) : "—"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusPill statut={String(a.statut)} />
-                      {a.statut === "actif" && left !== null && left <= 7 && left >= 0 && (
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
-                          Renouvelle dans {left}j
-                        </span>
-                      )}
+                      {a.statut === "actif" &&
+                        left !== null &&
+                        left <= 7 &&
+                        left >= 0 && (
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
+                            Renouvelle dans {left}j
+                          </span>
+                        )}
                     </div>
                   </div>
 
@@ -440,12 +497,20 @@ export default function SuiviAbonnementsSection() {
                     <div className="mt-4">
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                         <span>Cycle de facturation</span>
-                        <span className="text-[#0F6CBD] font-semibold">{progress}%</span>
+                        <span
+                          className="font-semibold"
+                          style={{ color: "var(--color-primary)" }}
+                        >
+                          {progress}%
+                        </span>
                       </div>
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div
-                          className="bg-[#0F6CBD] h-2 rounded-full"
-                          style={{ width: `${progress}%` }}
+                          className="h-2 rounded-full"
+                          style={{
+                            width: `${progress}%`,
+                            background: "var(--color-primary)",
+                          }}
                         />
                       </div>
                     </div>

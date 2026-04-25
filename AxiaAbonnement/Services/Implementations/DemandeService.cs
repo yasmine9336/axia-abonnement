@@ -36,7 +36,6 @@ namespace AxiaAbonnement.Services.Implementations
             });
             await _db.SaveChangesAsync();
 
-            // Notifier uniquement les responsables du service/offre concerné
             var responsableIds = new List<Guid>();
 
             if (abonnement.ServiceId != null)
@@ -69,7 +68,6 @@ namespace AxiaAbonnement.Services.Implementations
                     "info",
                     "/dashboard/responsable/suivi-clients"
                 );
-
             }
 
             return true;
@@ -81,6 +79,42 @@ namespace AxiaAbonnement.Services.Implementations
                 .Include(d => d.Abonnement).ThenInclude(a => a.Offre)
                 .Include(d => d.Abonnement).ThenInclude(a => a.Service)
                 .Include(d => d.Client)
+                .OrderByDescending(d => d.CreatedAt)
+                .Select(d => new DemandeDto
+                {
+                    Id = d.Id,
+                    AbonnementId = d.AbonnementId,
+                    ClientUsername = d.Client.Username,
+                    ClientEmail = d.Client.Email,
+                    IntituleOffre = d.Abonnement.Offre != null
+                        ? d.Abonnement.Offre.IntituleOffre
+                        : d.Abonnement.Service != null
+                            ? d.Abonnement.Service.IntituleService
+                            : "",
+                    Type = d.Abonnement.Type,
+                    Montant = d.Abonnement.Montant,
+                    Statut = d.Statut,
+                    CreatedAt = d.CreatedAt
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<DemandeDto>> GetDemandesByResponsableAsync(Guid responsableId)
+        {
+            var mesServiceIds = await _db.Services
+                .Where(s => s.ResponsableId == responsableId)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            return await _db.DemandesRenouvellement
+                .Include(d => d.Abonnement).ThenInclude(a => a.Offre)
+                    .ThenInclude(o => o!.ServiceOffres)
+                .Include(d => d.Abonnement).ThenInclude(a => a.Service)
+                .Include(d => d.Client)
+                .Where(d =>
+                    (d.Abonnement.ServiceId.HasValue && mesServiceIds.Contains(d.Abonnement.ServiceId.Value)) ||
+                    (d.Abonnement.OffreId.HasValue && d.Abonnement.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                )
                 .OrderByDescending(d => d.CreatedAt)
                 .Select(d => new DemandeDto
                 {
@@ -114,7 +148,6 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (demande == null || demande.Statut != "en_attente") return false;
 
-            // Vérifier la propriété
             bool owns = false;
             var a = demande.Abonnement;
             if (a.ServiceId != null)
@@ -175,7 +208,6 @@ namespace AxiaAbonnement.Services.Implementations
             );
             return true;
         }
-
 
         public async Task<string?> GetStatutDemandeAsync(Guid abonnementId, Guid clientId)
         {
