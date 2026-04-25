@@ -31,6 +31,15 @@ namespace AxiaAbonnement.Controllers
             return Ok(new { url });
         }
 
+        [Authorize(Policy = "ClientOnly")]
+        [HttpPost("create-renewal-session")]
+        public async Task<IActionResult> CreateRenewalSession([FromBody] CreateRenewalSessionDto dto)
+        {
+            var url = await _paymentService.CreateRenewalCheckoutSessionAsync(GetUserId(), dto.AbonnementId);
+            if (url == null) return BadRequest("Renouvellement impossible ou demande non acceptée.");
+            return Ok(new { url });
+        }
+
         [AllowAnonymous]
         [HttpPost("webhook")]
         public async Task<IActionResult> Webhook()

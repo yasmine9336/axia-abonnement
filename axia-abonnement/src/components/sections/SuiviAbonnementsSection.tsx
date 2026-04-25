@@ -102,7 +102,7 @@ export default function SuiviAbonnementsSection() {
   const loadData = async () => {
     const [d, a] = await Promise.all([
       axiosInstance.get("/demandes"),
-      axiosInstance.get("/abonnements/mes-abonnements-clients"),
+      axiosInstance.get("/abonnements/all"),
     ]);
     setDemandes(d.data ?? []);
     setAbonnements(a.data ?? []);

@@ -179,9 +179,11 @@ function KpiCard({
 function AbonnementCardV2({
   a,
   onRenouveler,
+  onPayer,
 }: {
   a: Abonnement;
   onRenouveler: (id: string) => void;
+  onPayer: (id: string) => void;
 }) {
   const progress = getBillingProgress(a.dateDebut, a.dateFin);
   const joursRestants = daysBetween(new Date().toISOString(), a.dateFin);
@@ -215,7 +217,7 @@ function AbonnementCardV2({
             <div className="text-3xl font-extrabold leading-none">
               {a.montant.toFixed(2)}
               <span className="text-base font-semibold ml-2">
-                TND/{a.type === "annuel" ? "mois" : "mois"}
+                TND/{a.type === "annuel" ? "an" : "mois"}
               </span>
             </div>
             <div className="text-white/80 text-sm mt-1">
@@ -307,8 +309,8 @@ function AbonnementCardV2({
                 </span>
               )}
               {a.statutDemande === "acceptée" && (
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                  Demande acceptée
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                  Paiement requis
                 </span>
               )}
               {a.statutDemande === "refusée" && (
@@ -318,24 +320,35 @@ function AbonnementCardV2({
               )}
             </div>
 
-            {a.statutDemande !== "en_attente" && (
+            {a.statutDemande === "acceptée" && (
               <button
-                onClick={() => onRenouveler(a.id)}
-                className="px-4 py-2 rounded-xl border text-sm font-semibold transition hover:text-white"
-                style={{
-                  borderColor: "var(--color-primary)",
-                  color: "var(--color-primary)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--color-primary)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                }}
+                onClick={() => onPayer(a.id)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "var(--color-primary)" }}
               >
-                {a.statutDemande === "refusée" ? "Réessayer" : "Renouveler"}
+                Payer
               </button>
             )}
+
+            {a.statutDemande !== "en_attente" &&
+              a.statutDemande !== "acceptée" && (
+                <button
+                  onClick={() => onRenouveler(a.id)}
+                  className="px-4 py-2 rounded-xl border text-sm font-semibold transition hover:text-white"
+                  style={{
+                    borderColor: "var(--color-primary)",
+                    color: "var(--color-primary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--color-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {a.statutDemande === "refusée" ? "Réessayer" : "Renouveler"}
+                </button>
+              )}
           </div>
         )}
 
@@ -398,6 +411,13 @@ export default function SubscriptionsSection() {
   const renouveler = async (id: string) => {
     await axiosInstance.post(`/demandes/${id}/renouveler`);
     await loadAbonnements();
+  };
+
+  const payer = async (id: string) => {
+    const r = await axiosInstance.post("/payment/create-renewal-session", {
+      abonnementId: id,
+    });
+    window.location.href = r.data.url;
   };
 
   const actifs = useMemo(
@@ -485,6 +505,7 @@ export default function SubscriptionsSection() {
                     key={a.id}
                     a={a}
                     onRenouveler={renouveler}
+                    onPayer={payer}
                   />
                 ))}
               </div>
@@ -503,6 +524,7 @@ export default function SubscriptionsSection() {
                     key={a.id}
                     a={a}
                     onRenouveler={renouveler}
+                    onPayer={payer}
                   />
                 ))}
               </div>
@@ -535,6 +557,7 @@ export default function SubscriptionsSection() {
                     key={a.id}
                     a={a}
                     onRenouveler={renouveler}
+                    onPayer={payer}
                   />
                 ))}
               </div>

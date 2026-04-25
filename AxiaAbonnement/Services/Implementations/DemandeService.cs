@@ -159,16 +159,14 @@ namespace AxiaAbonnement.Services.Implementations
 
             demande.Statut = "acceptée";
             demande.TraiteeAt = DateTime.UtcNow;
-            a.IsActive = true;
-            a.Statut = StatutAbonnement.Actif;
-            a.DateDebut = DateTime.UtcNow;
-            a.DateFin = a.Type == "annuel" ? DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddMonths(1);
+
+            _db.Paiements.Add(new Paiement { });
 
             await _db.SaveChangesAsync();
             await _notifService.SendAsync(
                 demande.Abonnement.UserId,
-                "Votre demande de renouvellement a été acceptée. Votre abonnement est maintenant actif.",
-                "success",
+                "Votre demande de renouvellement a été acceptée. Veuillez procéder au paiement pour activer votre abonnement.",
+                "info",
                 "/dashboard/client/subscriptions"
             );
             return true;

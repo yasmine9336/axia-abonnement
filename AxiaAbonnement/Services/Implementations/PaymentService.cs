@@ -149,6 +149,61 @@ namespace AxiaAbonnement.Services.Implementations
             return session.Url;
         }
 
+        public async Task<string?> CreateRenewalCheckoutSessionAsync(Guid userId, Guid abonnementId)
+        {
+            var user = await _ctx.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            var abonnement = await _ctx.Abonnements
+                .Include(a => a.Offre)
+                .Include(a => a.Service)
+                .FirstOrDefaultAsync(a => a.Id == abonnementId && a.UserId == userId);
+            if (abonnement == null) return null;
+
+            var demandeAcceptee = await _ctx.DemandesRenouvellement
+                .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "acceptée");
+            if (!demandeAcceptee) return null;
+
+            var productName = abonnement.Offre?.IntituleOffre
+                ?? abonnement.Service?.IntituleService
+                ?? "Renouvellement abonnement";
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = ["card"],
+                LineItems =
+                [
+                    new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = "eur",
+                    UnitAmount = (long)(abonnement.Montant * 100),
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = $"Renouvellement - {productName}",
+                        Description = $"Renouvellement abonnement {abonnement.Type}"
+                    }
+                },
+                Quantity = 1
+            }
+                ],
+                Mode = "payment",
+                SuccessUrl = $"{_config["Frontend:Url"]}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = $"{_config["Frontend:Url"]}/payment/cancel",
+                Metadata = new Dictionary<string, string>
+        {
+            { "userId", userId.ToString() },
+            { "abonnementId", abonnementId.ToString() },
+            { "paymentType", "renewal" }
+        }
+            };
+
+            var sessionService = new SessionService(_stripeClient);
+            var session = await sessionService.CreateAsync(options);
+            return session.Url;
+        }
+
         public async Task HandleWebhookAsync(string json, string stripeSignature, string webhookSecret)
         {
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
@@ -162,6 +217,8 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (paymentType == "responsable-account")
                 await HandleResponsableAccountPaymentAsync(session);
+            else if (paymentType == "renewal")
+                await HandleRenewalPaymentAsync(session);
             else
                 await HandleSubscriptionPaymentAsync(session);
         }
@@ -285,6 +342,96 @@ namespace AxiaAbonnement.Services.Implementations
                     $"Nouveau paiement : {user.Username} a souscrit à \"{productName}\"...",
                     "info",
                     "/dashboard/responsable/transactions");
+            }
+        }
+
+        private async Task HandleRenewalPaymentAsync(Session session)
+        {
+            if (!TryGetMetadataGuid(session, "userId", out var userId)) return;
+            if (!TryGetMetadataGuid(session, "abonnementId", out var abonnementId)) return;
+
+            var user = await _ctx.Users.FindAsync(userId);
+            if (user == null) return;
+
+            var abonnement = await _ctx.Abonnements
+                .Include(a => a.Offre)
+                .Include(a => a.Service)
+                .FirstOrDefaultAsync(a => a.Id == abonnementId);
+            if (abonnement == null) return;
+
+            var productName = abonnement.Offre?.IntituleOffre
+                ?? abonnement.Service?.IntituleService
+                ?? "Abonnement";
+
+            abonnement.IsActive = true;
+            abonnement.Statut = StatutAbonnement.Actif;
+            abonnement.DateDebut = DateTime.UtcNow;
+            abonnement.DateFin = abonnement.Type == "annuel"
+                ? DateTime.UtcNow.AddYears(1)
+                : DateTime.UtcNow.AddMonths(1);
+
+            // Mettre à jour le paiement pending existant
+            var paiementPending = await _ctx.Paiements
+                .FirstOrDefaultAsync(p => p.AbonnementId == abonnementId
+                                        && p.PaymentType == "renewal"
+                                        && p.Statut == "pending");
+
+            if (paiementPending != null)
+            {
+                paiementPending.Statut = "completed";
+                paiementPending.StripePaymentIntentId = session.PaymentIntentId;
+            }
+            else
+            {
+                _ctx.Paiements.Add(new Paiement
+                {
+                    AbonnementId = abonnement.Id,
+                    UserId = userId,
+                    Montant = abonnement.Montant,
+                    Statut = "completed",
+                    StripePaymentIntentId = session.PaymentIntentId,
+                    PaymentType = "renewal"
+                });
+            }
+
+            await _ctx.SaveChangesAsync();
+
+            await _notifService.SendAsync(
+                userId,
+                $"Votre abonnement \"{productName}\" a été renouvelé avec succès.",
+                "success",
+                "/dashboard/client/subscriptions"
+            );
+
+            var responsableIds = new List<Guid>();
+            if (abonnement.ServiceId != null)
+            {
+                var service = await _ctx.Services.FindAsync(abonnement.ServiceId.Value);
+                if (service?.ResponsableId != null)
+                    responsableIds.Add(service.ResponsableId.Value);
+            }
+            else if (abonnement.OffreId != null)
+            {
+                var serviceIds = await _ctx.ServiceOffres
+                    .Where(so => so.OffreId == abonnement.OffreId)
+                    .Select(so => so.ServiceId)
+                    .ToListAsync();
+                var respIds = await _ctx.Services
+                    .Where(s => serviceIds.Contains(s.Id) && s.ResponsableId != null)
+                    .Select(s => s.ResponsableId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+                responsableIds.AddRange(respIds);
+            }
+
+            foreach (var respId in responsableIds)
+            {
+                await _notifService.SendAsync(
+                    respId,
+                    $"Renouvellement payé : {user.Username} a renouvelé \"{productName}\".",
+                    "info",
+                    "/dashboard/responsable/transactions"
+                );
             }
         }
 
