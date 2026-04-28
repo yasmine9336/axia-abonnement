@@ -345,7 +345,8 @@ function AbonnementCardV2({
                     e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  {a.statutDemande === "refusée" || a.statutDemande === "expirée"
+                  {a.statutDemande === "refusée" ||
+                  a.statutDemande === "expirée"
                     ? "Réessayer"
                     : "Renouveler"}
                 </button>
@@ -365,35 +366,39 @@ export default function SubscriptionsSection() {
   const [loading, setLoading] = useState(true);
 
   const loadAbonnements = async () => {
-    const r = await axiosInstance.get("/abonnements");
-    const data: Abonnement[] = r.data;
+    try {
+      const r = await axiosInstance.get("/abonnements");
+      const data: Abonnement[] = r.data;
 
-    const withStatut = await Promise.all(
-      data.map(async (a) => {
-        const [statutRes, feedbackRes] = await Promise.all([
-          a.statut === "expiré"
-            ? axiosInstance
-                .get(`/demandes/${a.id}/statut`)
-                .catch(() => ({ data: { statut: null } }))
-            : Promise.resolve({ data: { statut: null } }),
-          axiosInstance
-            .get(`/feedbacks/${a.id}/my-note`)
-            .catch(() => ({ data: { note: null } })),
-        ]);
+      const withStatut = await Promise.all(
+        data.map(async (a) => {
+          const [statutRes, feedbackRes] = await Promise.all([
+            a.statut === "expiré"
+              ? axiosInstance
+                  .get(`/demandes/${a.id}/statut`)
+                  .catch(() => ({ data: { statut: null } }))
+              : Promise.resolve({ data: { statut: null } }),
+            axiosInstance
+              .get(`/feedbacks/${a.id}/my-note`)
+              .catch(() => ({ data: { note: null } })),
+          ]);
 
-        return {
-          ...a,
-          statutDemande: a.statut === "expiré" ? statutRes.data.statut : null,
-          noteFeedback: feedbackRes.data.note ?? null,
-        };
-      }),
-    );
+          return {
+            ...a,
+            statutDemande: a.statut === "expiré" ? statutRes.data.statut : null,
+            noteFeedback: feedbackRes.data.note ?? null,
+          };
+        }),
+      );
 
-    withStatut.sort(
-      (x, y) => new Date(y.dateFin).getTime() - new Date(x.dateFin).getTime(),
-    );
+      withStatut.sort(
+        (x, y) => new Date(y.dateFin).getTime() - new Date(x.dateFin).getTime(),
+      );
 
-    setAbonnements(withStatut);
+      setAbonnements(withStatut);
+    } catch {
+      setAbonnements([]);
+    }
   };
 
   useEffect(() => {

@@ -32,28 +32,6 @@ public class ChatController(IChatService chatService) : ControllerBase
             _ => StatusCode(500)
         };
 
-    // ── Client ───────────────────────────────────────────────────
-
-    [HttpGet("me")]
-    [Authorize(Policy = "ClientOnly")]
-    public async Task<IActionResult> GetOrCreateMyConversation()
-        => Ok(await _chatService.GetOrCreateConversationAsync(GetUserId()));
-
-    [HttpGet("me/messages")]
-    [Authorize(Policy = "ClientOnly")]
-    public async Task<IActionResult> GetMyMessages()
-        => Ok(await _chatService.GetClientMessagesAsync(GetUserId()));
-
-    [HttpPost("me/messages")]
-    [Authorize(Policy = "ClientOnly")]
-    public async Task<IActionResult> SendMyMessage([FromBody] SendMessageDto dto)
-    {
-        if (string.IsNullOrWhiteSpace(dto.Content))
-            return BadRequest("Message vide.");
-
-        return Ok(await _chatService.SendClientMessageAsync(GetUserId(), dto.Content));
-    }
-
     // ── Responsable ──────────────────────────────────────────────
 
     [HttpGet("conversations")]
@@ -88,8 +66,6 @@ public class ChatController(IChatService chatService) : ControllerBase
         return FromResult(result, _ => Ok(new { message = "Conversation fermée." }));
     }
 
-    // ── Responsable ──────────────────────────────────────────────
-
     [HttpGet("conversations/by-client/{clientId:guid}")]
     [Authorize(Policy = "ResponsableOnly")]
     public async Task<IActionResult> GetOrCreateConversationByClient(Guid clientId)
@@ -97,6 +73,8 @@ public class ChatController(IChatService chatService) : ControllerBase
         var result = await _chatService.GetOrCreateConversationForClientAsync(clientId, GetUserId());
         return FromResult(result, Ok);
     }
+
+    // ── Client ──────────────────────────────────────────────
 
     [HttpGet("my-responsables")]
     [Authorize(Policy = "ClientOnly")]
@@ -106,7 +84,10 @@ public class ChatController(IChatService chatService) : ControllerBase
     [HttpGet("with-responsable/{responsableId:guid}")]
     [Authorize(Policy = "ClientOnly")]
     public async Task<IActionResult> GetOrCreateWithResponsable(Guid responsableId)
-        => Ok(await _chatService.GetOrCreateConversationWithResponsableAsync(GetUserId(), responsableId));
+    {
+        var result = await _chatService.GetOrCreateConversationWithResponsableAsync(GetUserId(), responsableId);
+        return FromResult(result, Ok);
+    }
 
     [HttpGet("conversations/{conversationId:guid}/client-messages")]
     [Authorize(Policy = "ClientOnly")]

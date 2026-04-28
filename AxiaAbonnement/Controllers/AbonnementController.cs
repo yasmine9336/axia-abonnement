@@ -51,7 +51,7 @@ namespace AxiaAbonnement.Controllers
             return Ok(await _abonnementService.GetStatsAsync());
         }
 
-        [HttpGet("by-client/{clientId}")]
+        [HttpGet("by-client/{clientId:guid}")]
         [Authorize(Policy = "StaffOnly")]
         public async Task<IActionResult> GetByClient(Guid clientId)
         {

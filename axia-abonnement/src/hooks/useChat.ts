@@ -3,76 +3,6 @@ import axiosInstance from "../api/axiosInstance";
 import { useNotifications } from "./useNotifications";
 import type { ChatMessage, Conversation, ResponsableInfo } from "../types";
 
-export function useClientChat() {
-  const { signalRService } = useNotifications();
-  const [conversationId, setConversationId] = useState<string | undefined>();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [sending, setSending] = useState(false);
-  const isOpenRef = useRef(false);
-
-  useEffect(() => {
-    axiosInstance.get("/chat/me").then((res: { data: { id: string } }) => {
-      setConversationId(res.data.id);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!conversationId || !signalRService) return;
-
-    const handleMessage = (msg: unknown) => {
-      setMessages((prev) => [...prev, msg as ChatMessage]);
-      if (!isOpenRef.current) setUnread((n) => n + 1);
-    };
-
-    signalRService.on("ReceiveMessage", handleMessage);
-    signalRService.joinConversation(conversationId);
-
-    return () => {
-      signalRService.off("ReceiveMessage", handleMessage);
-      signalRService.leaveConversation(conversationId);
-    };
-  }, [conversationId, signalRService]);
-
-  const loadMessages = useCallback(async () => {
-    if (!conversationId) return;
-    const res: { data: ChatMessage[] } =
-      await axiosInstance.get("/chat/me/messages");
-    setMessages(res.data);
-    setUnread(0);
-  }, [conversationId]);
-
-  const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim() || sending) return;
-      setSending(true);
-      try {
-        await axiosInstance.post("/chat/me/messages", {
-          content: content.trim(),
-        });
-      } finally {
-        setSending(false);
-      }
-    },
-    [sending],
-  );
-
-  const setOpen = useCallback((open: boolean) => {
-    isOpenRef.current = open;
-    if (open) setUnread(0);
-  }, []);
-
-  return {
-    conversationId,
-    messages,
-    unread,
-    sending,
-    loadMessages,
-    sendMessage,
-    setOpen,
-  };
-}
-
 export function useStaffChat() {
   const { signalRService } = useNotifications();
 
@@ -262,7 +192,8 @@ export function useClientChatWithSelection() {
   useEffect(() => {
     axiosInstance
       .get<ResponsableInfo[]>("/chat/my-responsables")
-      .then((r) => setResponsables(r.data));
+      .then((r) => setResponsables(r.data))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

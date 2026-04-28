@@ -16,9 +16,10 @@ export interface AbonnementItem {
   dateDebut: string;
   dateFin: string;
   isActive: boolean;
-  statut: 'actif' | 'Actif' | 'expiré' | 'Expiré' | 'suspendu' | 'désactivé';
+  statut: 'actif' | 'expiré' | 'en_attente';
   clientUsername?: string;
   clientEmail?: string;
+  peutRenouveler?: boolean;
 }
 
 export interface StatsData {
@@ -44,7 +45,7 @@ export interface PaiementItem {
 export interface ChatMessage {
   id: string;
   content: string;
-  senderType: 'Client' | 'Responsable' | 'Bot';
+  senderType: 'Client' | 'Responsable';
   senderUserId: string | null;
   createdAt: string;
   isRead: boolean;
