@@ -19,6 +19,8 @@ interface RegisterForm {
   matriculeFiscal: string;
   secteurActivite: string;
   adresseProfessionnelle: string;
+  dateNaissance: string;
+  sexe: string;
 }
 
 const INITIAL_FORM: RegisterForm = {
@@ -34,6 +36,8 @@ const INITIAL_FORM: RegisterForm = {
   matriculeFiscal: "",
   secteurActivite: "",
   adresseProfessionnelle: "",
+  dateNaissance: "",
+  sexe: "",
 };
 
 const inputClass =
@@ -74,6 +78,10 @@ export default function Register() {
     if (!form.email.trim()) return "L'email est requis.";
     if (!form.gouvernorat) return "Le gouvernorat est requis.";
     if (!form.ville) return "La ville est requise.";
+    if (!isResponsable) {
+      if (!form.dateNaissance) return "La date de naissance est requise.";
+      if (!form.sexe) return "Le sexe est requis.";
+    }
     if (form.password !== form.confirmPassword)
       return "Les mots de passe ne correspondent pas.";
     if (form.password.length < 8)
@@ -129,6 +137,9 @@ export default function Register() {
         adresseProfessionnelle: isResponsable
           ? form.adresseProfessionnelle
           : undefined,
+        dateNaissance:
+          !isResponsable && form.dateNaissance ? form.dateNaissance : undefined,
+        sexe: !isResponsable ? form.sexe || undefined : undefined,
       });
       if (result.role === "Responsable") {
         navigate("/register/demande-en-cours", {
@@ -278,6 +289,43 @@ export default function Register() {
                     onBlur={blurStyle}
                   />
                 </div>
+                {!isResponsable && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wide">
+                        Date de naissance
+                      </label>
+                      <input
+                        type="date"
+                        name="dateNaissance"
+                        value={form.dateNaissance}
+                        onChange={handleChange}
+                        required
+                        className={inputClass}
+                        onFocus={focusStyle}
+                        onBlur={blurStyle}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wide">
+                        Sexe
+                      </label>
+                      <select
+                        name="sexe"
+                        value={form.sexe}
+                        onChange={handleChange}
+                        required
+                        className={inputClass}
+                        onFocus={focusStyle}
+                        onBlur={blurStyle}
+                      >
+                        <option value="">Sélectionner...</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wide">

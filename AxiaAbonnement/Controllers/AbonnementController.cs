@@ -51,5 +51,17 @@ namespace AxiaAbonnement.Controllers
             return Ok(await _abonnementService.GetStatsAsync());
         }
 
+        [HttpGet("by-client/{clientId}")]
+        [Authorize(Policy = "StaffOnly")]
+        public async Task<IActionResult> GetByClient(Guid clientId)
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Responsable")
+                return Ok(await _abonnementService.GetAbonnementsByClientForResponsableAsync(clientId, GetUserId()));
+            return Ok(await _abonnementService.GetAbonnementsByClientAsync(clientId));
+        }
+
     }
+
+
 }

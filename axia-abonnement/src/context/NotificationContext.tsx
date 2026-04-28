@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAuth } from "../hooks/useAuth";
@@ -10,6 +9,8 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  deleteAll: () => Promise<void>;
   unreadMessages: number;
   unreadChat: number;
   resetUnreadMessages: () => void;
@@ -24,6 +25,8 @@ export const NotificationContext = createContext<NotificationContextType>({
   unreadCount: 0,
   markAsRead: async () => {},
   markAllAsRead: async () => {},
+  deleteNotification: async () => {},
+  deleteAll: async () => {},
   unreadMessages: 0,
   unreadChat: 0,
   resetUnreadMessages: () => {},
@@ -43,11 +46,8 @@ export function NotificationProvider({
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
   const [badgeCount, setBadgeCount] = useState(0);
-  const [signalRService, setSignalRService] = useState<SignalRService | null>(
-    null,
-  );
+  const [signalRService, setSignalRService] = useState<SignalRService | null>(null);
 
-  // Charger les notifications
   useEffect(() => {
     if (!user) return;
     axiosInstance
@@ -63,7 +63,6 @@ export function NotificationProvider({
       });
   }, [user]);
 
-  // Initialiser le compteur "Messages" pour le responsable
   useEffect(() => {
     if (!user || user.role !== "Responsable") return;
     axiosInstance
@@ -78,7 +77,6 @@ export function NotificationProvider({
       .catch(() => setUnreadMessages(0));
   }, [user]);
 
-  // Démarrer SignalR après login (comme le tutoriel : startSignalRConnection après login)
   useEffect(() => {
     if (!user) return;
 
@@ -101,7 +99,6 @@ export function NotificationProvider({
       setSignalRService(service);
     });
 
-    // Arrêter la connexion au logout
     return () => {
       service.stopConnection();
       setSignalRService(null);
@@ -123,6 +120,21 @@ export function NotificationProvider({
     setBadgeCount(0);
   };
 
+  const deleteNotification = async (id: string) => {
+    await axiosInstance.delete(`/notifications/${id}`);
+    setNotifications((prev) => {
+      const target = prev.find((n) => n.id === id);
+      if (target && !target.isRead) setBadgeCount((c) => Math.max(0, c - 1));
+      return prev.filter((n) => n.id !== id);
+    });
+  };
+
+  const deleteAll = async () => {
+    await axiosInstance.delete("/notifications");
+    setNotifications([]);
+    setBadgeCount(0);
+  };
+
   return (
     <NotificationContext.Provider
       value={{
@@ -130,6 +142,8 @@ export function NotificationProvider({
         unreadCount: notifications.filter((n) => !n.isRead).length,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
+        deleteAll,
         unreadMessages,
         unreadChat,
         resetUnreadMessages: () => setUnreadMessages(0),

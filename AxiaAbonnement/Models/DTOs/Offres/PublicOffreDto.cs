@@ -9,5 +9,6 @@
         public decimal ParAnnee { get; set; }
         public List<string> Services { get; set; } = new();
         public double? MoyenneNote { get; set; }
+        public int NombreAvis { get; set; }
     }
 }

@@ -24,6 +24,9 @@ namespace AxiaAbonnement.Models.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? ProfileImageUrl { get; set; }
 
+        public DateTime? DateNaissance { get; set; }
+        public string? Sexe { get; set; }
+
         public StatutCompte Statut { get; set; } = StatutCompte.Active;
         public string? MotifRefus { get; set; }
 

@@ -160,6 +160,17 @@ namespace AxiaAbonnement.Services.Implementations
                 .FirstOrDefaultAsync(a => a.Id == abonnementId && a.UserId == userId);
             if (abonnement == null) return null;
 
+            if (abonnement.ServiceId != null)
+            {
+                var service = await _ctx.Services.FindAsync(abonnement.ServiceId.Value);
+                if (service == null || !service.IsActive) return null;
+            }
+            else if (abonnement.OffreId != null)
+            {
+                var offre = await _ctx.Offres.FindAsync(abonnement.OffreId.Value);
+                if (offre == null || !offre.IsActive) return null;
+            }
+
             var demandeAcceptee = await _ctx.DemandesRenouvellement
                 .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "acceptée");
             if (!demandeAcceptee) return null;
@@ -396,6 +407,17 @@ namespace AxiaAbonnement.Services.Implementations
 
             await _ctx.SaveChangesAsync();
 
+            var demande = await _ctx.DemandesRenouvellement
+                .Where(d => d.AbonnementId == abonnementId
+                         && (d.Statut == "acceptée" || d.Statut == "expirée"))
+                .OrderByDescending(d => d.CreatedAt)
+                .FirstOrDefaultAsync();
+            if (demande != null)
+            {
+                demande.Statut = "payée";
+                await _ctx.SaveChangesAsync();
+            }
+
             await _notifService.SendAsync(
                 userId,
                 $"Votre abonnement \"{productName}\" a été renouvelé avec succès.",
@@ -443,6 +465,7 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(userId);
 
             if (user == null || user.Role != UserRole.Responsable) return;
+            if (user.Statut != StatutCompte.Accepted) return;
 
             user.Statut = StatutCompte.Active;
             user.DatePaiementCompte = DateTime.UtcNow;
@@ -459,6 +482,19 @@ namespace AxiaAbonnement.Services.Implementations
             _ctx.Paiements.Add(paiement);
 
             await _ctx.SaveChangesAsync();
+
+            await _emailSender.SendEmailAsync(
+                user.Email,
+                "Votre compte AxiaAbonnement est activé",
+                $@"Bonjour {user.Username},
+Votre paiement de 500 TND a bien été reçu et votre compte responsable est maintenant actif.
+
+Vous pouvez dès maintenant vous connecter :
+{_config["Frontend:Url"]}/login
+
+Cordialement,
+L'équipe AxiaAbonnement"
+            );
 
             var admins = await _ctx.Users
                 .Where(u => u.Role == UserRole.Admin && u.IsActive)

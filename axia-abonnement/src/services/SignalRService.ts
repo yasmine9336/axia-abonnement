@@ -11,6 +11,7 @@ type SignalRHandlers = {
 
 export class SignalRService {
   private connection: signalR.HubConnection | null = null;
+  private reconnectCallbacks: Array<(connectionId?: string) => void> = [];
 
   public createConnection(handlers: SignalRHandlers) {
     this.connection = new signalR.HubConnectionBuilder()
@@ -37,19 +38,24 @@ export class SignalRService {
     if (handlers.onStaffReplied) {
       this.connection.on("StaffReplied", handlers.onStaffReplied);
     }
+
+    // Rejoindre les groupes après reconnexion automatique
+    this.connection.onreconnected((connectionId) => {
+      this.reconnectCallbacks.forEach((cb) => cb(connectionId));
+    });
   }
 
   public async startConnection() {
     if (!this.connection) return;
     try {
       await this.connection.start();
-      console.log("SignalR connecté");
     } catch (err) {
       console.error("Erreur SignalR:", err);
     }
   }
 
   public async stopConnection() {
+    this.reconnectCallbacks = [];
     await this.connection?.stop();
     this.connection = null;
   }
@@ -70,7 +76,14 @@ export class SignalRService {
     }
   }
 
-  // Permet aux hooks d'ajouter leurs propres listeners
+  public onReconnected(callback: (connectionId?: string) => void) {
+    this.reconnectCallbacks.push(callback);
+  }
+
+  public offReconnected(callback: (connectionId?: string) => void) {
+    this.reconnectCallbacks = this.reconnectCallbacks.filter((cb) => cb !== callback);
+  }
+
   public on(event: string, callback: (...args: unknown[]) => void) {
     this.connection?.on(event, callback);
   }

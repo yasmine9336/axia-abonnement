@@ -114,7 +114,11 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
         }
-        public async Task<bool> ExistsAsync(Guid clientId, Guid abonnementId) =>
-            await _db.Feedbacks.AnyAsync(f => f.ClientId == clientId && f.AbonnementId == abonnementId);
+        public async Task<int?> GetMyNoteAsync(Guid clientId, Guid abonnementId)
+        {
+            var feedback = await _db.Feedbacks
+                .FirstOrDefaultAsync(f => f.ClientId == clientId && f.AbonnementId == abonnementId);
+            return feedback?.Note;
+        }
     }
 }

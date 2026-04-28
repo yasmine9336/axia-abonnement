@@ -16,14 +16,15 @@ type FilterKey = "all" | "completed";
 const isCompleted = (s: string) => s === "completed";
 
 const formatStatut = (s: string) =>
-  s === "completed" ? "Complété" : s === "pending" ? "En cours" : "Échoué";
+  s === "completed" ? "Complété"  :
+  s === "pending"   ? "En cours"  :
+  s === "expiré"    ? "Expiré"    : "Échoué";
 
 const statutBadge = (s: string) =>
-  s === "completed"
-    ? "bg-green-100 text-green-700"
-    : s === "pending"
-      ? "bg-yellow-100 text-yellow-700"
-      : "bg-red-100 text-red-700";
+  s === "completed" ? "bg-green-100 text-green-700"  :
+  s === "pending"   ? "bg-yellow-100 text-yellow-700" :
+  s === "expiré"    ? "bg-orange-100 text-orange-700" :
+                      "bg-red-100 text-red-700";
 
 function formatDateFR(d: string) {
   return new Date(d).toLocaleDateString("fr-FR", {

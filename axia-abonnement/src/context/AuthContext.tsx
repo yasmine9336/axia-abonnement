@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useEffect, useState, type ReactNode } from "react";
 import axiosInstance from "../api/axiosInstance";
 
@@ -16,12 +15,14 @@ export interface RegisterData {
   password: string;
   role: "Client" | "Responsable";
   phoneNumber?: string;
-  gouvernorat?: string;          
-  ville?: string; 
+  gouvernorat?: string;
+  ville?: string;
   nomEntreprise?: string;
   matriculeFiscal?: string;
   secteurActivite?: string;
   adresseProfessionnelle?: string;
+  dateNaissance?: string;
+  sexe?: string;
 }
 
 export interface RegisterResult {
@@ -39,7 +40,11 @@ export type LoginOutcome =
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, remember: boolean) => Promise<LoginOutcome>;
+  login: (
+    email: string,
+    password: string,
+    remember: boolean,
+  ) => Promise<LoginOutcome>;
   logout: () => void;
   register: (data: RegisterData) => Promise<RegisterResult>;
   loading: boolean;
@@ -92,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (
     email: string,
     password: string,
-    remember: boolean
+    remember: boolean,
   ): Promise<LoginOutcome> => {
     try {
       const response = await axiosInstance.post("/auth/login", {
@@ -103,27 +108,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { accessToken, refreshToken, role } = response.data;
 
+      // Toujours localStorage → fonctionne dans tous les onglets
+      localStorage.setItem("accessToken", accessToken);
+      if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+
       if (remember) {
-        localStorage.setItem("accessToken", accessToken);
-        if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("rememberMe", "true");
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("user");
       } else {
-        sessionStorage.setItem("accessToken", accessToken);
-        if (refreshToken) sessionStorage.setItem("refreshToken", refreshToken);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
         localStorage.removeItem("rememberMe");
       }
+
+      // Nettoyer sessionStorage (ancienne logique)
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user");
 
       const meResponse = await axiosInstance.get("/auth/me");
       const userData: User = { ...meResponse.data, role };
 
-      if (remember) localStorage.setItem("user", JSON.stringify(userData));
-      else sessionStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(userData));
 
       setUser(userData);
       return { kind: "success", role };
@@ -144,7 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           case "PENDING":
             return { kind: "pending", message };
           case "PAYMENT_REQUIRED":
-            return { kind: "payment_required", message, userId: data.userId ?? "" };
+            return {
+              kind: "payment_required",
+              message,
+              userId: data.userId ?? "",
+            };
           case "REJECTED":
             return { kind: "rejected", message };
           default:

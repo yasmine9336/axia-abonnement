@@ -16,11 +16,11 @@ public class NotificationController(INotificationService notifService) : Control
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
 
     [HttpGet]
-    public async Task<IActionResult> GetUnread()
+    public async Task<IActionResult> GetRecent()
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Utilisateur non authentifié");
-        var notifs = await _notifService.GetUnreadAsync(userId);
+        var notifs = await _notifService.GetRecentAsync(userId);
         return Ok(notifs.Select(n => new
         {
             id = n.Id,
@@ -31,6 +31,7 @@ public class NotificationController(INotificationService notifService) : Control
             createdAt = n.CreatedAt
         }));
     }
+
     [HttpPatch("{id}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id)
     {
@@ -40,13 +41,30 @@ public class NotificationController(INotificationService notifService) : Control
         return success ? NoContent() : NotFound();
     }
 
-
     [HttpPatch("read-all")]
     public async Task<IActionResult> MarkAllAsRead()
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Utilisateur non authentifié");
         await _notifService.MarkAllAsReadAsync(userId);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Utilisateur non authentifié");
+        var success = await _notifService.DeleteAsync(id, userId);
+        return success ? NoContent() : NotFound();
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAll()
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Utilisateur non authentifié");
+        await _notifService.DeleteAllAsync(userId);
         return NoContent();
     }
 }

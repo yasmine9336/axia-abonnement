@@ -24,6 +24,17 @@ namespace AxiaAbonnement.Services.Implementations
                 .FirstOrDefaultAsync(a => a.Id == abonnementId && a.UserId == clientId);
             if (abonnement == null) return false;
 
+            if (abonnement.ServiceId != null)
+            {
+                var service = await _db.Services.FindAsync(abonnement.ServiceId.Value);
+                if (service == null || !service.IsActive) return false;
+            }
+            else if (abonnement.OffreId != null)
+            {
+                var offre = await _db.Offres.FindAsync(abonnement.OffreId.Value);
+                if (offre == null || !offre.IsActive) return false;
+            }
+
             var existante = await _db.DemandesRenouvellement
                 .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "en_attente");
             if (existante) return false;

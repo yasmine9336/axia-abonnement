@@ -2,6 +2,7 @@ using AxiaAbonnement.Data;
 using AxiaAbonnement.Hubs;
 using AxiaAbonnement.Middleware;
 using AxiaAbonnement.Models.Email;
+using AxiaAbonnement.Services.BackgroundServices;
 using AxiaAbonnement.Services.Implementations;
 using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,6 +45,7 @@ if (emailConfig is null ||
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
@@ -93,6 +95,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IPdfExportService, PdfExportService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHostedService<RenewalPaymentExpiryService>();
 
 builder.Services.AddSingleton(emailConfig);
 

@@ -78,8 +78,14 @@ export default function ArchiveSection() {
     );
   }, [clients, tab, searchTerm]);
 
-  const actifs = useMemo(() => clients.filter((c) => c.isActive).length, [clients]);
-  const inactifs = useMemo(() => clients.filter((c) => !c.isActive).length, [clients]);
+  const actifs = useMemo(
+    () => clients.filter((c) => c.isActive).length,
+    [clients],
+  );
+  const inactifs = useMemo(
+    () => clients.filter((c) => !c.isActive).length,
+    [clients],
+  );
 
   const totalActifsFiltres = useMemo(
     () => filtered.filter((c) => c.isActive).length,
@@ -91,7 +97,9 @@ export default function ArchiveSection() {
   );
 
   const openConversation = (c: Client) => {
-    navigate(`/dashboard/responsable/messages?clientId=${encodeURIComponent(c.id)}`);
+    navigate(
+      `/dashboard/responsable/messages?clientId=${encodeURIComponent(c.id)}`,
+    );
   };
 
   const openClientSubs = async (c: Client) => {
@@ -99,17 +107,11 @@ export default function ArchiveSection() {
     setOpenSubs(true);
     setSubs([]);
     setSubsLoading(true);
-
     try {
       const res = await axiosInstance.get(`/abonnements/by-client/${c.id}`);
       setSubs(res.data ?? []);
     } catch {
-      try {
-        const res = await axiosInstance.get(`/abonnements/all`);
-        setSubs((res.data ?? []) as AbonnementClientDto[]);
-      } catch {
-        setSubs([]);
-      }
+      setSubs([]);
     } finally {
       setSubsLoading(false);
     }
@@ -122,7 +124,13 @@ export default function ArchiveSection() {
       sub: "tous statuts confondus",
       border: "border-t-blue-400",
       icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -137,8 +145,18 @@ export default function ArchiveSection() {
       sub: "comptes actifs",
       border: "border-t-green-400",
       icon: (
-        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          className="w-5 h-5 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
     },
@@ -148,8 +166,18 @@ export default function ArchiveSection() {
       sub: "comptes inactifs",
       border: "border-t-gray-400",
       icon: (
-        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        <svg
+          className="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+          />
         </svg>
       ),
     },
@@ -169,7 +197,9 @@ export default function ArchiveSection() {
           <UiCard key={card.label} className={`border-t-4 ${card.border}`}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">{card.label}</p>
+                <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
+                  {card.label}
+                </p>
                 <p className="text-3xl font-bold text-gray-900">{card.value}</p>
                 <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
@@ -183,10 +213,18 @@ export default function ArchiveSection() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-800">
-              {tab === "tous" ? "Tous les clients" : tab === "actif" ? "Clients actifs" : "Clients inactifs"}
+              {tab === "tous"
+                ? "Tous les clients"
+                : tab === "actif"
+                  ? "Clients actifs"
+                  : "Clients inactifs"}
             </h2>
             <span className="bg-(--color-primary-soft) text-(--color-primary) text-xs font-semibold px-2.5 py-1 rounded-full">
-              {tab === "tous" ? filtered.length : tab === "actif" ? totalActifsFiltres : totalInactifsFiltres}
+              {tab === "tous"
+                ? filtered.length
+                : tab === "actif"
+                  ? totalActifsFiltres
+                  : totalInactifsFiltres}
             </span>
           </div>
 
@@ -204,14 +242,21 @@ export default function ArchiveSection() {
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    {t === "tous" ? "Tous" : t === "actif" ? "Actifs" : "Inactifs"}
+                    {t === "tous"
+                      ? "Tous"
+                      : t === "actif"
+                        ? "Actifs"
+                        : "Inactifs"}
                   </button>
                 );
               })}
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
+              />
               <input
                 type="text"
                 placeholder="Rechercher par nom ou email..."
@@ -229,11 +274,16 @@ export default function ArchiveSection() {
           <div className="ui-spinner" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm">Aucun client trouvé</div>
+        <div className="text-center py-16 text-gray-400 text-sm">
+          Aucun client trouvé
+        </div>
       ) : (
         <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(240px,300px))] justify-items-start">
           {filtered.map((c) => (
-            <div key={c.id} className="bg-white rounded-2xl border border-gray-200 p-3 w-full max-w-75">
+            <div
+              key={c.id}
+              className="bg-white rounded-2xl border border-gray-200 p-3 w-full max-w-75"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-full bg-(--color-primary-soft) flex items-center justify-center font-bold text-(--color-primary)">
@@ -241,10 +291,14 @@ export default function ArchiveSection() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-gray-900 truncate">{c.username}</p>
+                      <p className="font-semibold text-gray-900 truncate">
+                        {c.username}
+                      </p>
                       <span
                         className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          c.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                          c.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {c.isActive ? "actif" : "inactif"}
@@ -262,13 +316,17 @@ export default function ArchiveSection() {
                   <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1 flex items-center gap-2">
                     <Phone size={14} /> TÉLÉPHONE
                   </p>
-                  <p className="font-semibold text-gray-900">{c.phoneNumber || "—"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {c.phoneNumber || "—"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1 flex items-center gap-2">
                     <CalendarDays size={14} /> MEMBRE DEPUIS
                   </p>
-                  <p className="font-semibold text-gray-900">{formatDateFR(c.createdAt)}</p>
+                  <p className="font-semibold text-gray-900">
+                    {formatDateFR(c.createdAt)}
+                  </p>
                 </div>
               </div>
 
@@ -301,7 +359,9 @@ export default function ArchiveSection() {
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Abonnements du client</p>
-                <h3 className="text-lg font-bold text-gray-900">{selectedClient?.username ?? "—"}</h3>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {selectedClient?.username ?? "—"}
+                </h3>
               </div>
               <button
                 onClick={() => setOpenSubs(false)}
@@ -323,15 +383,21 @@ export default function ArchiveSection() {
               ) : (
                 <div className="space-y-3">
                   {subs.map((a) => (
-                    <div key={a.id} className="border border-gray-200 rounded-2xl p-3">
+                    <div
+                      key={a.id}
+                      className="border border-gray-200 rounded-2xl p-3"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-gray-900">{a.intituleOffre}</p>
+                          <p className="font-semibold text-gray-900">
+                            {a.intituleOffre}
+                          </p>
                           <p className="text-xs text-gray-500 mt-1">
                             {a.type} · {Number(a.montant).toFixed(2)} TND
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
-                            {formatDateFR(a.dateDebut)} → {formatDateFR(a.dateFin)}
+                            {formatDateFR(a.dateDebut)} →{" "}
+                            {formatDateFR(a.dateFin)}
                           </p>
                         </div>
                         <span

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import LogoAxia from "../../assets/logo-axia.svg";
@@ -11,7 +11,7 @@ export default function ResponsableAccountPayment() {
   const [error, setError] = useState("");
   const launched = useRef(false);
 
-  const launchCheckout = () => {
+  const launchCheckout = useCallback(() => {
     if (!userId) {
       setError("Identifiant utilisateur manquant dans l'URL.");
       setStatus("error");
@@ -29,19 +29,18 @@ export default function ResponsableAccountPayment() {
         setError(
           typeof data === "string"
             ? data
-            : data?.message || "Impossible de créer la session de paiement."
+            : data?.message || "Impossible de créer la session de paiement.",
         );
         setStatus("error");
       });
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (!launched.current) {
       launched.current = true;
       launchCheckout();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [launchCheckout]);
 
   return (
     <div className="min-h-screen flex">

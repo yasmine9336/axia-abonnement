@@ -176,6 +176,7 @@ namespace AxiaAbonnement.Services.Implementations
                     ParMois = s.ParMois,
                     ParAnnee = s.ParAnnee,
                     NbOffres = s.ServiceOffres.Count,
+                    NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.ServiceId == s.Id),
                     MoyenneNote = _ctx.Feedbacks
                     .Where(f => f.Abonnement.ServiceId == s.Id)
                     .Select(f => (double?)f.Note)

@@ -19,20 +19,17 @@ namespace AxiaAbonnement.Services.Implementations
         private readonly IConfiguration _cfg;
         private readonly IEmailSender _emailSender;
         private readonly INotificationService _notifService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AuthService(
             AppDbContext ctx,
             IConfiguration cfg,
             IEmailSender emailSender,
-            INotificationService notifService,
-            IHttpContextAccessor httpContextAccessor)
+            INotificationService notifService)
         {
             _ctx = ctx;
             _cfg = cfg;
             _emailSender = emailSender;
             _notifService = notifService;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         // ── Inscription ───────────────────────────────────────────────────
@@ -52,6 +49,8 @@ namespace AxiaAbonnement.Services.Implementations
                 PhoneNumber = dto.PhoneNumber,
                 Gouvernorat = dto.Gouvernorat,
                 Ville = dto.Ville,
+                DateNaissance = role == UserRole.Client ? dto.DateNaissance : null,
+                Sexe = role == UserRole.Client ? dto.Sexe : null,
             };
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, dto.Password);
 
@@ -174,20 +173,8 @@ namespace AxiaAbonnement.Services.Implementations
             };
         }
 
-        // ── Login réussi — enregistrer historique ─────────────────────────
         private async Task<LoginResultDto> HandleActiveLoginAsync(User user, LoginDto dto)
         {
-            var history = new LoginHistory
-            {
-                UserId = user.Id,
-                LoginAt = DateTime.UtcNow,
-                IpAddress = _httpContextAccessor.HttpContext?
-                    .Connection.RemoteIpAddress?.ToString(),
-                UserAgent = _httpContextAccessor.HttpContext?
-                    .Request.Headers["User-Agent"].ToString()
-            };
-            _ctx.LoginHistories.Add(history);
-            await _ctx.SaveChangesAsync();
 
             return new LoginResultDto
             {
@@ -292,19 +279,12 @@ namespace AxiaAbonnement.Services.Implementations
 
         private async Task<string?> SaveRefreshTokenAsync(User user, bool rememberMe)
         {
-            if (!rememberMe)
-            {
-                user.RefreshTokenHash = null;
-                user.RefreshTokenExpiryTime = null;
-                await _ctx.SaveChangesAsync();
-                return null;
-            }
-
             var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
             user.RefreshTokenHash = HashToken(rawToken);
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = rememberMe
+                ? DateTime.UtcNow.AddDays(30)
+                : DateTime.UtcNow.AddDays(1);
             await _ctx.SaveChangesAsync();
-
             return rawToken;
         }
 

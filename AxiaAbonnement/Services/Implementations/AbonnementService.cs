@@ -51,7 +51,8 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin)
+                Statut = StatutToString(a.Statut, a.DateFin),
+                PeutRenouveler = a.Service?.IsActive ?? a.Offre?.IsActive ?? false
             }).ToList();
         }
 
@@ -285,6 +286,61 @@ namespace AxiaAbonnement.Services.Implementations
                 AbonnementsExpires = mesAbonnements.Count(a => a.DateFin < now),
                 AbonnementsEnAttente = mesAbonnements.Count(a => a.DateFin >= now && a.Statut == StatutAbonnement.EnAttente),
             };
+        }
+
+        public async Task<List<AbonnementDto>> GetAbonnementsByClientAsync(Guid clientId)
+        {
+            var list = await _db.Abonnements
+                .Include(a => a.Offre)
+                .Include(a => a.Service)
+                .Where(a => a.UserId == clientId)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return list.Select(a => new AbonnementDto
+            {
+                Id = a.Id,
+                IntituleOffre = a.Offre?.IntituleOffre ?? a.Service?.IntituleService ?? "",
+                Description = a.Offre?.Description ?? a.Service?.Description ?? "",
+                Type = a.Type,
+                Montant = a.Montant,
+                DateDebut = a.DateDebut,
+                DateFin = a.DateFin,
+                IsActive = a.IsActive,
+                Statut = StatutToString(a.Statut, a.DateFin),
+            }).ToList();
+        }
+
+        public async Task<List<AbonnementDto>> GetAbonnementsByClientForResponsableAsync(Guid clientId, Guid responsableId)
+        {
+            var mesServiceIds = await _db.Services
+                .Where(s => s.ResponsableId == responsableId)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var list = await _db.Abonnements
+                .Include(a => a.Offre)
+                    .ThenInclude(o => o!.ServiceOffres)
+                .Include(a => a.Service)
+                .Where(a => a.UserId == clientId && (
+                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                    (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                ))
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            return list.Select(a => new AbonnementDto
+            {
+                Id = a.Id,
+                IntituleOffre = a.Offre?.IntituleOffre ?? a.Service?.IntituleService ?? "",
+                Description = a.Offre?.Description ?? a.Service?.Description ?? "",
+                Type = a.Type,
+                Montant = a.Montant,
+                DateDebut = a.DateDebut,
+                DateFin = a.DateFin,
+                IsActive = a.IsActive,
+                Statut = StatutToString(a.Statut, a.DateFin),
+            }).ToList();
         }
     }
 }

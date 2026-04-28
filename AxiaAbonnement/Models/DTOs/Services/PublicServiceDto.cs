@@ -9,5 +9,6 @@
         public decimal ParMois { get; set; }
         public decimal ParAnnee { get; set; }
         public double? MoyenneNote { get; set; }
+        public int NombreAvis { get; set; }
     }
 }

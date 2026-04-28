@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useNotifications } from "./useNotifications";
-import type { ChatMessage, Conversation } from "../types";
+import type { ChatMessage, Conversation, ResponsableInfo } from "../types";
 
 export function useClientChat() {
   const { signalRService } = useNotifications();
@@ -247,4 +247,93 @@ export function useStaffChat() {
     hideConversation,
     fetchConversations,
   };
+}
+
+export function useClientChatWithSelection() {
+  const { signalRService } = useNotifications();
+  const [responsables, setResponsables] = useState<ResponsableInfo[]>([]);
+  const [selected, setSelected] = useState<ResponsableInfo | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const convIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    axiosInstance
+      .get<ResponsableInfo[]>("/chat/my-responsables")
+      .then((r) => setResponsables(r.data));
+  }, []);
+
+  useEffect(() => {
+    if (!signalRService || !conversationId) return;
+
+    const handleMessage = (msg: unknown) => {
+      setMessages((prev) => [...prev, msg as ChatMessage]);
+    };
+
+    signalRService.on("ReceiveMessage", handleMessage);
+    signalRService.joinConversation(conversationId);
+
+    return () => {
+      signalRService.off("ReceiveMessage", handleMessage);
+      signalRService.leaveConversation(conversationId);
+    };
+  }, [signalRService, conversationId]);
+
+  const selectResponsable = useCallback(
+    async (resp: ResponsableInfo) => {
+      if (convIdRef.current)
+        await signalRService?.leaveConversation(convIdRef.current);
+
+      setSelected(resp);
+      setMessages([]);
+      setLoading(true);
+
+      try {
+        const convRes = await axiosInstance.get<{ id: string }>(
+          `/chat/with-responsable/${resp.id}`,
+        );
+        const convId = convRes.data.id;
+        setConversationId(convId);
+        convIdRef.current = convId;
+
+        const msgsRes = await axiosInstance.get<ChatMessage[]>(
+          `/chat/conversations/${convId}/client-messages`,
+        );
+        setMessages(msgsRes.data ?? []);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [signalRService],
+  );
+
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || !convIdRef.current || sending) return;
+      setSending(true);
+      try {
+        await axiosInstance.post(
+          `/chat/conversations/${convIdRef.current}/client-messages`,
+          { content: content.trim() },
+        );
+      } finally {
+        setSending(false);
+      }
+    },
+    [sending],
+  );
+
+  const back = useCallback(async () => {
+    if (convIdRef.current) {
+      await signalRService?.leaveConversation(convIdRef.current);
+      convIdRef.current = null;
+    }
+    setSelected(null);
+    setConversationId(null);
+    setMessages([]);
+  }, [signalRService]);
+
+  return { responsables, selected, messages, sending, loading, selectResponsable, sendMessage, back };
 }

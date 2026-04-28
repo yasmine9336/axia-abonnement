@@ -80,6 +80,7 @@ namespace AxiaAbonnement.Services.Implementations
                     ParAnnee = o.ParAnnee,
                     Services = o.ServiceOffres
                     .Select(so => so.Service.IntituleService).ToList(),
+                    NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.OffreId == o.Id),
                     MoyenneNote = _ctx.Feedbacks
                     .Where(f => f.Abonnement.OffreId == o.Id)
                     .Select(f => (double?)f.Note)
@@ -101,6 +102,9 @@ namespace AxiaAbonnement.Services.Implementations
 
         public async Task<OffreDto> CreateOffreAsync(Guid responsableId, CreateOffreDto dto)
         {
+            if (dto.ServiceIds == null || dto.ServiceIds.Count == 0)
+                throw new ArgumentException("Une offre doit contenir au moins un service.");
+
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) throw new Exception("Utilisateur introuvable.");
 

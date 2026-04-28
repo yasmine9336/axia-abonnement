@@ -3,6 +3,5 @@
 public enum SenderType
 {
     Client,
-    Responsable,
-    Bot
+    Responsable
 }

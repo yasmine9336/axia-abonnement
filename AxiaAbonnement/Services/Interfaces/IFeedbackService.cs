@@ -6,6 +6,6 @@ namespace AxiaAbonnement.Services.Interfaces
     {
         Task<(bool Ok, string? Error)> AddFeedbackAsync(Guid clientId, CreateFeedbackDto dto);
         Task<List<FeedbackDto>> GetAllFeedbacksAsync();
-        Task<bool> ExistsAsync(Guid clientId, Guid abonnementId);
+        Task<int?> GetMyNoteAsync(Guid clientId, Guid abonnementId);
     }
 }

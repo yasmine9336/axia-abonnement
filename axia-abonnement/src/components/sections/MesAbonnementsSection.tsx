@@ -6,27 +6,28 @@ interface Abonnement {
   id: string;
   intituleOffre: string;
   description: string;
-  type: string; // "mensuel" | "annuel" (ou autre)
+  type: string;
   montant: number;
   dateDebut: string;
   dateFin: string;
   isActive: boolean;
   statut: "actif" | "en_attente" | "expiré";
   statutDemande?: string | null;
-  aDejaFeedback?: boolean;
+  noteFeedback?: number | null;
+  peutRenouveler?: boolean;
 }
 
 function StarFeedback({
   aboId,
-  aDejaFeedback,
+  noteFeedback,
 }: {
   aboId: string;
-  aDejaFeedback?: boolean;
+  noteFeedback?: number | null;
 }) {
   const [hover, setHover] = useState(0);
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(noteFeedback ?? 0);
 
-  const alreadySent = (aDejaFeedback ?? false) || selected > 0;
+  const alreadySent = selected > 0;
 
   const handleClick = async (n: number) => {
     if (alreadySent) return;
@@ -34,12 +35,11 @@ function StarFeedback({
     setSelected(n);
   };
 
-  const label =
-    selected > 0
-      ? "Merci pour votre avis"
-      : aDejaFeedback
-        ? "Déjà noté"
-        : "Notez ce service";
+  const label = alreadySent
+    ? noteFeedback
+      ? "Déjà noté"
+      : "Merci pour votre avis"
+    : "Notez ce service";
 
   return (
     <div className="mt-5 pt-4 border-t border-gray-100">
@@ -50,7 +50,7 @@ function StarFeedback({
             <button
               key={i}
               disabled={alreadySent}
-              onClick={() => handleClick(i)}
+              onClick={() => void handleClick(i)}
               onMouseEnter={() => !alreadySent && setHover(i)}
               onMouseLeave={() => setHover(0)}
               className="disabled:cursor-default"
@@ -58,13 +58,7 @@ function StarFeedback({
             >
               <svg
                 className={`w-5 h-5 transition-colors ${
-                  selected > 0
-                    ? i <= selected
-                      ? "text-yellow-400"
-                      : "text-gray-200"
-                    : i <= hover
-                      ? "text-yellow-400"
-                      : "text-gray-200"
+                  i <= (hover || selected) ? "text-yellow-400" : "text-gray-200"
                 }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -169,13 +163,6 @@ function KpiCard({
   );
 }
 
-/**
- * Card style “version 2”
- * - bandeau coloré
- * - infos en tuiles
- * - progression
- * - actions cohérentes (renouveler si expiré / demande)
- */
 function AbonnementCardV2({
   a,
   onRenouveler,
@@ -284,7 +271,6 @@ function AbonnementCardV2({
                 }}
               />
             </div>
-
             <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
               <span>
                 {joursRestants >= 0
@@ -301,26 +287,38 @@ function AbonnementCardV2({
         {/* Actions renouvellement si expiré */}
         {isExpired && (
           <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <StatBadge statut={a.statut} />
-              {a.statutDemande === "en_attente" && (
+
+              {!a.peutRenouveler && (
+                <span className="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">
+                  Service non disponible
+                </span>
+              )}
+
+              {a.peutRenouveler && a.statutDemande === "en_attente" && (
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
                   Demande en attente
                 </span>
               )}
-              {a.statutDemande === "acceptée" && (
+              {a.peutRenouveler && a.statutDemande === "acceptée" && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                   Paiement requis
                 </span>
               )}
-              {a.statutDemande === "refusée" && (
+              {a.peutRenouveler && a.statutDemande === "refusée" && (
                 <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
                   Demande refusée
                 </span>
               )}
+              {a.peutRenouveler && a.statutDemande === "expirée" && (
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                  Délai de paiement expiré
+                </span>
+              )}
             </div>
 
-            {a.statutDemande === "acceptée" && (
+            {a.peutRenouveler && a.statutDemande === "acceptée" && (
               <button
                 onClick={() => onPayer(a.id)}
                 className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
@@ -330,7 +328,8 @@ function AbonnementCardV2({
               </button>
             )}
 
-            {a.statutDemande !== "en_attente" &&
+            {a.peutRenouveler &&
+              a.statutDemande !== "en_attente" &&
               a.statutDemande !== "acceptée" && (
                 <button
                   onClick={() => onRenouveler(a.id)}
@@ -346,14 +345,16 @@ function AbonnementCardV2({
                     e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  {a.statutDemande === "refusée" ? "Réessayer" : "Renouveler"}
+                  {a.statutDemande === "refusée" || a.statutDemande === "expirée"
+                    ? "Réessayer"
+                    : "Renouveler"}
                 </button>
               )}
           </div>
         )}
 
         {/* Feedback */}
-        <StarFeedback aboId={a.id} aDejaFeedback={a.aDejaFeedback} />
+        <StarFeedback aboId={a.id} noteFeedback={a.noteFeedback} />
       </div>
     </div>
   );
@@ -376,19 +377,18 @@ export default function SubscriptionsSection() {
                 .catch(() => ({ data: { statut: null } }))
             : Promise.resolve({ data: { statut: null } }),
           axiosInstance
-            .get(`/feedbacks/${a.id}/exists`)
-            .catch(() => ({ data: { exists: false } })),
+            .get(`/feedbacks/${a.id}/my-note`)
+            .catch(() => ({ data: { note: null } })),
         ]);
 
         return {
           ...a,
           statutDemande: a.statut === "expiré" ? statutRes.data.statut : null,
-          aDejaFeedback: feedbackRes.data.exists,
+          noteFeedback: feedbackRes.data.note ?? null,
         };
       }),
     );
 
-    // Tri: plus récent (dateFin) -> plus ancien
     withStatut.sort(
       (x, y) => new Date(y.dateFin).getTime() - new Date(x.dateFin).getTime(),
     );
@@ -402,7 +402,7 @@ export default function SubscriptionsSection() {
       await loadAbonnements();
       if (active) setLoading(false);
     };
-    fetchData();
+    void fetchData();
     return () => {
       active = false;
     };
@@ -433,7 +433,6 @@ export default function SubscriptionsSection() {
     [abonnements],
   );
 
-  // "Total payé" : logique simple et cohérente (ce qui est actuellement en cours)
   const totalPaye = useMemo(
     () => actifs.reduce((sum, a) => sum + (a.montant || 0), 0),
     [actifs],
@@ -454,7 +453,6 @@ export default function SubscriptionsSection() {
         <p className="ui-subtitle">Gérez et suivez tous vos abonnements</p>
       </div>
 
-      {/* KPI (comme la 2ème image) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <KpiCard label="Actifs" value={actifs.length} accent="green" />
         <KpiCard label="Expirés" value={expires.length} accent="red" />
@@ -488,12 +486,10 @@ export default function SubscriptionsSection() {
         </div>
       ) : (
         <div className="space-y-10">
-          {/* ACTIFS */}
           <section>
             <h2 className="text-xs uppercase tracking-wide text-gray-400 mb-3">
               Abonnements actifs
             </h2>
-
             {actifs.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center text-gray-500">
                 Aucun abonnement actif
@@ -512,7 +508,6 @@ export default function SubscriptionsSection() {
             )}
           </section>
 
-          {/* EN ATTENTE (on garde logique, mais style propre) */}
           {enAttente.length > 0 && (
             <section>
               <h2 className="text-xs uppercase tracking-wide text-gray-400 mb-3">
@@ -531,12 +526,10 @@ export default function SubscriptionsSection() {
             </section>
           )}
 
-          {/* EXPIRES */}
           <section>
             <h2 className="text-xs uppercase tracking-wide text-gray-400 mb-3">
               Abonnements expirés
             </h2>
-
             {expires.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
                 <div

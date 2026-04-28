@@ -76,3 +76,10 @@ export interface NotificationItem {
   createdAt: string;
   route?: string; 
 }
+
+export interface ResponsableInfo {
+  id: string;
+  username: string;
+  email: string;
+  abonnementsLies: string[];
+}

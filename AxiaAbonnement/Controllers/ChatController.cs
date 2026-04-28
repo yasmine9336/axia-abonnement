@@ -97,4 +97,33 @@ public class ChatController(IChatService chatService) : ControllerBase
         var result = await _chatService.GetOrCreateConversationForClientAsync(clientId, GetUserId());
         return FromResult(result, Ok);
     }
+
+    [HttpGet("my-responsables")]
+    [Authorize(Policy = "ClientOnly")]
+    public async Task<IActionResult> GetMyResponsables()
+        => Ok(await _chatService.GetMyResponsablesAsync(GetUserId()));
+
+    [HttpGet("with-responsable/{responsableId:guid}")]
+    [Authorize(Policy = "ClientOnly")]
+    public async Task<IActionResult> GetOrCreateWithResponsable(Guid responsableId)
+        => Ok(await _chatService.GetOrCreateConversationWithResponsableAsync(GetUserId(), responsableId));
+
+    [HttpGet("conversations/{conversationId:guid}/client-messages")]
+    [Authorize(Policy = "ClientOnly")]
+    public async Task<IActionResult> GetClientConversationMessages(Guid conversationId)
+    {
+        var result = await _chatService.GetConversationMessagesForClientAsync(conversationId, GetUserId());
+        return FromResult(result, Ok);
+    }
+
+    [HttpPost("conversations/{conversationId:guid}/client-messages")]
+    [Authorize(Policy = "ClientOnly")]
+    public async Task<IActionResult> SendClientMessageToConversation(Guid conversationId, [FromBody] SendMessageDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Content))
+            return BadRequest("Message vide.");
+
+        var result = await _chatService.SendClientMessageToConversationAsync(conversationId, GetUserId(), dto.Content);
+        return FromResult(result, Ok);
+    }
 }
