@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAuth } from "../hooks/useAuth";
 import { SignalRService } from "../services/SignalRService";
@@ -78,7 +78,7 @@ export function NotificationProvider({
     ).length;
   };
 
-  const refreshClientUnreadChat = async () => {
+  const refreshClientUnreadChat = useCallback(async () => {
     if (!user || user.role !== "Client") return;
 
     try {
@@ -107,7 +107,7 @@ export function NotificationProvider({
     } catch {
       setUnreadChat(0);
     }
-  };
+  }, [user]);
 
   // ----- Chargement initial notifications -----
   useEffect(() => {
@@ -153,7 +153,7 @@ export function NotificationProvider({
     }, 15000);
 
     return () => window.clearInterval(id);
-  }, [user]);
+  }, [user, refreshClientUnreadChat]);
 
   // ----- SignalR -----
   useEffect(() => {
