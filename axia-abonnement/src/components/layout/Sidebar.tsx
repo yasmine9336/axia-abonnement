@@ -416,8 +416,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const { unreadMessages, unreadChat, resetUnreadMessages, resetUnreadChat } =
-    useNotifications();
+  const { unreadMessages, unreadChat } = useNotifications();
 
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
@@ -532,8 +531,6 @@ export default function Sidebar() {
               key={item.path}
               onClick={() => {
                 navigate(item.path);
-                if (isMessages) resetUnreadMessages();
-                if (isChat) resetUnreadChat();
               }}
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${
                 isActive

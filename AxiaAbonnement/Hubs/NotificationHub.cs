@@ -11,9 +11,16 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub
     public override async Task OnConnectedAsync()
     {
         var userId = Context.UserIdentifier;
+
+        // Fallback explicite sur claim NameIdentifier
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            userId = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+
         _logger.LogInformation("Hub connected: userId={UserId}", userId);
 
-        if (userId != null)
+        if (!string.IsNullOrWhiteSpace(userId))
             await Groups.AddToGroupAsync(Context.ConnectionId, userId);
 
         await base.OnConnectedAsync();

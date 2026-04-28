@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axiosInstance from "../../api/axiosInstance";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 import { useClientChatWithSelection } from "../../hooks/useChat";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -7,6 +8,16 @@ import { MessageCircle, X, Send, Loader2, ChevronLeft } from "lucide-react";
 export default function ClientChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [conversationByResponsable, setConversationByResponsable] = useState<
+    Record<string, string>
+  >({});
+  const [responsableByConversation, setResponsableByConversation] = useState<
+    Record<string, string>
+  >({});
+  const [unreadByResponsable, setUnreadByResponsable] = useState<
+    Record<string, number>
+  >({});
+
   const {
     responsables,
     selected,
@@ -17,12 +28,102 @@ export default function ClientChat() {
     sendMessage,
     back,
   } = useClientChatWithSelection();
-  const { unreadChat, resetUnreadChat } = useNotifications();
+  const { unreadChat, consumeUnreadChat, signalRService } = useNotifications();
   const bottomRef = useAutoScroll(messages);
+
+  useEffect(() => {
+    if (responsables.length === 0) return;
+
+    let cancelled = false;
+
+    const loadConversationMaps = async () => {
+      const byResp: Record<string, string> = {};
+      const byConv: Record<string, string> = {};
+      const unreadInit: Record<string, number> = {};
+
+      for (const resp of responsables) {
+        try {
+          const convRes = await axiosInstance.get<{ id: string }>(
+            `/chat/with-responsable/${resp.id}`,
+          );
+          const convId = convRes.data.id;
+          byResp[resp.id] = convId;
+          byConv[convId] = resp.id;
+          unreadInit[resp.id] = unreadInit[resp.id] ?? 0;
+        } catch {
+          unreadInit[resp.id] = 0;
+        }
+      }
+
+      if (cancelled) return;
+      setConversationByResponsable(byResp);
+      setResponsableByConversation(byConv);
+      setUnreadByResponsable(unreadInit);
+    };
+
+    void loadConversationMaps();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [responsables]);
+
+  useEffect(() => {
+    if (!signalRService) return;
+
+    const handleStaffReplied = (payload: unknown) => {
+      const data = payload as { conversationId?: string };
+      if (!data.conversationId) return;
+
+      const responsableId = responsableByConversation[data.conversationId];
+      if (!responsableId) return;
+
+      const activeConversationId = selected
+        ? conversationByResponsable[selected.id]
+        : null;
+      const isActiveConversation = open && activeConversationId === data.conversationId;
+
+      if (isActiveConversation) return;
+
+      setUnreadByResponsable((prev) => ({
+        ...prev,
+        [responsableId]: (prev[responsableId] ?? 0) + 1,
+      }));
+    };
+
+    signalRService.on("StaffReplied", handleStaffReplied);
+
+    return () => {
+      signalRService.off("StaffReplied", handleStaffReplied);
+    };
+  }, [
+    signalRService,
+    responsableByConversation,
+    selected,
+    conversationByResponsable,
+    open,
+  ]);
 
   const handleToggle = () => {
     setOpen((v) => !v);
-    if (!open) resetUnreadChat();
+  };
+
+  const clearLineUnread = (responsableId: string) => {
+    const lineUnread = unreadByResponsable[responsableId] ?? 0;
+    if (lineUnread <= 0) return;
+
+    setUnreadByResponsable((prev) => ({
+      ...prev,
+      [responsableId]: 0,
+    }));
+    consumeUnreadChat(lineUnread);
+  };
+
+  const handleSelectResponsable = async (
+    resp: (typeof responsables)[number],
+  ) => {
+    await selectResponsable(resp);
+    clearLineUnread(resp.id);
   };
 
   const handleSend = async () => {
@@ -79,7 +180,6 @@ export default function ClientChat() {
             </button>
           </div>
 
-          {/* Vue sélection responsable */}
           {!selected ? (
             <div className="flex-1 overflow-y-auto">
               {responsables.length === 0 ? (
@@ -97,7 +197,7 @@ export default function ClientChat() {
                     Aucun responsable disponible
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    Vous n'avez pas d'abonnement actif
+                    Vous n&apos;avez pas d&apos;abonnement actif
                   </p>
                 </div>
               ) : (
@@ -105,44 +205,55 @@ export default function ClientChat() {
                   <p className="text-xs text-gray-400 font-medium px-2 py-1 uppercase tracking-wide">
                     Vos responsables
                   </p>
-                  {responsables.map((resp) => (
-                    <button
-                      key={resp.id}
-                      onClick={() => void selectResponsable(resp)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-                        style={{ background: "var(--color-primary)" }}
+                  {responsables.map((resp) => {
+                    const lineUnread = unreadByResponsable[resp.id] ?? 0;
+
+                    return (
+                      <button
+                        key={resp.id}
+                        onClick={() => void handleSelectResponsable(resp)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left"
                       >
-                        {resp.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">
-                          {resp.username}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {resp.email}
-                        </p>
-                        {resp.abonnementsLies.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {resp.abonnementsLies.map((nom) => (
-                              <span
-                                key={nom}
-                                className="px-1.5 py-0.5 rounded text-[10px] font-medium"
-                                style={{
-                                  background: "var(--color-primary-soft)",
-                                  color: "var(--color-primary)",
-                                }}
-                              >
-                                {nom}
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                          style={{ background: "var(--color-primary)" }}
+                        >
+                          {resp.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900 text-sm truncate">
+                              {resp.username}
+                            </p>
+                            {lineUnread > 0 && (
+                              <span className="min-w-5 h-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+                                {lineUnread > 9 ? "9+" : lineUnread}
                               </span>
-                            ))}
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                          <p className="text-xs text-gray-400 truncate">
+                            {resp.email}
+                          </p>
+                          {resp.abonnementsLies.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {resp.abonnementsLies.map((nom) => (
+                                <span
+                                  key={nom}
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                                  style={{
+                                    background: "var(--color-primary-soft)",
+                                    color: "var(--color-primary)",
+                                  }}
+                                >
+                                  {nom}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -156,7 +267,6 @@ export default function ClientChat() {
             </div>
           ) : (
             <>
-              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
                 {messages.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full text-center">
@@ -223,7 +333,6 @@ export default function ClientChat() {
                 <div ref={bottomRef} />
               </div>
 
-              {/* Input */}
               <div className="p-3 border-t border-gray-100 bg-white">
                 <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus-within:border-gray-300 transition-colors">
                   <input
@@ -257,7 +366,6 @@ export default function ClientChat() {
         </div>
       )}
 
-      {/* Bouton flottant */}
       <button
         onClick={handleToggle}
         className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative hover:scale-105"

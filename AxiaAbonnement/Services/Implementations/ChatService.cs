@@ -34,9 +34,6 @@ public class ChatService(
                 createdAt = msg.CreatedAt
             });
 
-        await _notifService.SendAsync(respId,
-            $"Nouveau message : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"", "info",
-            "/dashboard/responsable/messages");
     }
 
     private async Task<bool> ResponsableOwnsClientAsync(Guid responsableId, Guid clientId)
@@ -263,17 +260,20 @@ public class ChatService(
                     isRead = msg.IsRead
                 });
 
-            await _hub.Clients.Group(convo.ClientId.ToString())
-                .SendAsync("StaffReplied", new
-                {
-                    conversationId = convo.Id,
-                    content = msg.Content,
-                    createdAt = msg.CreatedAt
-                });
+            var payload = new
+            {
+                conversationId = convo.Id,
+                content = msg.Content,
+                createdAt = msg.CreatedAt
+            };
 
-            await _notifService.SendAsync(convo.ClientId,
-                $"Nouveau message du support : \"{msg.Content[..Math.Min(msg.Content.Length, 60)]}\"", "info",
-                "/dashboard/client/chat");
+            // Envoi au groupe utilisateur (comportement actuel)
+            await _hub.Clients.Group(convo.ClientId.ToString())
+                .SendAsync("StaffReplied", payload);
+
+            // Envoi direct par UserIdentifier (fallback robuste)
+            await _hub.Clients.User(convo.ClientId.ToString())
+                .SendAsync("StaffReplied", payload);
 
             return ServiceResult<SentMessageDto>.Ok(new SentMessageDto
             {
