@@ -107,4 +107,16 @@ public class ChatController(IChatService chatService) : ControllerBase
         var result = await _chatService.SendClientMessageToConversationAsync(conversationId, GetUserId(), dto.Content);
         return FromResult(result, Ok);
     }
+
+    [HttpGet("conversations/{conversationId:guid}/client-unread-count")]
+    [Authorize(Policy = "ClientOnly")]
+    public async Task<IActionResult> GetClientUnreadCount(Guid conversationId)
+    {
+        var result = await _chatService.GetClientUnreadCountAsync(
+            conversationId,
+            GetUserId()
+        );
+
+        return FromResult(result, count => Ok(new { unreadCount = count }));
+    }
 }

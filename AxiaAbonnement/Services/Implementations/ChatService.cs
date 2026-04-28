@@ -271,10 +271,6 @@ public class ChatService(
             await _hub.Clients.Group(convo.ClientId.ToString())
                 .SendAsync("StaffReplied", payload);
 
-            // Envoi direct par UserIdentifier (fallback robuste)
-            await _hub.Clients.User(convo.ClientId.ToString())
-                .SendAsync("StaffReplied", payload);
-
             return ServiceResult<SentMessageDto>.Ok(new SentMessageDto
             {
                 Id = msg.Id,
@@ -490,5 +486,25 @@ public class ChatService(
             await tx.RollbackAsync();
             throw;
         }
+    }
+    public async Task<ServiceResult<int>> GetClientUnreadCountAsync(
+    Guid conversationId,
+    Guid clientId)
+    {
+        var convo = await _ctx.ChatConversations
+            .Include(c => c.Messages)
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+        if (convo == null)
+            return ServiceResult<int>.NotFound("Conversation introuvable.");
+
+        if (convo.ClientId != clientId)
+            return ServiceResult<int>.Forbidden();
+
+        var count = convo.Messages.Count(m =>
+            m.SenderType == nameof(Responsable) && !m.IsRead
+        );
+
+        return ServiceResult<int>.Ok(count);
     }
 }

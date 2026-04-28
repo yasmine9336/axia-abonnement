@@ -15,10 +15,11 @@ interface NotificationContextType {
   unreadChat: number;
   resetUnreadMessages: () => void;
   resetUnreadChat: () => void;
+  addUnreadChat: (count?: number) => void;
+  consumeUnreadChat: (count?: number) => void;
   badgeCount: number;
   dismissBadge: () => void;
   signalRService: SignalRService | null;
-  consumeUnreadChat: (count?: number) => void;
 }
 
 export const NotificationContext = createContext<NotificationContextType>({
@@ -32,13 +33,13 @@ export const NotificationContext = createContext<NotificationContextType>({
   unreadChat: 0,
   resetUnreadMessages: () => {},
   resetUnreadChat: () => {},
+  addUnreadChat: () => {},
+  consumeUnreadChat: () => {},
   badgeCount: 0,
   dismissBadge: () => {},
   signalRService: null,
-  consumeUnreadChat: () => {},
 });
 
-// ---- Helpers persistants (hors composant) ----
 const getSeenKey = (userId?: string) =>
   userId ? `notif:lastSeenAt:${userId}` : null;
 
@@ -70,7 +71,6 @@ export function NotificationProvider({
     null,
   );
 
-  // ----- Helpers de recalcul -----
   const recomputeBadgeCount = (list: NotificationItem[], userId?: string) => {
     const lastSeenAt = getLastSeenAt(userId);
     return list.filter(
@@ -92,15 +92,12 @@ export function NotificationProvider({
         const convRes = await axiosInstance.get<{ id: string }>(
           `/chat/with-responsable/${r.id}`,
         );
-        const convId = convRes.data.id;
 
-        const msgsRes = await axiosInstance.get<
-          Array<{ senderType: string; isRead: boolean }>
-        >(`/chat/conversations/${convId}/client-messages`);
+        const unreadRes = await axiosInstance.get<{ unreadCount: number }>(
+          `/chat/conversations/${convRes.data.id}/client-unread-count`,
+        );
 
-        totalUnread += (msgsRes.data ?? []).filter(
-          (m) => m.senderType === "Responsable" && !m.isRead,
-        ).length;
+        totalUnread += unreadRes.data.unreadCount ?? 0;
       }
 
       setUnreadChat(totalUnread);
@@ -109,10 +106,9 @@ export function NotificationProvider({
     }
   }, [user]);
 
-  // ----- Chargement initial notifications -----
+  // Chargement initial notifications
   useEffect(() => {
     if (!user) return;
-
     axiosInstance
       .get("/notifications")
       .then((r) => {
@@ -126,10 +122,9 @@ export function NotificationProvider({
       });
   }, [user]);
 
-  // ----- Compteur non lus responsable (messages) -----
+  // Compteur non lus responsable
   useEffect(() => {
     if (!user || user.role !== "Responsable") return;
-
     axiosInstance
       .get("/chat/conversations")
       .then((r) => {
@@ -142,20 +137,15 @@ export function NotificationProvider({
       .catch(() => setUnreadMessages(0));
   }, [user]);
 
-  // ----- Fallback unread chat client (reconnexion / refresh) -----
+  // Polling unread chat client
   useEffect(() => {
     if (!user || user.role !== "Client") return;
-
     void refreshClientUnreadChat();
-
-    const id = window.setInterval(() => {
-      void refreshClientUnreadChat();
-    }, 15000);
-
+    const id = window.setInterval(() => void refreshClientUnreadChat(), 15000);
     return () => window.clearInterval(id);
   }, [user, refreshClientUnreadChat]);
 
-  // ----- SignalR -----
+  // SignalR
   useEffect(() => {
     if (!user) return;
 
@@ -169,19 +159,14 @@ export function NotificationProvider({
           return next;
         });
       },
-
       onNewMessage: () => {
         if (user.role === "Responsable") setUnreadMessages((n) => n + 1);
       },
-
-      onStaffReplied: () => {
-        if (user.role === "Client") setUnreadChat((n) => n + 1);
-      },
+      // StaffReplied est géré dans useClientChatWithSelection
+      // pour savoir si la conversation est ouverte ou non
     });
 
-    service.startConnection().then(() => {
-      setSignalRService(service);
-    });
+    service.startConnection().then(() => setSignalRService(service));
 
     return () => {
       service.stopConnection();
@@ -234,14 +219,16 @@ export function NotificationProvider({
         unreadChat,
         resetUnreadMessages: () => setUnreadMessages(0),
         resetUnreadChat: () => setUnreadChat(0),
+        addUnreadChat: (count = 1) =>
+          setUnreadChat((n) => n + Math.max(0, count)),
+        consumeUnreadChat: (count = 1) =>
+          setUnreadChat((n) => Math.max(0, n - Math.max(0, count))),
         badgeCount,
         dismissBadge: () => {
           if (user) setLastSeenAtNow(user.id);
           setBadgeCount(0);
         },
         signalRService,
-        consumeUnreadChat: (count = 1) =>
-          setUnreadChat((n) => Math.max(0, n - Math.max(0, count))),
       }}
     >
       {children}
