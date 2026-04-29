@@ -92,6 +92,36 @@ function daysBetween(from: string, to: string) {
   return diff;
 }
 
+function totalSubscriptionDays(dateDebut: string, dateFin: string) {
+  const start = new Date(dateDebut).getTime();
+  const end = new Date(dateFin).getTime();
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return 0;
+  }
+
+  return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+}
+
+function usedSubscriptionDays(dateDebut: string, dateFin: string) {
+  const start = new Date(dateDebut).getTime();
+  const end = new Date(dateFin).getTime();
+  const now = Date.now();
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return 0;
+  }
+
+  const total = totalSubscriptionDays(dateDebut, dateFin);
+  const used = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+
+  return Math.max(0, Math.min(used, total));
+}
+
+function pluralJour(n: number) {
+  return `${n} jour${n > 1 ? "s" : ""}`;
+}
+
 const StatBadge = ({ statut }: { statut: Abonnement["statut"] }) => {
   const cls =
     statut === "actif"
@@ -173,7 +203,13 @@ function AbonnementCardV2({
   onPayer: (id: string) => void;
 }) {
   const progress = getBillingProgress(a.dateDebut, a.dateFin);
-  const joursRestants = daysBetween(new Date().toISOString(), a.dateFin);
+  const joursRestants = Math.max(
+    0,
+    daysBetween(new Date().toISOString(), a.dateFin),
+  );
+
+  const totalDays = totalSubscriptionDays(a.dateDebut, a.dateFin);
+  const usedDays = usedSubscriptionDays(a.dateDebut, a.dateFin);
 
   const isExpired = a.statut === "expiré";
   const isActive = a.statut === "actif";
@@ -271,12 +307,13 @@ function AbonnementCardV2({
                 }}
               />
             </div>
-            <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+            <div className="flex items-center justify-between text-xs text-gray-500 mt-2 gap-3 flex-wrap">
               <span>
-                {joursRestants >= 0
-                  ? `${joursRestants} jours restants`
-                  : "Échu"}
+                {totalDays > 0
+                  ? `${pluralJour(usedDays)} utilisé${usedDays > 1 ? "s" : ""} sur ${pluralJour(totalDays)} · ${pluralJour(joursRestants)} restant${joursRestants > 1 ? "s" : ""}`
+                  : `${pluralJour(joursRestants)} restant${joursRestants > 1 ? "s" : ""}`}
               </span>
+
               <span className="text-gray-400">
                 Prochaine facturation : {formatDateFR(a.dateFin)}
               </span>

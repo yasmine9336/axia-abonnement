@@ -1,14 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 import { useClientChatWithSelection } from "../../hooks/useChat";
 import { useNotifications } from "../../hooks/useNotifications";
-import {
-  MessageCircle,
-  X,
-  Send,
-  Loader2,
-  ChevronLeft,
-} from "lucide-react";
+import { MessageCircle, X, Send, Loader2, ChevronLeft } from "lucide-react";
 
 export default function ClientChat() {
   const [open, setOpen] = useState(false);
@@ -27,6 +21,19 @@ export default function ClientChat() {
 
   const { unreadChat } = useNotifications();
   const bottomRef = useAutoScroll(messages);
+
+  useEffect(() => {
+    if (!open || !selected) return;
+
+    const timeoutId = window.setTimeout(() => {
+      bottomRef.current?.scrollIntoView({
+        behavior: "auto",
+        block: "end",
+      });
+    }, 50);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [open, selected, messages.length, bottomRef]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -274,20 +281,23 @@ export default function ClientChat() {
       )}
 
       {/* Bouton flottant */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative hover:scale-105"
-        style={{ background: "var(--color-primary)" }}
-      >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+      {/* Bouton flottant : affiché seulement quand le chat est fermé */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all relative hover:scale-105"
+          style={{ background: "var(--color-primary)" }}
+        >
+          <MessageCircle size={22} />
 
-        {/* Compteur global : ne se décrémente PAS ici */}
-        {unreadChat > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-            {formatBadge(unreadChat)}
-          </span>
-        )}
-      </button>
+          {/* Compteur global */}
+          {unreadChat > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+              {formatBadge(unreadChat)}
+            </span>
+          )}
+        </button>
+      )}
     </div>
   );
 }

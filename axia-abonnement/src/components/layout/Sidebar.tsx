@@ -33,7 +33,7 @@ const clientNav: NavItem[] = [
     ),
   },
   {
-    label: "Paiement",
+    label: "Souscrire",
     path: "/dashboard/client/payment",
     icon: (
       <svg
@@ -52,7 +52,7 @@ const clientNav: NavItem[] = [
     ),
   },
   {
-    label: "Abonnements",
+    label: "Mes abonnements",
     path: "/dashboard/client/subscriptions",
     icon: (
       <svg
@@ -71,7 +71,7 @@ const clientNav: NavItem[] = [
     ),
   },
   {
-    label: "Historique",
+    label: "Mes paiements",
     path: "/dashboard/client/history",
     icon: (
       <svg
@@ -90,7 +90,7 @@ const clientNav: NavItem[] = [
     ),
   },
   {
-    label: "Profil",
+    label: "Mon profil",
     path: "/dashboard/client/profile",
     icon: (
       <svg
@@ -112,7 +112,7 @@ const clientNav: NavItem[] = [
 
 const responsableNav: NavItem[] = [
   {
-    label: "Vue générale",
+    label: "Tableau de bord",
     path: "/dashboard/responsable",
     icon: (
       <svg

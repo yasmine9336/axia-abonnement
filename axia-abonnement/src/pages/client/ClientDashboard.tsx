@@ -128,7 +128,7 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
       border: "border-t-blue-500",
     },
     {
-      label: "TOTAL DÉPENSÉ",
+      label: "TOTAL PAYÉ",
       value: `${totalDepense.toFixed(2)} TND`,
       sub: "tous paiements",
       icon: <Wallet className="w-5 h-5 text-green-500" />,
@@ -145,7 +145,7 @@ export default function ClientDashboard({ section = "dashboard" }: Props) {
     {
       label: "CE MOIS-CI",
       value: `${totalCeMois.toFixed(2)} TND`,
-      sub: "dépensé",
+      sub: "payé ce mois-ci",
       icon: <BarChart3 className="w-5 h-5 text-orange-500" />,
       border: "border-t-orange-400",
       large: true,

@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, type FormEvent } from "react";
 import axiosInstance from "../../api/axiosInstance";
+import ExportButton from "../common/ExportButton";
+import { Search } from "lucide-react";
 
 interface Service {
   id: string;
@@ -29,6 +31,10 @@ interface OffreForm {
   serviceIds: string[];
 }
 
+type StatusFilter = "tous" | "actif" | "inactif";
+type ServicesFilter = "all" | "withServices" | "withoutServices";
+type AbonnesFilter = "all" | "withAbonnes" | "withoutAbonnes";
+
 const emptyForm: OffreForm = {
   intituleOffre: "",
   description: "",
@@ -37,11 +43,20 @@ const emptyForm: OffreForm = {
   serviceIds: [],
 };
 
+const PAGE_SIZE = 3;
+
 export default function OffresSection() {
   const [offres, setOffres] = useState<Offre[]>([]);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("tous");
+  const [creatorFilter, setCreatorFilter] = useState("all");
+  const [servicesFilter, setServicesFilter] =
+    useState<ServicesFilter>("all");
+  const [abonnesFilter, setAbonnesFilter] = useState<AbonnesFilter>("all");
+
   const [showModal, setShowModal] = useState(false);
   const [editingOffre, setEditingOffre] = useState<Offre | null>(null);
   const [form, setForm] = useState<OffreForm>(emptyForm);
@@ -50,12 +65,11 @@ export default function OffresSection() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 3;
 
   const fetchOffres = async () => {
     try {
       const res = await axiosInstance.get("/offres");
-      setOffres(res.data);
+      setOffres(res.data ?? []);
     } catch {
       console.error("Erreur chargement offres");
     } finally {
@@ -66,7 +80,7 @@ export default function OffresSection() {
   const fetchServices = async () => {
     try {
       const res = await axiosInstance.get("/services");
-      setAllServices(res.data);
+      setAllServices(res.data ?? []);
     } catch {
       console.error("Erreur chargement services");
     }
@@ -77,11 +91,119 @@ export default function OffresSection() {
     fetchServices();
   }, []);
 
+  const activeCount = useMemo(
+    () => offres.filter((o) => o.isActive).length,
+    [offres],
+  );
+
+  const inactiveCount = offres.length - activeCount;
+
+  const totalAbonnes = useMemo(
+    () => offres.reduce((sum, o) => sum + o.nbAbonnes, 0),
+    [offres],
+  );
+
+  const totalServices = useMemo(
+    () => new Set(offres.flatMap((o) => o.services)).size,
+    [offres],
+  );
+
+  const filteredOffres = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+
+    let result = offres;
+
+    if (statusFilter === "actif") {
+      result = result.filter((o) => o.isActive);
+    }
+
+    if (statusFilter === "inactif") {
+      result = result.filter((o) => !o.isActive);
+    }
+
+    if (creatorFilter !== "all") {
+      result = result.filter((o) => o.creePar === creatorFilter);
+    }
+
+    if (servicesFilter === "withServices") {
+      result = result.filter((o) => o.services.length > 0);
+    }
+
+    if (servicesFilter === "withoutServices") {
+      result = result.filter((o) => o.services.length === 0);
+    }
+
+    if (abonnesFilter === "withAbonnes") {
+      result = result.filter((o) => o.nbAbonnes > 0);
+    }
+
+    if (abonnesFilter === "withoutAbonnes") {
+      result = result.filter((o) => o.nbAbonnes === 0);
+    }
+
+    if (!term) return result;
+
+    return result.filter(
+      (o) =>
+        o.intituleOffre.toLowerCase().includes(term) ||
+        o.description.toLowerCase().includes(term) ||
+        o.creePar.toLowerCase().includes(term) ||
+        o.services.some((s) => s.toLowerCase().includes(term)),
+    );
+  }, [
+    offres,
+    searchTerm,
+    statusFilter,
+    creatorFilter,
+    servicesFilter,
+    abonnesFilter,
+  ]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredOffres.length / PAGE_SIZE),
+  );
+
+  const paginatedOffres = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredOffres.slice(start, start + PAGE_SIZE);
+  }, [filteredOffres, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchTerm,
+    statusFilter,
+    creatorFilter,
+    servicesFilter,
+    abonnesFilter,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const hasFilters =
+    searchTerm.trim() !== "" ||
+    statusFilter !== "tous" ||
+    creatorFilter !== "all" ||
+    servicesFilter !== "all" ||
+    abonnesFilter !== "all";
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("tous");
+    setCreatorFilter("all");
+    setServicesFilter("all");
+    setAbonnesFilter("all");
+  };
+
   const handleParMoisChange = (value: number | "") => {
     if (value === "" || isNaN(Number(value))) {
       setForm({ ...form, parMois: "" });
       return;
     }
+
     const parAnnee = parseFloat((Number(value) * 12 * 0.8).toFixed(2));
     setForm({ ...form, parMois: value, parAnnee });
   };
@@ -90,18 +212,9 @@ export default function OffresSection() {
     const selected = form.serviceIds.includes(id)
       ? form.serviceIds.filter((s) => s !== id)
       : [...form.serviceIds, id];
+
     setForm({ ...form, serviceIds: selected });
   };
-
-  const filteredOffres = offres.filter((o) =>
-    o.intituleOffre.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  const totalPages = Math.ceil(filteredOffres.length / pageSize);
-  const paginatedOffres = filteredOffres.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
 
   const openCreate = () => {
     setEditingOffre(null);
@@ -112,6 +225,7 @@ export default function OffresSection() {
 
   const openEdit = (offre: Offre) => {
     setEditingOffre(offre);
+
     setForm({
       intituleOffre: offre.intituleOffre,
       description: offre.description,
@@ -121,22 +235,25 @@ export default function OffresSection() {
         .filter((s) => offre.services.includes(s.intituleService))
         .map((s) => s.id),
     });
+
     setFormError("");
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: React.BaseSyntheticEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError("");
     setFormLoading(true);
+
     try {
       if (editingOffre) {
         await axiosInstance.patch(`/offres/${editingOffre.id}`, form);
       } else {
         await axiosInstance.post("/offres", form);
       }
+
       setShowModal(false);
-      fetchOffres();
+      await fetchOffres();
     } catch (err) {
       const error = err as { response?: { data?: string } };
       setFormError(error.response?.data || "Une erreur est survenue.");
@@ -148,7 +265,7 @@ export default function OffresSection() {
   const handleToggle = async (id: string) => {
     try {
       await axiosInstance.patch(`/offres/${id}/toggle`);
-      fetchOffres();
+      await fetchOffres();
     } catch {
       console.error("Erreur toggle");
     }
@@ -158,15 +275,47 @@ export default function OffresSection() {
     try {
       await axiosInstance.delete(`/offres/${id}`);
       setDeleteConfirm(null);
-      fetchOffres();
+      await fetchOffres();
     } catch {
       console.error("Erreur suppression");
     }
   };
 
-  const activeCount = offres.filter((o) => o.isActive).length;
-  const totalAbonnes = offres.reduce((sum, o) => sum + o.nbAbonnes, 0);
-  const totalServices = new Set(offres.flatMap((o) => o.services)).size;
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-100">
+        <p className="text-xs text-gray-500">
+          Affichage de {(currentPage - 1) * PAGE_SIZE + 1} à{" "}
+          {Math.min(currentPage * PAGE_SIZE, filteredOffres.length)} sur{" "}
+          {filteredOffres.length} offre(s)
+        </p>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Précédent
+          </button>
+
+          <span className="text-xs text-gray-500">
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="ui-btn-secondary text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Suivant
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const kpiCards = [
     {
@@ -193,7 +342,7 @@ export default function OffresSection() {
     {
       label: "OFFRES ACTIVES",
       value: activeCount,
-      sub: `${offres.length - activeCount} inactive${offres.length - activeCount !== 1 ? "s" : ""}`,
+      sub: `${inactiveCount} inactive${inactiveCount !== 1 ? "s" : ""}`,
       border: "border-t-green-400",
       icon: (
         <svg
@@ -255,20 +404,19 @@ export default function OffresSection() {
     },
   ];
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="ui-spinner" />
       </div>
     );
+  }
 
   return (
     <div className="ui-page">
-  <div className="mb-8">
-    <h1 className="ui-title">Gestion des offres</h1>
-    <p className="ui-subtitle">
-          Créez et gérez les offres d'abonnement.
-        </p>
+      <div className="mb-8">
+        <h1 className="ui-title">Gestion des offres</h1>
+        <p className="ui-subtitle">Créez et gérez les offres d'abonnement.</p>
       </div>
 
       {/* KPI Cards */}
@@ -283,62 +431,148 @@ export default function OffresSection() {
                 <p className="text-xs text-gray-400 font-medium tracking-wide mb-2">
                   {card.label}
                 </p>
-                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+
+                <p className="text-3xl font-bold text-gray-900">
+                  {card.value}
+                </p>
+
                 <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
               </div>
+
               <div className="mt-1">{card.icon}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Search + Ajouter */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+      {/* Bloc principal */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <h2 className="text-lg font-bold text-gray-900">
+              Toutes les offres ({filteredOffres.length})
+            </h2>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <button
+                onClick={openCreate}
+                className="ui-btn-primary flex items-center justify-center gap-2 px-4 py-2.5"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4.5v15m7.5-7.5h-15"
+                  />
+                </svg>
+                Ajouter une offre
+              </button>
+
+              <ExportButton
+                data={filteredOffres}
+                columns={[
+                  { key: "intituleOffre", label: "Intitulé" },
+                  { key: "description", label: "Description" },
+                  { key: "parMois", label: "Prix/mois (TND)" },
+                  { key: "parAnnee", label: "Prix/an (TND)" },
+                  { key: "nbAbonnes", label: "Abonnés" },
+                  {
+                    key: "services",
+                    label: "Services inclus",
+                    format: (v) => (Array.isArray(v) ? v.join(", ") : ""),
+                  },
+                  { key: "creePar", label: "Créé par" },
+                  {
+                    key: "isActive",
+                    label: "Statut",
+                    format: (v) => (v ? "Active" : "Inactive"),
+                  },
+                ]}
+                filename="offres"
+                label="Exporter"
+                sheetName="Offres"
+                pdfTitle="Liste des offres"
               />
-            </svg>
-            <input
-              type="text"
-              placeholder="Rechercher une offre..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="ui-input pl-9 pr-4"
-            />
+            </div>
           </div>
-          <button
-            onClick={openCreate}
-            className="ui-btn-primary flex items-center gap-2 text-sm shrink-0"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
+
+          {/* Filtres */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex bg-gray-50 border border-gray-200 rounded-xl p-1">
+              {(["tous", "actif", "inactif"] as const).map((t) => {
+                const active = statusFilter === t;
+
+                const count =
+                  t === "tous"
+                    ? offres.length
+                    : t === "actif"
+                      ? activeCount
+                      : inactiveCount;
+
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setStatusFilter(t)}
+                    className={`px-3 py-2 text-sm rounded-lg font-medium transition ${
+                      active
+                        ? "bg-white shadow-sm text-(--color-primary)"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {t === "tous"
+                      ? "Tous"
+                      : t === "actif"
+                        ? "Actives"
+                        : "Inactives"}
+                    <span className="ml-1 text-xs font-semibold">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="relative flex-1 min-w-64">
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
               />
-            </svg>
-            Ajouter une offre
-          </button>
+
+              <input
+                type="text"
+                placeholder="Rechercher par offre, description, service ou créateur..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="ui-input w-full pl-11! pr-4"
+              />
+            </div>
+
+
+            <select
+              value={abonnesFilter}
+              onChange={(e) =>
+                setAbonnesFilter(e.target.value as AbonnesFilter)
+              }
+              className="h-10 min-w-44 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none focus:border-(--color-primary)"
+            >
+              <option value="all">Tous les abonnés</option>
+              <option value="withAbonnes">Avec abonnés</option>
+              <option value="withoutAbonnes">Sans abonné</option>
+            </select>
+
+            {hasFilters && (
+              <button
+                onClick={resetFilters}
+                className="h-10 px-3 rounded-xl border border-gray-200 text-sm font-medium text-(--color-primary) hover:bg-gray-50"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -362,17 +596,20 @@ export default function OffresSection() {
                       <h3 className="font-bold text-gray-900 text-base">
                         {offre.intituleOffre}
                       </h3>
+
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                         {offre.description}
                       </p>
                     </div>
+
                     <div className="flex items-center gap-1 shrink-0">
-                      {/* Toggle */}
                       <button
                         onClick={() => handleToggle(offre.id)}
                         title={offre.isActive ? "Désactiver" : "Activer"}
                         className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition-colors duration-300 ${
-                          offre.isActive ? "bg-(--color-primary)" : "bg-gray-300"
+                          offre.isActive
+                            ? "bg-(--color-primary)"
+                            : "bg-gray-300"
                         }`}
                       >
                         <span
@@ -381,7 +618,7 @@ export default function OffresSection() {
                           }`}
                         />
                       </button>
-                      {/* Edit */}
+
                       <button
                         onClick={() => openEdit(offre)}
                         className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
@@ -400,7 +637,7 @@ export default function OffresSection() {
                           />
                         </svg>
                       </button>
-                      {/* Delete */}
+
                       <button
                         onClick={() => setDeleteConfirm(offre.id)}
                         className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
@@ -425,12 +662,12 @@ export default function OffresSection() {
 
                 {/* Card Body */}
                 <div className="p-5 space-y-4 flex-1 flex flex-col">
-                  {/* Prix */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
                       <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
                         PAR MOIS
                       </p>
+
                       <p className="text-lg font-extrabold text-(--color-primary)">
                         {offre.parMois}{" "}
                         <span className="text-xs font-semibold text-gray-400">
@@ -438,10 +675,12 @@ export default function OffresSection() {
                         </span>
                       </p>
                     </div>
+
                     <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
                       <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
                         PAR AN
                       </p>
+
                       <p className="text-lg font-extrabold text-green-600">
                         {offre.parAnnee}{" "}
                         <span className="text-xs font-semibold text-gray-400">
@@ -451,12 +690,12 @@ export default function OffresSection() {
                     </div>
                   </div>
 
-                  {/* Services inclus */}
                   {offre.services.length > 0 && (
                     <div>
                       <p className="text-xs text-gray-400 mb-2">
                         SERVICES INCLUS
                       </p>
+
                       <div className="flex flex-wrap gap-1.5">
                         {offre.services.map((s, i) => (
                           <span
@@ -470,7 +709,6 @@ export default function OffresSection() {
                     </div>
                   )}
 
-                  {/* Footer */}
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
                     <div className="flex items-center gap-2">
                       <span
@@ -482,6 +720,7 @@ export default function OffresSection() {
                       >
                         {offre.isActive ? "Active" : "Inactive"}
                       </span>
+
                       <span className="text-xs text-gray-500">
                         {offre.nbAbonnes} abonné
                         {offre.nbAbonnes !== 1 ? "s" : ""}
@@ -493,34 +732,7 @@ export default function OffresSection() {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <p className="text-xs text-gray-500">
-                {(currentPage - 1) * pageSize + 1}-
-                {Math.min(currentPage * pageSize, filteredOffres.length)} sur{" "}
-                {filteredOffres.length} offres
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => p - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Précédent
-                </button>
-                <span className="text-xs text-gray-500">
-                  {currentPage} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => p + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
+          {renderPagination()}
         </>
       )}
 
@@ -532,6 +744,7 @@ export default function OffresSection() {
               <h2 className="text-lg font-bold text-gray-900">
                 {editingOffre ? "Modifier l'offre" : "Ajouter une offre"}
               </h2>
+
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -557,6 +770,7 @@ export default function OffresSection() {
                 <label className="block text-sm font-medium text-gray-800 mb-1">
                   Intitulé de l'offre
                 </label>
+
                 <input
                   type="text"
                   value={form.intituleOffre}
@@ -573,6 +787,7 @@ export default function OffresSection() {
                 <label className="block text-sm font-medium text-gray-800 mb-1">
                   Description
                 </label>
+
                 <textarea
                   value={form.description}
                   onChange={(e) =>
@@ -590,6 +805,7 @@ export default function OffresSection() {
                 <label className="block text-sm font-medium text-gray-800 mb-2">
                   Services inclus
                 </label>
+
                 <div className="space-y-2 max-h-40 overflow-y-auto bg-gray-50 border border-gray-200 rounded-xl p-3">
                   {allServices.length === 0 ? (
                     <p className="text-xs text-gray-400 text-center py-2">
@@ -607,6 +823,7 @@ export default function OffresSection() {
                           onChange={() => toggleService(s.id)}
                           className="rounded accent-(--color-primary)"
                         />
+
                         <span className="text-sm text-gray-700">
                           {s.intituleService}
                         </span>
@@ -622,12 +839,15 @@ export default function OffresSection() {
                   <label className="block text-sm font-medium text-gray-800 mb-1">
                     Prix / mois <span className="text-gray-400">(TND)</span>
                   </label>
+
                   <input
                     type="number"
                     value={form.parMois}
                     onChange={(e) =>
                       handleParMoisChange(
-                        e.target.value === "" ? "" : parseFloat(e.target.value),
+                        e.target.value === ""
+                          ? ""
+                          : parseFloat(e.target.value),
                       )
                     }
                     placeholder="0.00"
@@ -637,6 +857,7 @@ export default function OffresSection() {
                     required
                   />
                 </div>
+
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-800 mb-1">
                     Prix annuel <span className="text-gray-400">(TND)</span>
@@ -644,6 +865,7 @@ export default function OffresSection() {
                       -20%
                     </span>
                   </label>
+
                   <input
                     type="number"
                     value={form.parAnnee}
@@ -679,6 +901,7 @@ export default function OffresSection() {
                 >
                   Annuler
                 </button>
+
                 <button
                   type="submit"
                   disabled={formLoading}
@@ -703,9 +926,11 @@ export default function OffresSection() {
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               Supprimer l'offre ?
             </h3>
+
             <p className="text-sm text-gray-500 mb-6">
               Cette action est irréversible.
             </p>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteConfirm(null)}
@@ -713,6 +938,7 @@ export default function OffresSection() {
               >
                 Annuler
               </button>
+
               <button
                 onClick={() => handleDelete(deleteConfirm)}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"

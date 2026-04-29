@@ -57,7 +57,7 @@ export default function HistoriqueSection() {
     axiosInstance
       .get("/payment/history")
       .then((r) => setPaiements(r.data))
-      .catch(() => setError("Erreur lors du chargement des transactions."))
+      .catch(() => setError("Erreur lors du chargement des paiements."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -136,14 +136,14 @@ export default function HistoriqueSection() {
 
   const kpiCards = [
     {
-      label: "TOTAL DÉPENSÉ",
+      label: "TOTAL PAYÉ",
       value: `${totalDepense.toFixed(2)} TND`,
       sub: "paiements complétés",
       icon: <Wallet className="w-5 h-5 text-green-500" />,
       border: "border-t-green-400",
     },
     {
-      label: "TRANSACTIONS",
+      label: "PAIEMENTS",
       value: paiements.length,
       sub: `${paiements.filter((p) => isCompleted(p.statut)).length} complétée${paiements.filter((p) => isCompleted(p.statut)).length !== 1 ? "s" : ""}`,
       icon: <Receipt className="w-5 h-5 text-blue-600" />,
@@ -152,7 +152,7 @@ export default function HistoriqueSection() {
     {
       label: "CE MOIS-CI",
       value: `${ceMois.toFixed(2)} TND`,
-      sub: "dépensé ce mois",
+      sub: "payé",
       icon: <BarChart3 className="w-5 h-5 text-orange-500" />,
       border: "border-t-orange-400",
     },
@@ -161,7 +161,7 @@ export default function HistoriqueSection() {
   return (
     <div className="ui-page">
       <div className="mb-6">
-        <h1 className="ui-title">Historique des transactions</h1>
+        <h1 className="ui-title">Historique de mes paiements</h1>
       </div>
 
       {/* KPI Cards */}
@@ -197,14 +197,14 @@ export default function HistoriqueSection() {
         <div className="text-center py-16 text-red-500 text-sm">{error}</div>
       ) : paiements.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200 text-center py-16 text-gray-400 text-sm">
-          Aucune transaction
+          Aucun paiement
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           {/* Header bloc */}
           <div className="px-5 py-4 border-b border-gray-100 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <h2 className="text-sm font-semibold text-gray-900 no-underline">
-              Toutes les transactions
+              Tous les paiements
             </h2>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -254,7 +254,7 @@ export default function HistoriqueSection() {
               <thead>
                 <tr className="border-b border-gray-100">
                   {[
-                    "Service",
+                    "Service / Offre",
                     "Date",
                     "Période",
                     "Montant",

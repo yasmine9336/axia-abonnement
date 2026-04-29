@@ -149,7 +149,7 @@ export default function ResponsableDashboard({ section = "dashboard" }: Props) {
                 BIENVENUE, {String(user?.username ?? "").toUpperCase()}
               </p>
               <h2 className="text-2xl lg:text-3xl font-extrabold text-white mt-1">
-                Vue générale · {period}
+                Tableau de bord · {period}
               </h2>
               <p className="text-white/80 text-sm mt-1">Aperçu complet de vos opérations</p>
             </div>

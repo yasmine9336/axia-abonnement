@@ -145,9 +145,9 @@ export default function PaymentSection() {
   return (
     <div className="ui-page">
       <div className="mb-6">
-        <h1 className="ui-title">Paiement</h1>
+        <h1 className="ui-title">Soucrire un abonnement</h1>
         <p className="ui-subtitle">
-          Choisissez un service ou une offre et complétez votre abonnement.
+          Choisissez un service ou une offre, puis finalisez votre souscription.
         </p>
       </div>
 
