@@ -83,7 +83,8 @@ namespace AxiaAbonnement.Services.Implementations
                 await _notifService.SendAsync(
                     respId,
                     $"Nouveau feedback de {client?.Username ?? "un client"} — Note : {dto.Note}/5.",
-                    "info"
+                    "info",
+                    "/dashboard/responsable/suivi-abonnements"
                 );
             }
 

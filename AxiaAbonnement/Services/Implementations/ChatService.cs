@@ -487,24 +487,39 @@ public class ChatService(
             throw;
         }
     }
-    public async Task<ServiceResult<int>> GetClientUnreadCountAsync(
-    Guid conversationId,
-    Guid clientId)
+    public async Task<ServiceResult<int>> GetClientUnreadCountAsync(Guid conversationId, Guid clientId)
     {
-        var convo = await _ctx.ChatConversations
-            .Include(c => c.Messages)
-            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        var convoExists = await _ctx.ChatConversations
+            .AnyAsync(c => c.Id == conversationId);
 
-        if (convo == null)
+        if (!convoExists)
             return ServiceResult<int>.NotFound("Conversation introuvable.");
 
-        if (convo.ClientId != clientId)
+        var clientOwnsConversation = await _ctx.ChatConversations
+            .AnyAsync(c => c.Id == conversationId && c.ClientId == clientId);
+
+        if (!clientOwnsConversation)
             return ServiceResult<int>.Forbidden();
 
-        var count = convo.Messages.Count(m =>
-            m.SenderType == nameof(Responsable) && !m.IsRead
-        );
+        var count = await _ctx.ChatMessages
+            .CountAsync(m =>
+                m.ConversationId == conversationId &&
+                m.SenderType == nameof(Responsable) &&
+                !m.IsRead
+            );
 
         return ServiceResult<int>.Ok(count);
+    }
+
+    public async Task<int> GetClientTotalUnreadCountAsync(Guid clientId)
+    {
+        return await _ctx.ChatMessages
+            .Where(m =>
+                !m.IsRead &&
+                m.SenderType == nameof(Responsable) &&
+                m.Conversation.ClientId == clientId &&
+                m.Conversation.Statut == nameof(Open)
+            )
+            .CountAsync();
     }
 }

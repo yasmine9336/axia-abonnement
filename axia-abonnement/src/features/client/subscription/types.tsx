@@ -1,0 +1,26 @@
+export interface Offre {
+  id: string;
+  intituleOffre: string;
+  description: string;
+  parMois: number;
+  parAnnee: number;
+  services: string[];
+  moyenneNote?: number | null;
+  nombreAvis?: number | null;
+}
+
+export interface Service {
+  id: string;
+  intituleService: string;
+  description: string;
+  parMois: number;
+  parAnnee: number;
+  moyenneNote?: number | null;
+  nombreAvis?: number | null;
+}
+
+export type BillingType = "mensuel" | "annuel";
+
+export type Selection =
+  | { kind: "offre"; item: Offre }
+  | { kind: "service"; item: Service };

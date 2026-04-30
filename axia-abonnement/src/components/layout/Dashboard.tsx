@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import NotificationBell from "../common/NotificationBell";
-import ClientChat from "../chat/ClientChat";
+import NotificationBell from "./NotificationBell";
+import ClientChat from "../../features/client/chat/ClientChat";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function DashboardLayout() {

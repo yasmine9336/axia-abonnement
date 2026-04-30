@@ -39,7 +39,10 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
                     createdAt = notif.CreatedAt
                 });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "SignalR notification delivery failed for user {UserId}", userId);
+        }
     }
 
     public async Task<List<Notification>> GetUnreadAsync(Guid userId)

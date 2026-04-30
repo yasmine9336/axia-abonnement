@@ -56,11 +56,6 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (role == UserRole.Responsable)
             {
-                if (string.IsNullOrWhiteSpace(dto.NomEntreprise) ||
-                    string.IsNullOrWhiteSpace(dto.MatriculeFiscal) ||
-                    string.IsNullOrWhiteSpace(dto.SecteurActivite) ||
-                    string.IsNullOrWhiteSpace(dto.AdresseProfessionnelle))
-                    return null;
 
                 user.Statut = StatutCompte.Pending;
                 user.NomEntreprise = dto.NomEntreprise;
@@ -80,7 +75,8 @@ namespace AxiaAbonnement.Services.Implementations
                     await _notifService.SendAsync(
                         admin.Id,
                         $"Nouvelle demande de compte responsable : {user.Username} ({user.NomEntreprise}).",
-                        "info"
+                        "info",
+                        "/dashboard/admin/responsables"
                     );
                 }
 
@@ -107,7 +103,8 @@ namespace AxiaAbonnement.Services.Implementations
                 await _notifService.SendAsync(
                     resp.Id,
                     $"Nouveau client inscrit : {user.Username} ({user.Email}).",
-                    "info"
+                    "info",
+                    "/dashboard/responsable/clients"
                 );
             }
 

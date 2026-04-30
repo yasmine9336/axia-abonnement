@@ -63,16 +63,16 @@ export class SignalRService {
   public async joinConversation(conversationId: string) {
     try {
       await this.connection?.invoke("JoinConversation", conversationId);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("SignalR joinConversation failed:", err);
     }
   }
 
   public async leaveConversation(conversationId: string) {
     try {
       await this.connection?.invoke("LeaveConversation", conversationId);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("SignalR leaveConversation failed:", err);
     }
   }
 
@@ -81,7 +81,9 @@ export class SignalRService {
   }
 
   public offReconnected(callback: (connectionId?: string) => void) {
-    this.reconnectCallbacks = this.reconnectCallbacks.filter((cb) => cb !== callback);
+    this.reconnectCallbacks = this.reconnectCallbacks.filter(
+      (cb) => cb !== callback,
+    );
   }
 
   public on(event: string, callback: (...args: unknown[]) => void) {

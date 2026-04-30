@@ -77,7 +77,7 @@ namespace AxiaAbonnement.Services.Implementations
                     respId,
                     "Nouvelle demande de renouvellement d'abonnement en attente.",
                     "info",
-                    "/dashboard/responsable/suivi-clients"
+                    "/dashboard/responsable/suivi-abonnements"
                 );
             }
 

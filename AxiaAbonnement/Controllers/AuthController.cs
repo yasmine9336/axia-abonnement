@@ -19,11 +19,15 @@ namespace AxiaAbonnement.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            ValidateRegisterDto(dto);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var user = await _auth.RegisterAsync(dto);
+
             if (user is null)
-                return BadRequest(new { Message = "Cet email est déjà utilisé ou les informations professionnelles sont incomplètes." });
+                return BadRequest(new { Message = "Cet email est déjà utilisé." });
 
             if (user.Role == UserRole.Responsable)
             {
@@ -103,6 +107,33 @@ namespace AxiaAbonnement.Controllers
             var result = await _auth.ResetPasswordAsync(dto);
             if (!result) return BadRequest("Token invalide ou expiré.");
             return Ok(new { Message = "Mot de passe réinitialisé avec succès." });
+        }
+
+        private void ValidateRegisterDto(RegisterDto dto)
+        {
+            if (string.Equals(dto.Role, "Client", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(dto.Sexe))
+                    ModelState.AddModelError(nameof(dto.Sexe), "Le sexe est obligatoire pour un client.");
+            }
+            else if (string.Equals(dto.Role, "Responsable", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(dto.NomEntreprise))
+                    ModelState.AddModelError(nameof(dto.NomEntreprise), "Le nom de l'entreprise est obligatoire.");
+
+                if (string.IsNullOrWhiteSpace(dto.MatriculeFiscal))
+                    ModelState.AddModelError(nameof(dto.MatriculeFiscal), "Le matricule fiscal est obligatoire.");
+
+                if (string.IsNullOrWhiteSpace(dto.SecteurActivite))
+                    ModelState.AddModelError(nameof(dto.SecteurActivite), "Le secteur d'activité est obligatoire.");
+
+                if (string.IsNullOrWhiteSpace(dto.AdresseProfessionnelle))
+                    ModelState.AddModelError(nameof(dto.AdresseProfessionnelle), "L'adresse professionnelle est obligatoire.");
+            }
+            else
+            {
+                ModelState.AddModelError(nameof(dto.Role), "Le rôle doit être Client ou Responsable.");
+            }
         }
     }
 }

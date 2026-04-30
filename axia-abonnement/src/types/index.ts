@@ -3,49 +3,14 @@ export interface UserInfo {
   id: string;
   username: string;
   email: string;
-  role: 'Admin' | 'Responsable' | 'Client';
-}
-
-// ─── Abonnements ─────────────────────────────────────────────
-export interface AbonnementItem {
-  id: string;
-  intituleOffre: string;
-  description: string;
-  type: string;
-  montant: number;
-  dateDebut: string;
-  dateFin: string;
-  isActive: boolean;
-  statut: 'actif' | 'expiré' | 'en_attente';
-  clientUsername?: string;
-  clientEmail?: string;
-  peutRenouveler?: boolean;
-}
-
-export interface StatsData {
-  totalAbonnes: number;
-  revenuMensuel: number;
-  servicesActifs: number;
-  demandesEnAttente: number;
-  abonnementsRecents: AbonnementItem[];
-}
-
-// ─── Paiements ───────────────────────────────────────────────
-export interface PaiementItem {
-  id: string;
-  montant: number;
-  statut: string;
-  createdAt: string;
-  abonnementId: string;
-  clientUsername?: string;
-  clientEmail?: string;
+  role: "Admin" | "Responsable" | "Client";
 }
 
 // ─── Chat ────────────────────────────────────────────────────
 export interface ChatMessage {
   id: string;
   content: string;
-  senderType: 'Client' | 'Responsable';
+  senderType: "Client" | "Responsable";
   senderUserId: string | null;
   createdAt: string;
   isRead: boolean;
@@ -62,7 +27,7 @@ export interface Conversation {
   clientId: string;
   clientName: string;
   clientEmail: string;
-  statut: 'Open' | 'Closed';
+  statut: "Open" | "Closed";
   updatedAt: string;
   unreadCount: number;
   lastMessage: LastMessage | null;
@@ -75,9 +40,10 @@ export interface NotificationItem {
   type: string;
   isRead: boolean;
   createdAt: string;
-  route?: string; 
+  route?: string;
 }
 
+// ─── Responsable lié au chat client ──────────────────────────
 export interface ResponsableInfo {
   id: string;
   username: string;

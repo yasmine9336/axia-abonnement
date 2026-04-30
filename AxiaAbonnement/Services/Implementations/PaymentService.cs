@@ -112,6 +112,8 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (user == null || user.Role != UserRole.Responsable) return null;
 
+            if (user.Statut != StatutCompte.Accepted) return null;
+
             var metadata = new Dictionary<string, string>
             {
                 { "userId", user.Id.ToString() },
@@ -405,8 +407,6 @@ namespace AxiaAbonnement.Services.Implementations
                 });
             }
 
-            await _ctx.SaveChangesAsync();
-
             var demande = await _ctx.DemandesRenouvellement
                 .Where(d => d.AbonnementId == abonnementId
                          && (d.Statut == "acceptée" || d.Statut == "expirée"))
@@ -415,8 +415,9 @@ namespace AxiaAbonnement.Services.Implementations
             if (demande != null)
             {
                 demande.Statut = "payée";
-                await _ctx.SaveChangesAsync();
             }
+
+            await _ctx.SaveChangesAsync();
 
             await _notifService.SendAsync(
                 userId,
