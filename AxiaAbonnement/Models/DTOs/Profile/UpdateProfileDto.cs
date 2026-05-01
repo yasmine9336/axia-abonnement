@@ -4,6 +4,7 @@ namespace AxiaAbonnement.Models.DTOs.Profile
     public class UpdateProfileDto
     {
         [Required]
+        [MinLength(3)]
         public string Username { get; set; } = string.Empty;
 
         [Required]

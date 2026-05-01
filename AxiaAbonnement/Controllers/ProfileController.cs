@@ -56,6 +56,9 @@ namespace AxiaAbonnement.Controllers
             if (photo == null || photo.Length == 0)
                 return BadRequest("Aucune image reçue.");
 
+            if (photo.Length > 2 * 1024 * 1024)
+                return BadRequest("La taille de l'image ne doit pas dépasser 2 Mo.");
+
             var url = await _profileService.UpdateProfilePhotoAsync(GetUserId(), photo);
             if (url == null) return BadRequest("Image invalide.");
 

@@ -228,7 +228,9 @@ namespace AxiaAbonnement.Services.Implementations
             var tokenRecu = dto.Token?.Trim() ?? "";
             var tokenBd = user.ResetPasswordToken?.Trim() ?? "";
 
-            if (!string.Equals(tokenRecu, tokenBd, StringComparison.Ordinal) ||
+            if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(tokenRecu),
+                System.Text.Encoding.UTF8.GetBytes(tokenBd)) ||
                 user.ResetPasswordTokenExpiry <= DateTime.UtcNow)
                 return false;
 

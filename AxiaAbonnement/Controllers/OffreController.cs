@@ -62,6 +62,7 @@ namespace AxiaAbonnement.Controllers
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateOffreDto dto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await offreService.UpdateOffreAsync(id, GetUserId(), dto);
             if (!result) return NotFound("Offre introuvable.");
             return Ok(new { Message = "Offre mise à jour." });
