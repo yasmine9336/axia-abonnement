@@ -19,7 +19,8 @@ namespace AxiaAbonnement.Services.Implementations
             using var client = new SmtpClient(_config.SmtpServer, _config.Port)
             {
                 Credentials = new NetworkCredential(_config.Username, _config.Password),
-                EnableSsl = true
+                EnableSsl = true,
+                Timeout = 10000
             };
 
             using var mailMessage = new MailMessage
@@ -31,7 +32,13 @@ namespace AxiaAbonnement.Services.Implementations
             };
             mailMessage.To.Add(toEmail);
 
-            await client.SendMailAsync(mailMessage);
+            try
+            {
+                await client.SendMailAsync(mailMessage);
+            }
+            catch (Exception)
+            {
+            }
         }
 
     }

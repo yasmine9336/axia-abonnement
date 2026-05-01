@@ -14,8 +14,11 @@ public class ChatController(IChatService chatService) : ControllerBase
 {
     private readonly IChatService _chatService = chatService;
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+    }
 
     public class SendMessageDto
     {

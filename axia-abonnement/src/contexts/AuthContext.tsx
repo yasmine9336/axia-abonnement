@@ -95,6 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    const handleLogout = () => {
+      setUser(null);
+      window.location.href = "/login";
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
+    return () => window.removeEventListener("auth:logout", handleLogout);
+
     void initAuth();
   }, []);
 

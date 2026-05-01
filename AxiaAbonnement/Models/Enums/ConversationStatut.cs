@@ -1,7 +1,8 @@
-﻿namespace AxiaAbonnement.Models.Enums;
-
-public enum ConversationStatut
+﻿namespace AxiaAbonnement.Models.Enums
 {
-    Open,
-    Closed
+    public static class StatutConversation
+    {
+        public const string Open = "Open";
+        public const string Closed = "Closed";
+    }
 }

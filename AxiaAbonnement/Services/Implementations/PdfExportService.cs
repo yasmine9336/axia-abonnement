@@ -25,10 +25,11 @@ namespace AxiaAbonnement.Services.Implementations;
 public class PdfExportService : IPdfExportService
 {
     private readonly string _pfxPath;
-    private readonly string _pfxPassword = "AxiaSign2025!";
+    private readonly string _pfxPassword;
 
-    public PdfExportService(IWebHostEnvironment env)
+    public PdfExportService(IWebHostEnvironment env, IConfiguration config)
     {
+        _pfxPassword = config["PfxPassword"] ?? throw new InvalidOperationException("PfxPassword manquant.");
         _pfxPath = System.IO.Path.Combine(env.ContentRootPath, "axia_signature.pfx");
         EnsureCertificate();
     }

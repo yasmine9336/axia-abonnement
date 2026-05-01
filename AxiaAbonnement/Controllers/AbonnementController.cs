@@ -17,8 +17,11 @@ namespace AxiaAbonnement.Controllers
             _abonnementService = abonnementService;
         }
 
-        private Guid GetUserId() =>
-            Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private Guid GetUserId()
+        {
+            var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+        }
 
         // Client → ses abonnements
         [HttpGet]

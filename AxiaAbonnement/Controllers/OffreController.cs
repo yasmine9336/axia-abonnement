@@ -11,8 +11,11 @@ namespace AxiaAbonnement.Controllers
     [Route("api/offres")]
     public class OffreController(IOffreService offreService) : ControllerBase
     {
-        private Guid GetUserId() =>
-            Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private Guid GetUserId()
+        {
+            var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
+        }
 
         // ✅ Parser le rôle string → UserRole
         private UserRole GetUserRole()
