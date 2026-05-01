@@ -103,9 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener("auth:logout", handleLogout);
 
     void initAuth();
-    
-    return () => window.removeEventListener("auth:logout", handleLogout);
 
+    return () => window.removeEventListener("auth:logout", handleLogout);
   }, []);
 
   const login = async (
@@ -137,7 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const meResponse = await axiosInstance.get("/auth/me");
       const userData: User = { ...meResponse.data, role };
 
-      localStorage.setItem("user", JSON.stringify(userData));
+      if (remember) localStorage.setItem("user", JSON.stringify(userData));
+      else sessionStorage.setItem("user", JSON.stringify(userData));
 
       setUser(userData);
       return { kind: "success", role };
