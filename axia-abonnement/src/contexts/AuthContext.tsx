@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, type ReactNode } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../services/api/axiosInstance";
 
 // ─── Types ───────────────────────────────────────────────────
 export interface User {
@@ -112,20 +112,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { accessToken, refreshToken, role } = response.data;
 
-      // Toujours localStorage → fonctionne dans tous les onglets
-      localStorage.setItem("accessToken", accessToken);
-      if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
-
       if (remember) {
+        localStorage.setItem("accessToken", accessToken);
+        if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("rememberMe", "true");
       } else {
+        sessionStorage.setItem("accessToken", accessToken);
+        if (refreshToken) sessionStorage.setItem("refreshToken", refreshToken);
         localStorage.removeItem("rememberMe");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
       }
-
-      // Nettoyer sessionStorage (ancienne logique)
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("user");
 
       const meResponse = await axiosInstance.get("/auth/me");
       const userData: User = { ...meResponse.data, role };

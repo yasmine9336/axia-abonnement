@@ -36,14 +36,14 @@ namespace AxiaAbonnement.Services.Implementations
             }
 
             var existante = await _db.DemandesRenouvellement
-                .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "en_attente");
+                .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == StatutDemande.EnAttente);
             if (existante) return false;
 
             _db.DemandesRenouvellement.Add(new DemandeRenouvellement
             {
                 AbonnementId = abonnementId,
                 ClientId = clientId,
-                Statut = "en_attente"
+                Statut = StatutDemande.EnAttente
             });
             await _db.SaveChangesAsync();
 
@@ -157,7 +157,7 @@ namespace AxiaAbonnement.Services.Implementations
                             .ThenInclude(so => so.Service!)
                 .FirstOrDefaultAsync(d => d.Id == demandeId);
 
-            if (demande == null || demande.Statut != "en_attente") return false;
+            if (demande == null || demande.Statut != StatutDemande.EnAttente) return false;
 
             bool owns = false;
             var a = demande.Abonnement;
@@ -168,7 +168,7 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (!owns) return false;
 
-            demande.Statut = "acceptée";
+            demande.Statut = StatutDemande.Acceptee;
             demande.TraiteeAt = DateTime.UtcNow;
 
             _db.Paiements.Add(new Paiement
@@ -180,7 +180,18 @@ namespace AxiaAbonnement.Services.Implementations
                 PaymentType = "renewal"
             });
 
-            await _db.SaveChangesAsync();
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
             await _notifService.SendAsync(
                 demande.Abonnement.UserId,
                 "Votre demande de renouvellement a été acceptée. Veuillez procéder au paiement pour activer votre abonnement.",
@@ -201,7 +212,7 @@ namespace AxiaAbonnement.Services.Implementations
                             .ThenInclude(so => so.Service!)
                 .FirstOrDefaultAsync(d => d.Id == demandeId);
 
-            if (demande == null || demande.Statut != "en_attente") return false;
+            if (demande == null || demande.Statut != StatutDemande.EnAttente) return false;
 
             bool owns = false;
             var a = demande.Abonnement;
@@ -212,7 +223,7 @@ namespace AxiaAbonnement.Services.Implementations
 
             if (!owns) return false;
 
-            demande.Statut = "refusée";
+            demande.Statut = StatutDemande.Refusee;
             demande.TraiteeAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();

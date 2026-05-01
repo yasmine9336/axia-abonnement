@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../services/api/axiosInstance";
 import { useNotifications } from "./useNotifications";
 import type { ChatMessage, Conversation } from "../types";
 

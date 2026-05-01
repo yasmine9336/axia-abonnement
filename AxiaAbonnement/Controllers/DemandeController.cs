@@ -1,6 +1,7 @@
 ﻿using AxiaAbonnement.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace AxiaAbonnement.Controllers
@@ -17,6 +18,7 @@ namespace AxiaAbonnement.Controllers
 
         [HttpPost("{abonnementId}/renouveler")]
         [Authorize(Policy = "ClientOnly")]
+        [EnableRateLimiting("AuthPolicy")]
         public async Task<IActionResult> Demander(Guid abonnementId)
         {
             var ok = await _demandeService.DemanderRenouvellementAsync(abonnementId, GetUserId());

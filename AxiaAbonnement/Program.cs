@@ -71,7 +71,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS").AllowCredentials();
     });
 });
 

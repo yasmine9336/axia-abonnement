@@ -84,6 +84,19 @@ namespace AxiaAbonnement.Services.Implementations
             if (photo.Length <= 0 || photo.Length > maxSize)
                 return null;
 
+            var buffer = new byte[4];
+            await using (var stream = photo.OpenReadStream())
+            {
+                var read = await stream.ReadAsync(buffer, 0, 4);
+                if (read < 4) return null;
+            }
+
+            var isJpeg = buffer[0] == 0xFF && buffer[1] == 0xD8 && buffer[2] == 0xFF;
+            var isPng = buffer[0] == 0x89 && buffer[1] == 0x50 && buffer[2] == 0x4E && buffer[3] == 0x47;
+            var isWebp = buffer[0] == 0x52 && buffer[1] == 0x49 && buffer[2] == 0x46 && buffer[3] == 0x46;
+
+            if (!isJpeg && !isPng && !isWebp) return null;
+
             var webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var uploadFolder = Path.Combine(webRoot, "uploads", "profiles");
             Directory.CreateDirectory(uploadFolder);

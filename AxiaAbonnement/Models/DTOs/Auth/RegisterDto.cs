@@ -15,6 +15,8 @@ namespace AxiaAbonnement.Models.DTOs.Auth
         public string? Ville { get; set; }
 
         // Champs client
+
+        [CustomValidation(typeof(RegisterDto), nameof(ValidateDateNaissance))]
         public DateTime? DateNaissance { get; set; }
         public string? Sexe { get; set; }
 
@@ -23,5 +25,16 @@ namespace AxiaAbonnement.Models.DTOs.Auth
         public string? MatriculeFiscal { get; set; }
         public string? SecteurActivite { get; set; }
         public string? AdresseProfessionnelle { get; set; }
+
+        public static ValidationResult? ValidateDateNaissance(DateTime? date, ValidationContext ctx)
+        {
+            if (date == null) return ValidationResult.Success;
+            if (date > DateTime.UtcNow)
+                return new ValidationResult("La date de naissance ne peut pas être dans le futur.");
+            if (date < new DateTime(1900, 1, 1))
+                return new ValidationResult("Date de naissance invalide.");
+            return ValidationResult.Success;
+        }
     }
+
 }

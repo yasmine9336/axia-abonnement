@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 
-import axiosInstance from "../../api/axiosInstance";
+import axiosInstance from "../../services/api/axiosInstance";
 import { API_URL } from "../../services/api/config";
 import LogoAxia from "../../assets/logo-axia.svg";
 import { getNavItemsByRole } from "../../constants/navigation";

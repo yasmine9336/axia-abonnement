@@ -111,7 +111,6 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(dto.UserId);
 
             if (user == null || user.Role != UserRole.Responsable) return null;
-
             if (user.Statut != StatutCompte.Accepted) return null;
 
             var metadata = new Dictionary<string, string>
@@ -174,7 +173,7 @@ namespace AxiaAbonnement.Services.Implementations
             }
 
             var demandeAcceptee = await _ctx.DemandesRenouvellement
-                .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == "acceptée");
+                .AnyAsync(d => d.AbonnementId == abonnementId && d.Statut == StatutDemande.Acceptee);
             if (!demandeAcceptee) return null;
 
             var productName = abonnement.Offre?.IntituleOffre
@@ -187,29 +186,29 @@ namespace AxiaAbonnement.Services.Implementations
                 LineItems =
                 [
                     new SessionLineItemOptions
-            {
-                PriceData = new SessionLineItemPriceDataOptions
-                {
-                    Currency = "eur",
-                    UnitAmount = (long)(abonnement.Montant * 100),
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
-                        Name = $"Renouvellement - {productName}",
-                        Description = $"Renouvellement abonnement {abonnement.Type}"
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            Currency = "eur",
+                            UnitAmount = (long)(abonnement.Montant * 100),
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = $"Renouvellement - {productName}",
+                                Description = $"Renouvellement abonnement {abonnement.Type}"
+                            }
+                        },
+                        Quantity = 1
                     }
-                },
-                Quantity = 1
-            }
                 ],
                 Mode = "payment",
                 SuccessUrl = $"{_config["Frontend:Url"]}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl = $"{_config["Frontend:Url"]}/payment/cancel",
                 Metadata = new Dictionary<string, string>
-        {
-            { "userId", userId.ToString() },
-            { "abonnementId", abonnementId.ToString() },
-            { "paymentType", "renewal" }
-        }
+                {
+                    { "userId", userId.ToString() },
+                    { "abonnementId", abonnementId.ToString() },
+                    { "paymentType", "renewal" }
+                }
             };
 
             var sessionService = new SessionService(_stripeClient);
@@ -307,7 +306,17 @@ namespace AxiaAbonnement.Services.Implementations
             };
             _ctx.Paiements.Add(paiement);
 
-            await _ctx.SaveChangesAsync();
+            await using var transaction = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await _ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             await _emailSender.SendEmailAsync(
                 user.Email,
@@ -383,7 +392,6 @@ namespace AxiaAbonnement.Services.Implementations
                 ? DateTime.UtcNow.AddYears(1)
                 : DateTime.UtcNow.AddMonths(1);
 
-            // Mettre à jour le paiement pending existant
             var paiementPending = await _ctx.Paiements
                 .FirstOrDefaultAsync(p => p.AbonnementId == abonnementId
                                         && p.PaymentType == "renewal"
@@ -409,15 +417,25 @@ namespace AxiaAbonnement.Services.Implementations
 
             var demande = await _ctx.DemandesRenouvellement
                 .Where(d => d.AbonnementId == abonnementId
-                         && (d.Statut == "acceptée" || d.Statut == "expirée"))
+                         && (d.Statut == StatutDemande.Acceptee || d.Statut == StatutDemande.Expiree))
                 .OrderByDescending(d => d.CreatedAt)
                 .FirstOrDefaultAsync();
             if (demande != null)
             {
-                demande.Statut = "payée";
+                demande.Statut = StatutDemande.Payee;
             }
 
-            await _ctx.SaveChangesAsync();
+            await using var transaction = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await _ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             await _notifService.SendAsync(
                 userId,
@@ -482,7 +500,17 @@ namespace AxiaAbonnement.Services.Implementations
             };
             _ctx.Paiements.Add(paiement);
 
-            await _ctx.SaveChangesAsync();
+            await using var transaction = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                await _ctx.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             await _emailSender.SendEmailAsync(
                 user.Email,

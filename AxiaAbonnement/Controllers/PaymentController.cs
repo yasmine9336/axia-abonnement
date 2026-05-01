@@ -12,11 +12,13 @@ namespace AxiaAbonnement.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IPdfExportService _pdfExportService;
+        private readonly ILogger<PaymentController> _logger;
 
-        public PaymentController(IPaymentService paymentService, IPdfExportService pdfExportService)
+        public PaymentController(IPaymentService paymentService, IPdfExportService pdfExportService, ILogger<PaymentController> logger)
         {
             _paymentService = paymentService;
             _pdfExportService = pdfExportService;
+            _logger = logger;
         }
 
         private Guid GetUserId() =>
@@ -54,9 +56,15 @@ namespace AxiaAbonnement.Controllers
                 await _paymentService.HandleWebhookAsync(json, signature, webhookSecret);
                 return Ok();
             }
-            catch (Exception e)
+            catch (Stripe.StripeException ex)
             {
-                return BadRequest(e.Message);
+                _logger.LogWarning(ex, "Stripe webhook signature validation failed");
+                return BadRequest("Invalid webhook signature.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Webhook processing error");
+                return StatusCode(500, "An error occurred processing the webhook.");
             }
         }
 
@@ -85,13 +93,11 @@ namespace AxiaAbonnement.Controllers
             return Ok(all);
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpPost("create-responsable-account-session")]
-        public async Task<IActionResult> CreateResponsableAccountSession([FromBody] CreateResponsableAccountSessionDto dto)
+        public async Task<IActionResult> CreateResponsableAccountSession()
         {
-            if (dto.UserId == Guid.Empty)
-                return BadRequest("UserId invalide.");
-
+            var dto = new CreateResponsableAccountSessionDto { UserId = GetUserId() };
             var url = await _paymentService.CreateResponsableAccountSessionAsync(dto);
             if (url == null) return BadRequest("Utilisateur responsable introuvable ou non éligible.");
             return Ok(new { url });
