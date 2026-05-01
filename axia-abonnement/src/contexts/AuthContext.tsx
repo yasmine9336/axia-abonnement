@@ -101,9 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     window.addEventListener("auth:logout", handleLogout);
-    return () => window.removeEventListener("auth:logout", handleLogout);
 
     void initAuth();
+    
+    return () => window.removeEventListener("auth:logout", handleLogout);
+
   }, []);
 
   const login = async (

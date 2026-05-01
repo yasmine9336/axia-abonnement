@@ -1,5 +1,6 @@
 ﻿using AxiaAbonnement.Models.Email;
 using AxiaAbonnement.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Mail;
 
@@ -8,10 +9,12 @@ namespace AxiaAbonnement.Services.Implementations
     public class EmailSender : IEmailSender
     {
         private readonly EmailConfiguration _config;
+        private readonly ILogger<EmailSender> _logger;
 
-        public EmailSender(EmailConfiguration config)
+        public EmailSender(EmailConfiguration config, ILogger<EmailSender> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string body)
@@ -36,10 +39,10 @@ namespace AxiaAbonnement.Services.Implementations
             {
                 await client.SendMailAsync(mailMessage);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Échec envoi email à {Email}", toEmail);
             }
         }
-
     }
 }

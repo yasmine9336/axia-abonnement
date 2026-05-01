@@ -75,7 +75,7 @@ namespace AxiaAbonnement.Controllers
         [Authorize(Policy = "ClientOnly")]
         public async Task<IActionResult> GetMyPaiements()
         {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var userId = GetUserId();
             var paiements = await _paymentService.GetMyPaiementsAsync(userId);
             return Ok(paiements);
         }
