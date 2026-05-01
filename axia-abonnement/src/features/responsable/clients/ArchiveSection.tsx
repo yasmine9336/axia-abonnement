@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import ResponsableClientsKpiCards from "./components/ResponsableClientsKpiCards";
 import ResponsableClientsFilters from "./components/ResponsableClientsFilters";

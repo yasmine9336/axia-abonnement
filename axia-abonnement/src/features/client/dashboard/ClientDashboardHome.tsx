@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 import RenewalBanner from "./components/RenewalBanner";

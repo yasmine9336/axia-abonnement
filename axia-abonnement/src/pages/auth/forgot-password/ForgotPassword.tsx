@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import ForgotPasswordHeader from "./components/ForgotPasswordHeader";
 import ForgotPasswordForm from "./components/ForgotPasswordForm";

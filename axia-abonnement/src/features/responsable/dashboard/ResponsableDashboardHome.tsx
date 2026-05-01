@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import ResponsableDashboardHero from "./components/ResponsableDashboardHero";
 import ResponsableDashboardKpiCards from "./components/ResponsableDashboardKpiCards";

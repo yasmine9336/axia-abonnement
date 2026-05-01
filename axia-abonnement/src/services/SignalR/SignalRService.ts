@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import { HUB_URL } from "../api/config";
-import { getToken } from "../utils/auth";
-import type { NotificationItem } from "../types";
+import { getToken } from "../../utils/auth";
+import type { NotificationItem } from "../../types";
 
 type SignalRHandlers = {
   onNotification?: (notif: NotificationItem) => void;

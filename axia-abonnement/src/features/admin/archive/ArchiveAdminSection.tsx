@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import ArchiveAdminKpiCards from "./components/ArchiveAdminKpiCards";
 import ArchiveAdminFilters from "./components/ArchiveAdminFilters";

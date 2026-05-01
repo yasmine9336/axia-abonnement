@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import axiosInstance from "../../../api/axiosInstance";
-import { API_URL } from "../../../api/config";
+import axiosInstance from "../../../services/api/axiosInstance";
+import { API_URL } from "../../../services/api/config";
 
 import BillingTypeSwitch from "./components/BillingTypeSwitch";
 import ServicesList from "./components/ServicesList";

@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import LogoAxia from "../../../assets/logo-axia.svg";
+import LoginHeader from "./components/LoginHeader";
 
 import AuthStatusBanner from "./components/AuthStatusBanner";
 import LoginForm from "./components/LoginForm";
@@ -98,21 +98,7 @@ export default function Login() {
     <div className="min-h-screen flex">
       <div className="w-full lg:w-[55%] flex flex-col justify-center px-8 sm:px-16 py-12 bg-white">
         <div className="max-w-md w-full mx-auto">
-          <div className="mb-6">
-            <img src={LogoAxia} alt="AxiaAbonnement" className="h-14 mb-2" />
-
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-              Bienvenue.
-            </h1>
-
-            <h2 className="text-3xl font-bold text-gray-900">
-              Connectez-vous à votre compte.
-            </h2>
-
-            <p className="text-gray-400 text-sm mt-3">
-              Entrez vos identifiants pour continuer
-            </p>
-          </div>
+          <LoginHeader />
 
           <AuthStatusBanner banner={banner} />
 

@@ -1,4 +1,4 @@
-import { API_URL } from "../../../api/config";
+import { API_URL } from "../../../services/api/config";
 import type { ProfileData, ProfileStats, StatCard } from "./types";
 
 export function getInitial(profile: ProfileData | null) {

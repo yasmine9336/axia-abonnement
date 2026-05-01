@@ -1,26 +1,12 @@
+import AuthIllustrationPanel from "../../components/AuthIllustrationPanel";
 import NewsletterIllustration from "../../../../assets/undraw_newsletter-subscriber_plsr.svg";
 
 export default function DemandeEnCoursIllustration() {
   return (
-    <div
-      className="hidden lg:flex lg:w-[45%] flex-col items-center justify-center relative overflow-hidden"
-      style={{ background: "var(--color-primary)" }}
-    >
-      <div
-        className="absolute w-96 h-96 rounded-full opacity-10"
-        style={{ background: "white", top: "-80px", right: "-80px" }}
-      />
-
-      <div
-        className="absolute w-64 h-64 rounded-full opacity-10"
-        style={{ background: "white", bottom: "-40px", left: "-40px" }}
-      />
-
-      <img
-        src={NewsletterIllustration}
-        alt="Demande en cours"
-        className="w-72 relative z-10"
-      />
-    </div>
+    <AuthIllustrationPanel
+      illustration={NewsletterIllustration}
+      alt="Demande en cours"
+      imageClassName="w-72"
+    />
   );
 }

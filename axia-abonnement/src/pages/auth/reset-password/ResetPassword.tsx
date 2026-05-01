@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import InvalidResetLink from "./components/InvalidResetLink";
 import ResetPasswordHeader from "./components/ResetPasswordHeader";

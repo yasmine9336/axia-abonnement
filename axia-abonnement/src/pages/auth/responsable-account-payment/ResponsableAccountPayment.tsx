@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import ResponsablePaymentHeader from "./components/ResponsablePaymentHeader";
 import ResponsablePaymentStatus from "./components/ResponsablePaymentStatus";

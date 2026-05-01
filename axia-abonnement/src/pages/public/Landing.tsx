@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/layout/Footer";
 import { useAuth } from "../../hooks/useAuth";
-import { API_URL } from "../../api/config";
+import { API_URL } from "../../services/api/config";
 
 import HeroSection from "./components/HeroSection";
 import ServicesSection from "./components/ServicesSection";

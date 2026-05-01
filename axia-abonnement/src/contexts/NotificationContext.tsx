@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useState } from "react";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../services/api/axiosInstance";
 import { useAuth } from "../hooks/useAuth";
-import { SignalRService } from "../services/SignalRService";
+import { SignalRService } from "../services/SignalR/SignalRService";
 import type { NotificationItem } from "../types";
 
 interface NotificationContextType {

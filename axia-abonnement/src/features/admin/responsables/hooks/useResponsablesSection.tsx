@@ -7,8 +7,8 @@ import {
   type FormEvent,
 } from "react";
 
-import axiosInstance from "../../../../api/axiosInstance";
-import { API_URL } from "../../../../api/config";
+import axiosInstance from "../../../../services/api/axiosInstance";
+import { API_URL } from "../../../../services/api/config";
 
 import type {
   ConfirmAction,

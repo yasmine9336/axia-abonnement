@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import AdminDashboardHero from "./components/AdminDashboardHero";
 import AdminDashboardKpiCards from "./components/AdminDashboardKpiCards";
