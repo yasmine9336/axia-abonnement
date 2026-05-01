@@ -16,11 +16,11 @@ public class NotificationController(INotificationService notifService) : Control
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
 
     [HttpGet]
-    public async Task<IActionResult> GetRecent()
+    public async Task<IActionResult> GetRecent([FromQuery] int limit = 20, [FromQuery] int skip = 0)
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Utilisateur non authentifié");
-        var notifs = await _notifService.GetRecentAsync(userId);
+        var notifs = await _notifService.GetRecentAsync(userId, limit, skip);
         return Ok(notifs.Select(n => new
         {
             id = n.Id,

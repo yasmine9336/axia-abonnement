@@ -6,7 +6,7 @@ public interface INotificationService
 {
     Task SendAsync(Guid userId, string message, string type = "info", string? route = null);
     Task<List<Notification>> GetUnreadAsync(Guid userId);
-    Task<List<Notification>> GetRecentAsync(Guid userId, int limit = 50);
+    Task<List<Notification>> GetRecentAsync(Guid userId, int limit = 20, int skip = 0);
     Task<bool> MarkAsReadAsync(Guid notificationId, Guid userId);
     Task MarkAllAsReadAsync(Guid userId);
     Task<bool> DeleteAsync(Guid notificationId, Guid userId);

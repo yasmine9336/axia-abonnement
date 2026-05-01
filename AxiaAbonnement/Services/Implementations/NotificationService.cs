@@ -54,11 +54,12 @@ public class NotificationService(AppDbContext ctx, IHubContext<NotificationHub> 
             .ToListAsync();
     }
 
-    public async Task<List<Notification>> GetRecentAsync(Guid userId, int limit = 50)
+    public async Task<List<Notification>> GetRecentAsync(Guid userId, int limit = 20, int skip = 0)
     {
         return await _ctx.Notifications
             .Where(n => n.UserId == userId)
             .OrderByDescending(n => n.CreatedAt)
+            .Skip(skip)
             .Take(limit)
             .ToListAsync();
     }
