@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score, log_loss
 from sklearn.preprocessing import StandardScaler
 from app.data_preparation import load_training_data
 
@@ -61,6 +61,7 @@ def train():
         acc = accuracy_score(y_test, y_pred)
         f1  = f1_score(y_test, y_pred)
         auc = roc_auc_score(y_test, y_prob)
+        ll  = log_loss(y_test, y_prob)
 
         results[name] = {
             "model":  model,
@@ -68,13 +69,14 @@ def train():
             "acc":    acc,
             "f1":     f1,
             "auc":    auc,
+            "ll":     ll,
         }
 
-        print(f"{name:<25} Accuracy: {acc:.2f}  F1: {f1:.2f}  AUC: {auc:.2f}")
+        print(f"{name:<25} Accuracy: {acc:.2f}  F1: {f1:.2f}  AUC: {auc:.4f}  Log Loss: {ll:.4f}")
 
     print("-" * 50)
 
-    best_name = max(results, key=lambda k: results[k]["auc"])
+    best_name = max(results, key=lambda k: (results[k]["auc"], -results[k]["ll"]))
     best = results[best_name]
 
     print(f"Meilleur modele : {best_name}")
@@ -89,6 +91,14 @@ def train():
     }, "models/churn_model.joblib")
 
     print(f"Modele '{best_name}' sauvegarde dans models/churn_model.joblib")
+
+    return {
+        "model": best_name,
+        "accuracy": round(best["acc"], 4),
+        "f1": round(best["f1"], 4),
+        "auc": round(best["auc"], 4),
+        "log_loss": round(best["ll"], 4),
+    }
 
 
 if __name__ == "__main__":
