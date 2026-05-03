@@ -25,7 +25,7 @@ export default function OffreCard({
 
       <p className="text-gray-500 text-sm mb-4">{offre.description}</p>
 
-      {offre.services.length > 1 && (
+      {offre.services.length > 0 && (
         <div className="bg-gray-50 rounded-xl p-4 mb-4 overflow-y-auto scrollbar-hide max-h-38">
           <p className="text-xs text-gray-500 mb-2">Inclut :</p>
 

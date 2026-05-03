@@ -14,7 +14,6 @@ import type {
   Offre,
   OffreForm,
   StatusFilter,
-  ServicesFilter,
   AbonnesFilter,
 } from "./types";
 
@@ -27,8 +26,6 @@ export default function OffresSection() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("tous");
-  const [creatorFilter, setCreatorFilter] = useState("all");
-  const [servicesFilter, setServicesFilter] = useState<ServicesFilter>("all");
   const [abonnesFilter, setAbonnesFilter] = useState<AbonnesFilter>("all");
 
   const [showModal, setShowModal] = useState(false);
@@ -95,18 +92,6 @@ export default function OffresSection() {
       result = result.filter((o) => !o.isActive);
     }
 
-    if (creatorFilter !== "all") {
-      result = result.filter((o) => o.creePar === creatorFilter);
-    }
-
-    if (servicesFilter === "withServices") {
-      result = result.filter((o) => o.services.length > 0);
-    }
-
-    if (servicesFilter === "withoutServices") {
-      result = result.filter((o) => o.services.length === 0);
-    }
-
     if (abonnesFilter === "withAbonnes") {
       result = result.filter((o) => o.nbAbonnes > 0);
     }
@@ -128,8 +113,6 @@ export default function OffresSection() {
     offres,
     searchTerm,
     statusFilter,
-    creatorFilter,
-    servicesFilter,
     abonnesFilter,
   ]);
 
@@ -142,7 +125,7 @@ export default function OffresSection() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, creatorFilter, servicesFilter, abonnesFilter]);
+  }, [searchTerm, statusFilter, abonnesFilter]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -151,15 +134,11 @@ export default function OffresSection() {
   const hasFilters =
     searchTerm.trim() !== "" ||
     statusFilter !== "tous" ||
-    creatorFilter !== "all" ||
-    servicesFilter !== "all" ||
     abonnesFilter !== "all";
 
   const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("tous");
-    setCreatorFilter("all");
-    setServicesFilter("all");
     setAbonnesFilter("all");
   };
 

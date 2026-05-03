@@ -391,9 +391,11 @@ namespace AxiaAbonnement.Services.Implementations
             abonnement.IsActive = true;
             abonnement.Statut = StatutAbonnement.Actif;
             abonnement.DateDebut = DateTime.UtcNow;
-            abonnement.DateFin = abonnement.Type == "annuel"
-                ? DateTime.UtcNow.AddYears(1)
-                : DateTime.UtcNow.AddMonths(1);
+            abonnement.DateFin = abonnement.OffreId != null && abonnement.Offre?.DureeEnMois > 0
+                ? DateTime.UtcNow.AddMonths(abonnement.Offre.DureeEnMois)
+                : abonnement.Type == "annuel"
+                    ? DateTime.UtcNow.AddYears(1)
+                    : DateTime.UtcNow.AddMonths(1);
 
             var paiementPending = await _ctx.Paiements
                 .FirstOrDefaultAsync(p => p.AbonnementId == abonnementId

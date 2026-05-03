@@ -13,8 +13,8 @@ export interface Offre {
   isActive: boolean;
   createdAt: string;
   creePar: string;
-  cbModification: string | null;
-  cbModificateur: string | null;
+  modifieLe: string | null;
+  modifiePar: string | null;
   services: string[];
 }
 
