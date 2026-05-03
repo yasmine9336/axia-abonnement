@@ -12,8 +12,8 @@ export interface Offre {
   id: string;
   intituleOffre: string;
   description: string;
-  parMois: number;
-  parAnnee: number;
+  dureeEnMois: number;
+  prix: number;
   services: string[];
   moyenneNote?: number | null;
   nombreAvis?: number | null;

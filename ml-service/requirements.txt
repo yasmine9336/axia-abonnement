@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn==0.30.6
+sqlalchemy==2.0.35
+pyodbc==5.2.0
+pandas==2.2.3
+scikit-learn==1.5.2
+xgboost==2.1.1
+joblib==1.4.2
+python-dotenv==1.0.1
+pydantic==2.9.2

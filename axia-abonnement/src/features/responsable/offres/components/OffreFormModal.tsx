@@ -11,7 +11,7 @@ interface OffreFormModalProps {
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onFormChange: (form: OffreForm) => void;
-  onParMoisChange: (value: number | "") => void;
+  onDureeEnMoisChange: (value: number | "") => void;
   onToggleService: (id: string) => void;
 }
 
@@ -25,7 +25,7 @@ export default function OffreFormModal({
   onClose,
   onSubmit,
   onFormChange,
-  onParMoisChange,
+  onDureeEnMoisChange,
   onToggleService,
 }: OffreFormModalProps) {
   if (!open) return null;
@@ -130,40 +130,34 @@ export default function OffreFormModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-800 mb-1">
-                Prix / mois <span className="text-gray-400">(TND)</span>
+                Durée <span className="text-gray-400">(mois)</span>
               </label>
-
               <input
                 type="number"
-                value={form.parMois}
+                value={form.dureeEnMois}
                 onChange={(e) =>
-                  onParMoisChange(
-                    e.target.value === "" ? "" : parseFloat(e.target.value),
+                  onDureeEnMoisChange(
+                    e.target.value === "" ? "" : parseInt(e.target.value),
                   )
                 }
-                placeholder="0.00"
-                min="0.01"
-                step="0.01"
+                placeholder="Ex: 3"
+                min="1"
+                step="1"
                 className="ui-input"
                 required
               />
             </div>
-
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-800 mb-1">
-                Prix annuel <span className="text-gray-400">(TND)</span>
-                <span className="px-2 py-0.5 text-xs bg-(--color-primary-soft) text-(--color-primary) rounded-full">
-                  -20%
-                </span>
+              <label className="block text-sm font-medium text-gray-800 mb-1">
+                Prix <span className="text-gray-400">(TND)</span>
               </label>
-
               <input
                 type="number"
-                value={form.parAnnee}
+                value={form.prix}
                 onChange={(e) =>
                   onFormChange({
                     ...form,
-                    parAnnee:
+                    prix:
                       e.target.value === "" ? "" : parseFloat(e.target.value),
                   })
                 }

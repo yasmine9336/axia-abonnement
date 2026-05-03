@@ -13,8 +13,8 @@ export interface OffreItem {
   id: string;
   intituleOffre: string;
   description: string;
-  parMois: number;
-  parAnnee: number;
+  dureeEnMois: number;
+  prix: number;
   isActive: boolean;
   creePar: string;
   services: string[];

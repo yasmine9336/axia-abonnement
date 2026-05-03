@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, type FormEvent } from "react";
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import LoadingState from "../../../components/common/LoadingState";
 
@@ -163,14 +163,8 @@ export default function OffresSection() {
     setAbonnesFilter("all");
   };
 
-  const handleParMoisChange = (value: number | "") => {
-    if (value === "" || isNaN(Number(value))) {
-      setForm({ ...form, parMois: "" });
-      return;
-    }
-
-    const parAnnee = parseFloat((Number(value) * 12 * 0.8).toFixed(2));
-    setForm({ ...form, parMois: value, parAnnee });
+  const handleDureeEnMoisChange = (value: number | "") => {
+    setForm({ ...form, dureeEnMois: value });
   };
 
   const toggleService = (id: string) => {
@@ -194,8 +188,8 @@ export default function OffresSection() {
     setForm({
       intituleOffre: offre.intituleOffre,
       description: offre.description,
-      parMois: offre.parMois,
-      parAnnee: offre.parAnnee,
+      dureeEnMois: offre.dureeEnMois,
+      prix: offre.prix,
       serviceIds: allServices
         .filter((s) => offre.services.includes(s.intituleService))
         .map((s) => s.id),
@@ -301,7 +295,7 @@ export default function OffresSection() {
         onClose={() => setShowModal(false)}
         onSubmit={handleSubmit}
         onFormChange={setForm}
-        onParMoisChange={handleParMoisChange}
+        onDureeEnMoisChange={handleDureeEnMoisChange}
         onToggleService={toggleService}
       />
 

@@ -37,8 +37,8 @@ export default function CatalogueAdminOffresTable({
           data={filteredOffres}
           columns={[
             { key: "intituleOffre", label: "Intitulé" },
-            { key: "parMois", label: "Prix/mois (TND)" },
-            { key: "parAnnee", label: "Prix/an (TND)" },
+            { key: "dureeEnMois", label: "Durée (mois)" },
+            { key: "prix", label: "Prix (TND)" },
             {
               key: "services",
               label: "Services inclus",
@@ -69,8 +69,8 @@ export default function CatalogueAdminOffresTable({
                 <tr className="border-b border-gray-100">
                   {[
                     "Intitulé",
-                    "Prix/mois",
-                    "Prix/an",
+                    "Durée",
+                    "Prix",
                     "Services inclus",
                     "Créé par",
                     "Statut",
@@ -96,11 +96,10 @@ export default function CatalogueAdminOffresTable({
                     </td>
 
                     <td className="py-4 px-5 font-semibold text-(--color-primary)">
-                      {offre.parMois} TND
+                      {offre.dureeEnMois} mois
                     </td>
-
                     <td className="py-4 px-5 text-gray-600">
-                      {offre.parAnnee} TND
+                      {offre.prix} TND
                     </td>
 
                     <td className="py-4 px-5">
@@ -120,9 +119,7 @@ export default function CatalogueAdminOffresTable({
                       )}
                     </td>
 
-                    <td className="py-4 px-5 text-gray-500">
-                      {offre.creePar}
-                    </td>
+                    <td className="py-4 px-5 text-gray-500">{offre.creePar}</td>
 
                     <td className="py-4 px-5">
                       <StatusBadge

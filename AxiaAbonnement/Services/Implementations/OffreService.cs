@@ -18,8 +18,8 @@ namespace AxiaAbonnement.Services.Implementations
             Id = o.Id,
             IntituleOffre = o.IntituleOffre,
             Description = o.Description,
-            ParMois = o.ParMois,
-            ParAnnee = o.ParAnnee,
+            DureeEnMois = o.DureeEnMois,
+            Prix = o.Prix,
             NbAbonnes = 0,
             IsActive = o.IsActive,
             CreatedAt = o.CreatedAt,
@@ -50,8 +50,8 @@ namespace AxiaAbonnement.Services.Implementations
                     Id = o.Id,
                     IntituleOffre = o.IntituleOffre,
                     Description = o.Description,
-                    ParMois = o.ParMois,
-                    ParAnnee = o.ParAnnee,
+                    DureeEnMois = o.DureeEnMois,
+                    Prix = o.Prix,
                     NbAbonnes = _ctx.Abonnements
                         .Count(a => a.OffreId == o.Id && a.IsActive),
                     IsActive = o.IsActive,
@@ -76,8 +76,8 @@ namespace AxiaAbonnement.Services.Implementations
                     Id = o.Id,
                     IntituleOffre = o.IntituleOffre,
                     Description = o.Description,
-                    ParMois = o.ParMois,
-                    ParAnnee = o.ParAnnee,
+                    DureeEnMois = o.DureeEnMois,
+                    Prix = o.Prix,
                     Services = o.ServiceOffres
                     .Select(so => so.Service.IntituleService).ToList(),
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.OffreId == o.Id),
@@ -125,8 +125,8 @@ namespace AxiaAbonnement.Services.Implementations
                 Id = Guid.NewGuid(),
                 IntituleOffre = dto.IntituleOffre,
                 Description = dto.Description,
-                ParMois = dto.ParMois,
-                ParAnnee = dto.ParAnnee,
+                DureeEnMois = dto.DureeEnMois,
+                Prix = dto.Prix,
                 CreatedAt = DateTime.UtcNow,
                 CreePar = user.Username
             };
@@ -169,11 +169,11 @@ namespace AxiaAbonnement.Services.Implementations
             if (!string.IsNullOrWhiteSpace(dto.Description))
                 offre.Description = dto.Description;
 
-            if (dto.ParMois.HasValue)
-                offre.ParMois = dto.ParMois.Value;
+            if (dto.DureeEnMois.HasValue)
+                offre.DureeEnMois = dto.DureeEnMois.Value;
 
-            if (dto.ParAnnee.HasValue)
-                offre.ParAnnee = dto.ParAnnee.Value;
+            if (dto.Prix.HasValue)
+                offre.Prix = dto.Prix.Value;
 
             if (dto.ServiceIds != null)
             {

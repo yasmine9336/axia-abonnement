@@ -6,7 +6,7 @@ import {
   type FormEvent,
 } from "react";
 
-import axiosInstance from "../../../api/axiosInstance";
+import axiosInstance from "../../../services/api/axiosInstance";
 
 import LoadingState from "../../../components/common/LoadingState";
 

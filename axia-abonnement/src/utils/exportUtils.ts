@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../services/api/axiosInstance";
 
 export interface ExportColumn<T> {
   key: keyof T | string;

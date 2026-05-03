@@ -40,8 +40,7 @@ namespace AxiaAbonnement.Data
             // Offre
             modelBuilder.Entity<Offre>(entity =>
             {
-                entity.Property(o => o.ParMois).HasPrecision(18, 2);
-                entity.Property(o => o.ParAnnee).HasPrecision(18, 2);
+                entity.Property(o => o.Prix).HasPrecision(18, 2);
             });
 
             // Service

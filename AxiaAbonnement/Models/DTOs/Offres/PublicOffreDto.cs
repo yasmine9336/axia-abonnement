@@ -5,8 +5,8 @@
         public Guid Id { get; set; }
         public string IntituleOffre { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public decimal ParMois { get; set; }
-        public decimal ParAnnee { get; set; }
+        public int DureeEnMois { get; set; }
+        public decimal Prix { get; set; }
         public List<string> Services { get; set; } = new();
         public double? MoyenneNote { get; set; }
         public int NombreAvis { get; set; }

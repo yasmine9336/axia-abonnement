@@ -51,23 +51,18 @@ export default function OffreCard({
           className="text-3xl font-bold"
           style={{ color: "var(--color-primary)" }}
         >
-          {offre.parMois}
+          {offre.prix}
         </span>
-
         <span
           className="text-sm font-medium"
           style={{ color: "var(--color-primary)" }}
         >
           TND
         </span>
-
-        <span className="text-gray-400 text-sm">/mois</span>
+        <span className="text-gray-400 text-sm">
+          / {offre.dureeEnMois} mois
+        </span>
       </div>
-
-      <p className="text-gray-500 text-sm mb-6">
-        <span className="font-semibold text-gray-700">{offre.parAnnee}</span>
-        <span className="text-xs text-gray-500 ml-1">TND</span> /an
-      </p>
 
       {showRating && (
         <StarRating moyenne={offre.moyenneNote} nombreAvis={offre.nombreAvis} />

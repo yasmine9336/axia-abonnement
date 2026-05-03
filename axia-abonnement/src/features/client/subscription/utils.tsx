@@ -1,10 +1,16 @@
 import type { BillingType, Offre, Selection, Service } from "./types";
 
 export function getPrice(
-  item: { parMois: number; parAnnee: number },
+  item: {
+    dureeEnMois?: number;
+    prix?: number;
+    parMois?: number;
+    parAnnee?: number;
+  },
   type: BillingType,
 ) {
-  return type === "annuel" ? item.parAnnee : item.parMois;
+  if (item.prix !== undefined) return item.prix;
+  return type === "annuel" ? (item.parAnnee ?? 0) : (item.parMois ?? 0);
 }
 
 export function getSelectionName(selection: Selection | null) {
@@ -19,7 +25,10 @@ export function getSelectionLabel(selection: Selection | null) {
   return selection?.kind === "offre" ? "Offre" : "Service";
 }
 
-export function getSelectedAmount(selection: Selection | null, type: BillingType) {
+export function getSelectedAmount(
+  selection: Selection | null,
+  type: BillingType,
+) {
   if (!selection) return null;
 
   return getPrice(selection.item, type);

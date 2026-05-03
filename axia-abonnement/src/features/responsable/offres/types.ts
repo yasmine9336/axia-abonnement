@@ -7,8 +7,8 @@ export interface Offre {
   id: string;
   intituleOffre: string;
   description: string;
-  parMois: number;
-  parAnnee: number;
+  dureeEnMois: number;
+  prix: number;
   nbAbonnes: number;
   isActive: boolean;
   createdAt: string;
@@ -21,8 +21,8 @@ export interface Offre {
 export interface OffreForm {
   intituleOffre: string;
   description: string;
-  parMois: number | "";
-  parAnnee: number | "";
+  dureeEnMois: number | "";
+  prix: number | "";
   serviceIds: string[];
 }
 
@@ -33,8 +33,8 @@ export type AbonnesFilter = "all" | "withAbonnes" | "withoutAbonnes";
 export const emptyForm: OffreForm = {
   intituleOffre: "",
   description: "",
-  parMois: "",
-  parAnnee: "",
+  dureeEnMois: "",
+  prix: "",
   serviceIds: [],
 };
 

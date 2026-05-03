@@ -51,7 +51,7 @@ namespace AxiaAbonnement.Services.Implementations
 
                 productName = offre.IntituleOffre;
                 productDescription = offre.Description;
-                montant = dto.Type == "annuel" ? offre.ParAnnee : offre.ParMois;
+                montant = offre.Prix;
             }
             else
             {
@@ -256,15 +256,16 @@ namespace AxiaAbonnement.Services.Implementations
                 ? parsedServiceId
                 : null;
 
+            Offre? offre = null;
             string productName;
             decimal montant;
 
             if (offreId != null)
             {
-                var offre = await _ctx.Offres.FindAsync(offreId.Value);
+                offre = await _ctx.Offres.FindAsync(offreId.Value);
                 if (offre == null) return;
                 productName = offre.IntituleOffre;
-                montant = type == "annuel" ? offre.ParAnnee : offre.ParMois;
+                montant = offre.Prix;
             }
             else if (serviceId != null)
             {
@@ -276,16 +277,18 @@ namespace AxiaAbonnement.Services.Implementations
             else return;
 
             var dateDebut = DateTime.UtcNow;
-            var dateFin = type == "annuel"
-                ? dateDebut.AddYears(1)
-                : dateDebut.AddMonths(1);
+            var dateFin = offreId != null
+                ? dateDebut.AddMonths(offre!.DureeEnMois)
+                : (type == "annuel"
+                    ? dateDebut.AddYears(1)
+                    : dateDebut.AddMonths(1));
 
             var abonnement = new Abonnement
             {
                 UserId = userId,
                 OffreId = offreId,
                 ServiceId = serviceId,
-                Type = type,
+                Type = offreId != null ? $"{offre!.DureeEnMois} mois" : type,
                 Montant = montant,
                 DateDebut = dateDebut,
                 DateFin = dateFin,

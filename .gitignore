@@ -16,3 +16,10 @@ AxiaAbonnement/appsettings.Development.json
 axia-abonnement/node_modules/
 axia-abonnement/.env
 axia-abonnement/dist/
+
+# ML Service
+ml-service/.env
+ml-service/venv/
+ml-service/models/
+ml-service/__pycache__/
+ml-service/app/__pycache__/

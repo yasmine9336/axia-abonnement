@@ -68,8 +68,8 @@ export default function OffresFilters({
               columns={[
                 { key: "intituleOffre", label: "Intitulé" },
                 { key: "description", label: "Description" },
-                { key: "parMois", label: "Prix/mois (TND)" },
-                { key: "parAnnee", label: "Prix/an (TND)" },
+                { key: "dureeEnMois", label: "Durée (mois)" },
+                { key: "prix", label: "Prix (TND)" },
                 { key: "nbAbonnes", label: "Abonnés" },
                 {
                   key: "services",

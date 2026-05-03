@@ -117,24 +117,21 @@ export default function OffresGrid({
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
                   <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
-                    PAR MOIS
+                    DURÉE
                   </p>
-
                   <p className="text-lg font-extrabold text-(--color-primary)">
-                    {offre.parMois}{" "}
+                    {offre.dureeEnMois}{" "}
                     <span className="text-xs font-semibold text-gray-400">
-                      TND
+                      mois
                     </span>
                   </p>
                 </div>
-
                 <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
                   <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
-                    PAR AN
+                    PRIX
                   </p>
-
                   <p className="text-lg font-extrabold text-green-600">
-                    {offre.parAnnee}{" "}
+                    {offre.prix}{" "}
                     <span className="text-xs font-semibold text-gray-400">
                       TND
                     </span>
