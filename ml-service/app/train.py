@@ -1,5 +1,5 @@
-import joblib
 import os
+import joblib
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -12,21 +12,15 @@ from app.data_preparation import load_training_data
 FEATURES = [
     "age",
     "anciennete",
-    "nb_abonnements_total",
-    "nb_par_service",
-    "nb_par_offre",
-    "jours_avant_expiration",
     "type_abonnement",
     "note_moyenne",
     "a_feedback",
     "nb_paiements_echoues",
-    "nb_renouvellements_acceptes",
-    "nb_renouvellements_refuses",
     "montant_total_paye",
 ]
 
 def train():
-    print("📦 Chargement des données...")
+    print("Chargement des donnees...")
     df = load_training_data()
 
     X = df[FEATURES]
@@ -40,6 +34,10 @@ def train():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled  = scaler.transform(X_test)
 
+    print(f"Donnees : {len(df)} exemples")
+    print(f"Entrainement : {len(X_train)} | Test : {len(X_test)}")
+    print("-" * 50)
+
     models = {
         "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
         "Random Forest":       RandomForestClassifier(n_estimators=100, random_state=42),
@@ -47,8 +45,8 @@ def train():
     }
 
     results = {}
-    print("\n📊 Résultats des modèles :")
-    print("-" * 55)
+    print("Resultats des modeles :")
+    print("-" * 50)
 
     for name, model in models.items():
         if name == "Logistic Regression":
@@ -65,34 +63,33 @@ def train():
         auc = roc_auc_score(y_test, y_prob)
 
         results[name] = {
-            "model":   model,
-            "scaler":  scaler if name == "Logistic Regression" else None,
-            "accuracy": acc,
-            "f1":       f1,
-            "auc":      auc,
+            "model":  model,
+            "scaler": scaler if name == "Logistic Regression" else None,
+            "acc":    acc,
+            "f1":     f1,
+            "auc":    auc,
         }
 
         print(f"{name:<25} Accuracy: {acc:.2f}  F1: {f1:.2f}  AUC: {auc:.2f}")
 
-    print("-" * 55)
-    print("\n👉 Choisis le modèle à sauvegarder :")
-    for i, name in enumerate(results.keys()):
-        print(f"  {i+1}. {name}")
+    print("-" * 50)
 
-    choice = input("\nTon choix (1/2/3) : ").strip()
-    chosen_name = list(results.keys())[int(choice) - 1]
-    chosen = results[chosen_name]
+    best_name = max(results, key=lambda k: results[k]["auc"])
+    best = results[best_name]
+
+    print(f"Meilleur modele : {best_name}")
+    print(f"Accuracy: {best['acc']:.2f}  F1: {best['f1']:.2f}  AUC: {best['auc']:.2f}")
 
     os.makedirs("models", exist_ok=True)
     joblib.dump({
-        "model":    chosen["model"],
-        "scaler":   chosen["scaler"],
+        "model":    best["model"],
+        "scaler":   best["scaler"],
         "features": FEATURES,
-        "name":     chosen_name,
+        "name":     best_name,
     }, "models/churn_model.joblib")
 
-    print(f"\n✅ Modèle '{chosen_name}' sauvegardé dans models/churn_model.joblib")
-    print(f"   Accuracy: {chosen['accuracy']:.2f} | F1: {chosen['f1']:.2f} | AUC: {chosen['auc']:.2f}")
+    print(f"Modele '{best_name}' sauvegarde dans models/churn_model.joblib")
+
 
 if __name__ == "__main__":
     train()
