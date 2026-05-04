@@ -109,10 +109,8 @@ namespace AxiaAbonnement.Services.Implementations
                 await photo.CopyToAsync(stream);
             }
 
-            // Supprimer ancienne photo
             if (!string.IsNullOrWhiteSpace(user.ProfileImageUrl) &&
-                user.ProfileImageUrl.StartsWith("/uploads/profiles/",
-                    StringComparison.OrdinalIgnoreCase))
+                user.ProfileImageUrl.StartsWith("/uploads/profiles/", StringComparison.OrdinalIgnoreCase))
             {
                 var oldRelative = user.ProfileImageUrl
                     .TrimStart('/')
@@ -157,19 +155,16 @@ namespace AxiaAbonnement.Services.Implementations
                     .Select(s => s.Id)
                     .ToListAsync();
 
-                var mesAbonnementIds = await _ctx.Abonnements
-                    .Where(a =>
-                        (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
-                        (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
-                    )
-                    .Select(a => a.Id)
-                    .ToListAsync();
-
-                var mesClientIds = await _ctx.Abonnements
-                    .Where(a => mesAbonnementIds.Contains(a.Id))
-                    .Select(a => a.UserId)
+                var mesOffresIds = await _ctx.ServiceOffres
+                    .Where(so => mesServiceIds.Contains(so.ServiceId))
+                    .Select(so => so.OffreId)
                     .Distinct()
                     .ToListAsync();
+
+                var baseAbos = _ctx.Abonnements.Where(a =>
+                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                    (a.OffreId.HasValue && mesOffresIds.Contains(a.OffreId.Value))
+                );
 
                 var mesOffres = await _ctx.Offres
                     .CountAsync(o => o.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)));
@@ -177,19 +172,21 @@ namespace AxiaAbonnement.Services.Implementations
                 var revenusMois = await _ctx.Paiements
                     .Where(p => p.Statut == "completed"
                              && p.AbonnementId.HasValue
-                             && mesAbonnementIds.Contains(p.AbonnementId.Value)
-                             && p.CreatedAt >= debutMois)
+                             && p.CreatedAt >= debutMois
+                             && baseAbos.Any(a => a.Id == p.AbonnementId!.Value))
                     .SumAsync(p => (decimal?)p.Montant) ?? 0;
+
+                var mesClients = await baseAbos
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
 
                 return new ProfileStatsDto
                 {
                     MesServices = mesServiceIds.Count,
                     MesOffres = mesOffres,
-                    MesClients = mesClientIds.Count,
-                    AbonnementsActifs = await _ctx.Abonnements.CountAsync(a =>
-                        a.Statut == StatutAbonnement.Actif &&
-                        ((a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
-                         (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId))))),
+                    MesClients = mesClients,
+                    AbonnementsActifs = await baseAbos.CountAsync(a => a.Statut == StatutAbonnement.Actif),
                     RevenusMois = revenusMois,
                 };
             }

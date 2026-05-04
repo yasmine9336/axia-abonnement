@@ -17,7 +17,7 @@ def load_training_data():
         abonnements = pd.read_sql(text("""
             SELECT Id, UserId, OffreId, ServiceId, Type, Montant, DateDebut, DateFin, Statut
             FROM Abonnements
-            WHERE Statut = 'Expire'
+            WHERE Statut = 'Expiré'
             ORDER BY DateDebut ASC
         """), conn)
 

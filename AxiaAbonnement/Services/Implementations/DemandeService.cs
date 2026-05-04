@@ -117,16 +117,21 @@ namespace AxiaAbonnement.Services.Implementations
                 .Select(s => s.Id)
                 .ToListAsync();
 
+            var mesOffresIds = await _db.ServiceOffres
+                .Where(so => mesServiceIds.Contains(so.ServiceId))
+                .Select(so => so.OffreId)
+                .Distinct()
+                .ToListAsync();
+
             return await _db.DemandesRenouvellement
                 .Include(d => d.Abonnement).ThenInclude(a => a.Offre)
-                    .ThenInclude(o => o!.ServiceOffres)
                 .Include(d => d.Abonnement).ThenInclude(a => a.Service)
                 .Include(d => d.Client)
                 .Where(d =>
                     (d.Abonnement.ServiceId.HasValue && mesServiceIds.Contains(d.Abonnement.ServiceId.Value)) ||
-                    (d.Abonnement.OffreId.HasValue && d.Abonnement.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
+                    (d.Abonnement.OffreId.HasValue && mesOffresIds.Contains(d.Abonnement.OffreId.Value))
                 )
-                .OrderByDescending(d => d.CreatedAt)
+                            .OrderByDescending(d => d.CreatedAt)
                 .Select(d => new DemandeDto
                 {
                     Id = d.Id,

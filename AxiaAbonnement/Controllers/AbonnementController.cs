@@ -34,13 +34,13 @@ namespace AxiaAbonnement.Controllers
 
         [HttpGet("all")]
         [Authorize(Policy = "StaffOnly")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
             if (role == "Responsable")
-                return Ok(await _abonnementService.GetAbonnementsByResponsableAsync(GetUserId()));
+                return Ok(await _abonnementService.GetAbonnementsByResponsableAsync(GetUserId(), page, pageSize));
 
-            return Ok(await _abonnementService.GetAllAbonnementsAsync());
+            return Ok(await _abonnementService.GetAllAbonnementsAsync(page, pageSize));
         }
 
         [HttpGet("stats")]

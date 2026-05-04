@@ -603,19 +603,22 @@ L'équipe AxiaAbonnement"
                 .Select(s => s.Id)
                 .ToListAsync();
 
-            var mesAbonnementIds = await _ctx.Abonnements
-                .Where(a =>
-                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
-                    (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
-                )
-                .Select(a => a.Id)
+            var mesOffresIds = await _ctx.ServiceOffres
+                .Where(so => mesServiceIds.Contains(so.ServiceId))
+                .Select(so => so.OffreId)
+                .Distinct()
                 .ToListAsync();
+
+            var baseAbos = _ctx.Abonnements.Where(a =>
+                (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                (a.OffreId.HasValue && mesOffresIds.Contains(a.OffreId.Value))
+            );
 
             return await _ctx.Paiements
                 .Include(p => p.Abonnement).ThenInclude(a => a!.Offre)
                 .Include(p => p.Abonnement).ThenInclude(a => a!.Service)
                 .Include(p => p.User)
-                .Where(p => p.AbonnementId.HasValue && mesAbonnementIds.Contains(p.AbonnementId.Value))
+                .Where(p => p.AbonnementId.HasValue && baseAbos.Any(a => a.Id == p.AbonnementId!.Value))
                 .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new PaiementDto
                 {

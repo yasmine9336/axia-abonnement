@@ -4,6 +4,7 @@ import LoadingState from "../../../../components/common/LoadingState";
 import type { Conversation } from "../../../../types";
 import type { ConversationFilter, ConversationFilterTab } from "../types";
 import { formatConversationTime } from "../utils";
+import { useChurnPredictions } from "../../../../hooks/useChurnPredictions";
 
 interface ConversationsSidebarProps {
   conversations: Conversation[];
@@ -24,6 +25,8 @@ export default function ConversationsSidebar({
   onFilterChange,
   onOpenConversation,
 }: ConversationsSidebarProps) {
+  const { riskMap } = useChurnPredictions();
+
   const emptyMessage =
     conversationFilter === "unread"
       ? "Aucune conversation non lue"
@@ -62,66 +65,82 @@ export default function ConversationsSidebar({
             <p className="text-sm">{emptyMessage}</p>
           </div>
         ) : (
-          conversations.map((conversation) => (
-            <button
-              key={conversation.id}
-              type="button"
-              onClick={() => onOpenConversation(conversation)}
-              className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                selected?.id === conversation.id ? "border-l-2" : ""
-              }`}
-              style={
-                selected?.id === conversation.id
-                  ? {
-                      background: "var(--color-primary-soft)",
-                      borderLeftColor: "var(--color-primary)",
-                    }
-                  : undefined
-              }
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5"
-                  style={{ background: "var(--color-primary)" }}
-                >
-                  {conversation.clientName.charAt(0).toUpperCase()}
-                </div>
+          conversations.map((conversation) => {
+            const prediction = riskMap.get(conversation.clientId.toLowerCase());
+            const isHighRisk = prediction?.risk_level === "eleve";
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
-                      {conversation.clientName}
-                    </p>
-
-                    {conversation.statut === "Closed" && (
-                      <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full shrink-0">
-                        Fermé
-                      </span>
+            return (
+              <button
+                key={conversation.id}
+                type="button"
+                onClick={() => onOpenConversation(conversation)}
+                className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                  selected?.id === conversation.id ? "border-l-2" : ""
+                }`}
+                style={
+                  selected?.id === conversation.id
+                    ? {
+                        background: "var(--color-primary-soft)",
+                        borderLeftColor: "var(--color-primary)",
+                      }
+                    : undefined
+                }
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative shrink-0 mt-0.5">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ background: "var(--color-primary)" }}
+                    >
+                      {conversation.clientName.charAt(0).toUpperCase()}
+                    </div>
+                    {isHighRisk && (
+                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-white rounded-full" />
                     )}
                   </div>
 
-                  <p className="text-xs text-gray-400 truncate mt-0.5">
-                    {conversation.lastMessage?.content ?? "Aucun message"}
-                  </p>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {conversation.clientName}
+                      </p>
 
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-xs text-gray-400">
-                    {formatConversationTime(conversation.updatedAt)}
-                  </span>
+                      {conversation.statut === "Closed" && (
+                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full shrink-0">
+                          Fermé
+                        </span>
+                      )}
 
-                  {(conversation.unreadCount ?? 0) > 0 && (
-                    <span
-                      className="w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                      style={{ background: "var(--color-primary)" }}
-                    >
-                      {conversation.unreadCount}
+                      {isHighRisk && (
+                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full shrink-0 font-semibold">
+                          Churn
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-gray-400 truncate mt-0.5">
+                      {conversation.lastMessage?.content ?? "Aucun message"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-xs text-gray-400">
+                      {formatConversationTime(conversation.updatedAt)}
                     </span>
-                  )}
+
+                    {(conversation.unreadCount ?? 0) > 0 && (
+                      <span
+                        className="w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                        style={{ background: "var(--color-primary)" }}
+                      >
+                        {conversation.unreadCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
     </UiCard>

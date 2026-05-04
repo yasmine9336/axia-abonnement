@@ -32,7 +32,6 @@ namespace AxiaAbonnement.Services.Implementations
                 })
                 .ToListAsync();
 
-
         public async Task<User?> CreateResponsableAsync(CreateResponsableDto dto)
         {
             if (await _ctx.Users.AnyAsync(u => u.Email == dto.Email)) return null;
@@ -77,7 +76,6 @@ namespace AxiaAbonnement.Services.Implementations
 
             user.IsActive = !user.IsActive;
 
-            // ✅ RefreshTokenHash au lieu de RefreshToken
             if (!user.IsActive)
             {
                 user.RefreshTokenHash = null;
@@ -106,40 +104,41 @@ namespace AxiaAbonnement.Services.Implementations
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
 
-            var result = new List<UserDto>();
+            var userIds = users.Select(u => u.Id).ToList();
 
-            foreach (var u in users)
+            var abonnements = await _ctx.Abonnements
+                .Include(a => a.Offre)
+                .Include(a => a.Service).ThenInclude(s => s!.Responsable)
+                .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
+                    .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
+                .Where(a => userIds.Contains(a.UserId))
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            var dernierAbo = abonnements
+                .GroupBy(a => a.UserId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            return users.Select(u =>
             {
-                var abonnement = await _ctx.Abonnements
-                    .Include(a => a.Offre)
-                    .Include(a => a.Service).ThenInclude(s => s!.Responsable)
-                    .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
-                        .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
-                    .Where(a => a.UserId == u.Id)
-                    .OrderByDescending(a => a.CreatedAt)
-                    .FirstOrDefaultAsync();
-
-                result.Add(new UserDto
+                dernierAbo.TryGetValue(u.Id, out var abo);
+                return new UserDto
                 {
                     Id = u.Id,
                     Username = u.Username,
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     CreatedAt = u.CreatedAt,
-                    IsActive = abonnement != null && abonnement.DateFin > now,
-                    AbonnementActif = abonnement?.Offre?.IntituleOffre
-                                   ?? abonnement?.Service?.IntituleService,
-                    MontantActif = abonnement?.Montant,
-                    StatutAbonnement = abonnement == null ? null
-                        : abonnement.DateFin < now ? "expiré" : "actif",
-                    ResponsableUsername = abonnement?.Service?.Responsable?.Username
-                        ?? abonnement?.Offre?.ServiceOffres
-                            .FirstOrDefault()?.Service?.Responsable?.Username
-                });
-            }
-
-            return result;
+                    IsActive = abo != null && abo.DateFin > now,
+                    AbonnementActif = abo?.Offre?.IntituleOffre ?? abo?.Service?.IntituleService,
+                    MontantActif = abo?.Montant,
+                    StatutAbonnement = abo == null ? null : abo.DateFin < now ? "expiré" : "actif",
+                    ResponsableUsername = abo?.Service?.Responsable?.Username
+                        ?? abo?.Offre?.ServiceOffres.FirstOrDefault()?.Service?.Responsable?.Username
+                };
+            }).ToList();
         }
+
         public async Task<List<UserDto>> GetClientsByResponsableAsync(Guid responsableId)
         {
             var now = DateTime.UtcNow;
@@ -149,56 +148,54 @@ namespace AxiaAbonnement.Services.Implementations
                 .Select(s => s.Id)
                 .ToListAsync();
 
-            var mesClientIds = await _ctx.Abonnements
-                .Where(a =>
-                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
-                    (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))
-                )
-                .Select(a => a.UserId)
+            var mesOffresIds = await _ctx.ServiceOffres
+                .Where(so => mesServiceIds.Contains(so.ServiceId))
+                .Select(so => so.OffreId)
                 .Distinct()
                 .ToListAsync();
 
+            var abonnements = await _ctx.Abonnements
+                .Include(a => a.Offre)
+                .Include(a => a.Service).ThenInclude(s => s!.Responsable)
+                .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
+                    .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
+                .Include(a => a.User)
+                .Where(a =>
+                    (a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
+                    (a.OffreId.HasValue && mesOffresIds.Contains(a.OffreId.Value))
+                )
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            var dernierAbo = abonnements
+                .GroupBy(a => a.UserId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var userIds = dernierAbo.Keys.ToList();
+
             var users = await _ctx.Users
-                .Where(u => mesClientIds.Contains(u.Id))
+                .Where(u => userIds.Contains(u.Id))
                 .OrderByDescending(u => u.CreatedAt)
                 .ToListAsync();
 
-            var result = new List<UserDto>();
-
-            foreach (var u in users)
+            return users.Select(u =>
             {
-                var abonnement = await _ctx.Abonnements
-                    .Include(a => a.Offre)
-                    .Include(a => a.Service).ThenInclude(s => s!.Responsable)
-                    .Include(a => a.Offre).ThenInclude(o => o!.ServiceOffres)
-                        .ThenInclude(so => so.Service).ThenInclude(s => s.Responsable)
-                    .Where(a => a.UserId == u.Id &&
-                        ((a.ServiceId.HasValue && mesServiceIds.Contains(a.ServiceId.Value)) ||
-                         (a.OffreId.HasValue && a.Offre!.ServiceOffres.Any(so => mesServiceIds.Contains(so.ServiceId)))))
-                    .OrderByDescending(a => a.CreatedAt)
-                    .FirstOrDefaultAsync();
-
-                result.Add(new UserDto
+                dernierAbo.TryGetValue(u.Id, out var abo);
+                return new UserDto
                 {
                     Id = u.Id,
                     Username = u.Username,
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     CreatedAt = u.CreatedAt,
-                    IsActive = abonnement != null && abonnement.DateFin > now,
-                    AbonnementActif = abonnement?.Offre?.IntituleOffre
-                                   ?? abonnement?.Service?.IntituleService,
-                    MontantActif = abonnement?.Montant,
-                    StatutAbonnement = abonnement == null ? null
-                        : abonnement.DateFin < now ? "expiré" : "actif",
-                    ResponsableUsername = abonnement?.Service?.Responsable?.Username
-                        ?? abonnement?.Offre?.ServiceOffres
-                            .FirstOrDefault()?.Service?.Responsable?.Username
-                });
-            }
-
-            return result;
+                    IsActive = abo != null && abo.DateFin > now,
+                    AbonnementActif = abo?.Offre?.IntituleOffre ?? abo?.Service?.IntituleService,
+                    MontantActif = abo?.Montant,
+                    StatutAbonnement = abo == null ? null : abo.DateFin < now ? "expiré" : "actif",
+                    ResponsableUsername = abo?.Service?.Responsable?.Username
+                        ?? abo?.Offre?.ServiceOffres.FirstOrDefault()?.Service?.Responsable?.Username
+                };
+            }).ToList();
         }
-
     }
 }

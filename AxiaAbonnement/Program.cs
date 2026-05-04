@@ -186,7 +186,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("ReactPolicy");   // ← AVANT Authentication
 app.UseRateLimiter();
 app.UseAuthentication();       // ← Lire et valider le JWT

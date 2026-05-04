@@ -21,4 +21,4 @@ export interface AbonnementClientDto {
   statut: string;
 }
 
-export const PAGE_SIZE = 4;
+export const PAGE_SIZE = 8;

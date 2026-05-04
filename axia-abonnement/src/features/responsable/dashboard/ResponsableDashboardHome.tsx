@@ -7,7 +7,7 @@ import ResponsableDashboardHero from "./components/ResponsableDashboardHero";
 import ResponsableDashboardKpiCards from "./components/ResponsableDashboardKpiCards";
 import ResponsableDashboardCharts from "./components/ResponsableDashboardCharts";
 import RecentSubscriptionsCard from "./components/RecentSubscriptionsCard";
-import WatchListCard from "./components/WatchListCard";
+import ChurnPredictionsCard from "./components/ChurnPredictionsCard";
 
 import type { Stats } from "./types";
 import { EMPTY_STATS } from "./types";
@@ -22,7 +22,6 @@ export default function ResponsableDashboardHome() {
 
   useEffect(() => {
     let cancelled = false;
-
     axiosInstance
       .get<Stats>("/abonnements/stats")
       .then((response) => {
@@ -34,7 +33,6 @@ export default function ResponsableDashboardHome() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
@@ -57,25 +55,20 @@ export default function ResponsableDashboardHome() {
     ],
   );
 
-  const pieTotal = useMemo(() => {
-    return (
+  const pieTotal = useMemo(
+    () =>
       (Number(stats.abonnementsActifs) || 0) +
       (Number(stats.abonnementsExpires) || 0) +
-      (Number(stats.demandesEnAttente) || 0)
-    );
-  }, [
-    stats.abonnementsActifs,
-    stats.abonnementsExpires,
-    stats.demandesEnAttente,
-  ]);
+      (Number(stats.demandesEnAttente) || 0),
+    [
+      stats.abonnementsActifs,
+      stats.abonnementsExpires,
+      stats.demandesEnAttente,
+    ],
+  );
 
-  const demandes = Number(stats.demandesEnAttente) || 0;
-  const expires = Number(stats.abonnementsExpires) || 0;
-  const totalAlertes = demandes + expires;
-
-  const goToSuiviAbonnements = () => {
+  const goToSuiviAbonnements = () =>
     navigate("/dashboard/responsable/suivi-abonnements");
-  };
 
   return (
     <div className="ui-page">
@@ -96,19 +89,13 @@ export default function ResponsableDashboardHome() {
         pieTotal={pieTotal}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentSubscriptionsCard
           abonnements={stats.abonnementsRecents}
           loading={loading}
           onViewAll={goToSuiviAbonnements}
         />
-
-        <WatchListCard
-          demandes={demandes}
-          expires={expires}
-          totalAlertes={totalAlertes}
-          onViewDetails={goToSuiviAbonnements}
-        />
+        <ChurnPredictionsCard />
       </div>
     </div>
   );

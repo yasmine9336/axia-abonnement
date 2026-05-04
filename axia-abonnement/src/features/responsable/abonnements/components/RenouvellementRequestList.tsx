@@ -79,7 +79,7 @@ export default function RenouvellementRequestsList({
         <EmptyState title="Aucune demande ne correspond à votre recherche." />
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {demandes.map((demande) => (
               <div
                 key={demande.id}

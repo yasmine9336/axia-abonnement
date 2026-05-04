@@ -7,56 +7,44 @@ interface ResponsableDashboardHeroProps {
   stats: Stats;
 }
 
-export default function ResponsableDashboardHero({
-  username,
-  period,
-  stats,
-}: ResponsableDashboardHeroProps) {
+export default function ResponsableDashboardHero({ username, period, stats }: ResponsableDashboardHeroProps) {
   return (
-    <div className="mb-6 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+    <div className="mb-6 rounded-2xl overflow-hidden border border-blue-200 shadow-md">
       <div
-        className="p-6"
+        className="p-8"
         style={{
-          background:
-            "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%)",
+          background: "linear-gradient(135deg, #3d5afe 0%, #1a237e 100%)",
         }}
       >
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold text-white/80 tracking-wide">
-              BIENVENUE, {String(username ?? "").toUpperCase()}
+            <p className="text-xs font-semibold text-blue-200 tracking-widest uppercase">
+              Bienvenue, {String(username ?? "").toUpperCase()}
             </p>
 
-            <h2 className="text-2xl lg:text-3xl font-extrabold text-white mt-1">
-              Tableau de bord · {period}
+            <h2 className="text-3xl font-extrabold text-white mt-1">
+              Tableau de bord
             </h2>
 
-            <p className="text-white/80 text-sm mt-1">
-              Aperçu complet de vos opérations
+            <p className="text-blue-200 text-sm mt-1">
+              {period} · Aperçu de vos opérations
             </p>
           </div>
 
-          <div className="flex items-center gap-8 text-white">
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {Number(stats.totalAbonnes) || 0}
+          <div className="flex items-center gap-6">
+            {[
+              { value: Number(stats.totalAbonnes) || 0, label: "Clients actifs" },
+              { value: formatMoney(stats.revenuMensuel), label: "Revenu ce mois" },
+              { value: Number(stats.servicesActifs) || 0, label: "Services actifs" },
+            ].map(({ value, label }) => (
+              <div
+                key={label}
+                className="text-center bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3 border border-white/20"
+              >
+                <div className="text-xl font-bold text-white">{value}</div>
+                <div className="text-xs text-blue-200 mt-0.5">{label}</div>
               </div>
-              <div className="text-xs text-white/80">Clients actifs</div>
-            </div>
-
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {formatMoney(stats.revenuMensuel)}
-              </div>
-              <div className="text-xs text-white/80">Revenu ce mois</div>
-            </div>
-
-            <div className="text-center">
-              <div className="text-xl font-bold">
-                {Number(stats.servicesActifs) || 0}
-              </div>
-              <div className="text-xs text-white/80">Services actifs</div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

@@ -204,7 +204,7 @@ def run_seed():
             d_debut = NOW - timedelta(days=debut_age)
             d_fin   = d_debut + timedelta(days=duree_j)
 
-            aid, montant = new_abn(uid, use_offre, oid, sid, d_debut, d_fin, 'Expire', 0)
+            aid, montant = new_abn(uid, use_offre, oid, sid, d_debut, d_fin, 'Expiré', 0)
 
             for _ in range(random.randint(*p[2])):
                 new_pay(aid, uid, montant, 'failed',
@@ -236,7 +236,7 @@ def run_seed():
             ((18, 35), (50,   500), (2, 3), (2, 4), 0.55),
             ((35, 70), (150, 1200), (3, 5), (3, 5), 0.70),
         ]
-        
+
         for i in range(900):
             p = renew_profiles[i % 4]
             age = random.randint(*p[0])
@@ -263,7 +263,7 @@ def run_seed():
                 if is_last and d_fin > NOW:
                     statut, is_active = 'Actif', 1
                 else:
-                    statut, is_active = 'Expire', 0
+                    statut, is_active = 'Expiré', 0
                     if d_fin > NOW:
                         d_fin = NOW - timedelta(days=random.randint(1, 5))
 
@@ -276,11 +276,11 @@ def run_seed():
                 new_pay(aid, uid, montant, 'completed',
                         d_debut + timedelta(days=random.randint(0, 2)))
 
-                if statut == 'Expire' and random.random() < p[4]:
+                if statut == 'Expiré' and random.random() < p[4]:
                     new_feedback(uid, aid, random.randint(*p[3]),
                                  d_fin - timedelta(days=random.randint(5, 30)))
 
-                if statut == 'Expire' and c < nb_cycles - 1:
+                if statut == 'Expiré' and c < nb_cycles - 1:
                     new_demande(aid, uid, 'acceptee',
                                 d_fin - timedelta(days=random.randint(3, 14)))
 
