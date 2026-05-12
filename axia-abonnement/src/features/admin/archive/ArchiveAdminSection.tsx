@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../../services/api/axiosInstance";
 
-import ArchiveAdminKpiCards from "./components/ArchiveAdminKpiCards";
 import ArchiveAdminFilters from "./components/ArchiveAdminFilters";
 import ArchiveAdminTable from "./components/ArchiveAdminTable";
 
@@ -29,12 +28,14 @@ export default function ArchiveAdminSection() {
   }, []);
 
   const totalActifs = useMemo(
-    () => clients.filter((client) => client.statutAbonnement === "actif").length,
+    () =>
+      clients.filter((client) => client.statutAbonnement === "actif").length,
     [clients],
   );
 
   const totalInactifs = useMemo(
-    () => clients.filter((client) => client.statutAbonnement !== "actif").length,
+    () =>
+      clients.filter((client) => client.statutAbonnement !== "actif").length,
     [clients],
   );
 
@@ -98,13 +99,7 @@ export default function ArchiveAdminSection() {
     }
 
     return result;
-  }, [
-    clients,
-    searchTerm,
-    filterStatut,
-    responsableFilter,
-    abonnementFilter,
-  ]);
+  }, [clients, searchTerm, filterStatut, responsableFilter, abonnementFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
@@ -133,18 +128,21 @@ export default function ArchiveAdminSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Archive clients</h1>
-
         <p className="ui-subtitle">
-          {clients.length} client(s) au total · {totalActifs} actif(s) ·{" "}
-          {totalInactifs} inactif(s)
+          Consultez l'historique de tous les clients de la plateforme.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {clients.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {totalActifs} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {totalInactifs} inactifs
+          </span>
+        </div>
       </div>
-
-      <ArchiveAdminKpiCards
-        totalClients={clients.length}
-        totalActifs={totalActifs}
-        totalInactifs={totalInactifs}
-      />
 
       <ArchiveAdminFilters
         clients={clients}

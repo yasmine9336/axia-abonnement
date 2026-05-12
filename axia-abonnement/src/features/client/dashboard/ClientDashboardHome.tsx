@@ -8,15 +8,10 @@ import RenewalBanner from "./components/RenewalBanner";
 import ClientDashboardKpiCards from "./components/ClientDashboardKpiCards";
 import ExpensesChart from "./components/ExpensesChart";
 import ActiveSubscriptionsCard from "./components/ActiveSubscriptionsCard";
-import QuickActionsCard from "./components/QuickActionsCard";
 import RecommendationsCard from "./components/RecommendationsCard";
 
 import type { AbonnementItem, PaiementItem } from "./types";
-import {
-  buildDepensesParMois,
-  getChartLabel,
-  joursRestants,
-} from "./utils";
+import { buildDepensesParMois, getChartLabel, joursRestants } from "./utils";
 
 export default function ClientDashboardHome() {
   const { user } = useAuth();
@@ -89,8 +84,7 @@ export default function ClientDashboardHome() {
   const prochainRenouvellement = abonnementsActifs
     .slice()
     .sort(
-      (a, b) =>
-        new Date(a.dateFin).getTime() - new Date(b.dateFin).getTime(),
+      (a, b) => new Date(a.dateFin).getTime() - new Date(b.dateFin).getTime(),
     )[0];
 
   const joursAvantRenouvellement = prochainRenouvellement
@@ -136,11 +130,10 @@ export default function ClientDashboardHome() {
           now={now}
           onExplore={() => navigate("/")}
         />
-
-        <RecommendationsCard />
       </div>
 
-      <QuickActionsCard onNavigate={navigate} />
+      <RecommendationsCard />
+
     </div>
   );
 }

@@ -4,7 +4,6 @@ import axiosInstance from "../../../services/api/axiosInstance";
 import EmptyState from "../../../components/common/EmptyState";
 import LoadingState from "../../../components/common/LoadingState";
 
-import AbonnementsKpiCards from "./components/AbonnementsKpiCards";
 import SubscriptionGroup from "./components/SubscriptionGroup";
 
 import type { Abonnement } from "./types";
@@ -31,9 +30,7 @@ export default function MesAbonnementsSection() {
               : Promise.resolve(null);
 
           const noteFeedbackPromise = axiosInstance
-            .get<{ note: number | null }>(
-              `/feedbacks/${abonnement.id}/my-note`,
-            )
+            .get<{ note: number | null }>(`/feedbacks/${abonnement.id}/my-note`)
             .then((result) => result.data.note ?? null)
             .catch(() => null);
 
@@ -113,10 +110,7 @@ export default function MesAbonnementsSection() {
 
   const totalPaye = useMemo(
     () =>
-      actifs.reduce(
-        (sum, abonnement) => sum + (abonnement.montant || 0),
-        0,
-      ),
+      actifs.reduce((sum, abonnement) => sum + (abonnement.montant || 0), 0),
     [actifs],
   );
 
@@ -126,17 +120,19 @@ export default function MesAbonnementsSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Mes abonnements</h1>
-
-        <p className="ui-subtitle">
-          Gérez et suivez tous vos abonnements.
-        </p>
+        <p className="ui-subtitle">Gérez et suivez tous vos abonnements.</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {actifs.length} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {expires.length} expirés
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+            ● {totalPaye.toFixed(2)} TND payés
+          </span>
+        </div>
       </div>
-
-      <AbonnementsKpiCards
-        actifsCount={actifs.length}
-        expiresCount={expires.length}
-        totalPaye={totalPaye}
-      />
 
       {abonnements.length === 0 ? (
         <EmptyState title="Aucun abonnement trouvé." />
@@ -171,9 +167,7 @@ export default function MesAbonnementsSection() {
             onPayer={(id) => void payer(id)}
             emptyContent={
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-                <div
-                  className="mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-3 bg-(--color-primary-soft)"
-                >
+                <div className="mx-auto w-12 h-12 rounded-2xl flex items-center justify-center mb-3 bg-(--color-primary-soft)">
                   <PackageCheck className="w-6 h-6 text-(--color-primary)" />
                 </div>
 

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../../services/api/axiosInstance";
 import LoadingState from "../../../components/common/LoadingState";
 
-import CatalogueAdminKpiCards from "./components/CatalogueAdminKpiCards";
 import CatalogueAdminFilters from "./components/CatalogueAdminFilters";
 import CatalogueAdminServicesTable from "./components/CatalogueAdminServicesTable";
 import CatalogueAdminOffresTable from "./components/CatalogueAdminOffresTable";
@@ -60,9 +59,7 @@ export default function CatalogueAdminSection() {
       ...offres.map((offre) => offre.creePar),
     ].filter(Boolean);
 
-    return Array.from(new Set(allCreators)).sort((a, b) =>
-      a.localeCompare(b),
-    );
+    return Array.from(new Set(allCreators)).sort((a, b) => a.localeCompare(b));
   }, [services, offres]);
 
   const filteredServices = useMemo(() => {
@@ -146,18 +143,24 @@ export default function CatalogueAdminSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Catalogue</h1>
-
         <p className="ui-subtitle">
-          {services.length} service(s) · {offres.length} offre(s)
+          Gérez tous les services et offres de la plateforme.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {services.length} services
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {activeServices} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+            {offres.length} offres
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+            ● {activeOffres} actives
+          </span>
+        </div>
       </div>
-
-      <CatalogueAdminKpiCards
-        totalServices={services.length}
-        activeServices={activeServices}
-        totalOffres={offres.length}
-        activeOffres={activeOffres}
-      />
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">

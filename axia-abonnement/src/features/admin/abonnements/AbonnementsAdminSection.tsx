@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../../services/api/axiosInstance";
 
-import AbonnementsAdminKpiCards from "./components/AbonnementsAdminKpiCards";
 import AbonnementsAdminFilters from "./components/AbonnementsAdminFilters";
 import AbonnementsAdminTable from "./components/AbonnementsAdminTable";
 
@@ -34,12 +33,14 @@ export default function AbonnementsAdminSection() {
   }, []);
 
   const totalActifs = useMemo(
-    () => abonnements.filter((abonnement) => abonnement.statut === "actif").length,
+    () =>
+      abonnements.filter((abonnement) => abonnement.statut === "actif").length,
     [abonnements],
   );
 
   const totalExpires = useMemo(
-    () => abonnements.filter((abonnement) => abonnement.statut === "expiré").length,
+    () =>
+      abonnements.filter((abonnement) => abonnement.statut === "expiré").length,
     [abonnements],
   );
 
@@ -205,20 +206,29 @@ export default function AbonnementsAdminSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Abonnements globaux</h1>
-
         <p className="ui-subtitle">
-          {totalActifs} actif(s) · {totalExpires} expiré(s) · {totalEnAttente}{" "}
-          en attente · {abonnements.length} total
+          Consultez et gérez tous les abonnements de la plateforme.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {abonnements.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {totalActifs} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {totalExpires} expirés
+          </span>
+          {totalEnAttente > 0 && (
+            <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+              ● {totalEnAttente} en attente
+            </span>
+          )}
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+            ● {revenusActifs.toFixed(2)} TND générés
+          </span>
+        </div>
       </div>
-
-      <AbonnementsAdminKpiCards
-        totalAbonnements={abonnements.length}
-        totalActifs={totalActifs}
-        totalExpires={totalExpires}
-        totalEnAttente={totalEnAttente}
-        revenusActifs={revenusActifs}
-      />
 
       <AbonnementsAdminFilters
         abonnements={abonnements}

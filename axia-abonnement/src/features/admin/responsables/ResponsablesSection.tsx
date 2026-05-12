@@ -1,4 +1,3 @@
-import ResponsablesKpiCards from "./components/ResponsablesKpiCards";
 import ConfirmDemandeModal from "./components/ConfirmDemandeModal";
 import DemandesResponsablesList from "./components/DemandesResponsablesList";
 import ResponsablesList from "./components/ResponsablesList";
@@ -7,7 +6,6 @@ import { useResponsablesSection } from "./hooks/useResponsablesSection";
 export default function ResponsablesSection() {
   const {
     responsables,
-    demandes,
     loadingActifs,
     loadingDemandes,
     searchTerm,
@@ -54,21 +52,27 @@ export default function ResponsablesSection() {
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="ui-title">Gestion des responsables</h1>
-
           <p className="ui-subtitle">
-            {activeCount} actif(s) · {inactiveCount} inactif(s) · {pendingCount}{" "}
-            demande(s) en attente
+            Gérez les comptes responsables et leurs demandes.
           </p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+              {responsables.length} total
+            </span>
+            <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+              ● {activeCount} actifs
+            </span>
+            <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+              ● {inactiveCount} inactifs
+            </span>
+            {pendingCount > 0 && (
+              <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+                ● {pendingCount} en attente
+              </span>
+            )}
+          </div>
         </div>
       </div>
-
-      <ResponsablesKpiCards
-        totalResponsables={responsables.length}
-        activeCount={activeCount}
-        inactiveCount={inactiveCount}
-        totalDemandes={demandes.length}
-        pendingCount={pendingCount}
-      />
 
       {toast && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm">

@@ -37,8 +37,11 @@ export default function ActiveSubscriptionsCard({
       ) : (
         <div className="space-y-3">
           {abonnementsActifs.slice(0, 2).map((abonnement) => {
-            const jours = joursRestants(abonnement.dateFin, now);
             const total = totalJours(abonnement.dateDebut, abonnement.dateFin);
+            const jours = Math.min(
+              joursRestants(abonnement.dateFin, now),
+              total,
+            );
             const progress = getProgress(
               abonnement.dateDebut,
               abonnement.dateFin,

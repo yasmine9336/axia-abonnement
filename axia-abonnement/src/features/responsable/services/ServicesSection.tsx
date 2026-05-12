@@ -10,7 +10,6 @@ import axiosInstance from "../../../services/api/axiosInstance";
 
 import LoadingState from "../../../components/common/LoadingState";
 
-import ServicesKpiCards from "./components/ServicesKpiCards";
 import ServicesFilters from "./components/ServicesFilters";
 import ServicesGrid from "./components/ServicesGrid";
 import ServiceFormModal from "./components/ServiceFormModal";
@@ -228,18 +227,27 @@ export default function ServicesSection() {
 
   return (
     <div className="ui-page">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="ui-title">Gestion des services</h1>
         <p className="ui-subtitle">Créez et gérez les services d'abonnement.</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {services.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {activeCount} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {inactiveCount} inactifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+            ● {totalAbonnes} abonnés
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+            ● {totalOffres} offres liées
+          </span>
+        </div>
       </div>
-
-      <ServicesKpiCards
-        totalServices={services.length}
-        activeCount={activeCount}
-        inactiveCount={inactiveCount}
-        totalAbonnes={totalAbonnes}
-        totalOffres={totalOffres}
-      />
 
       <ServicesFilters
         services={services}

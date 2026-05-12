@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosInstance from "../../../services/api/axiosInstance";
 import LoadingState from "../../../components/common/LoadingState";
 
-import AbonnementsKpiCards from "./components/AbonnementsKpiCards";
 import AbonnementsFilters from "./components/AbonnementsFilters";
 import AbonnementsTable from "./components/AbonnementsTable";
 import RenouvellementRequestsList from "./components/RenouvellementRequestList";
@@ -231,7 +230,6 @@ export default function SuiviAbonnementsSection() {
     setExpirationFilter("all");
   };
 
-
   if (loading) return <LoadingState heightClassName="min-h-100" />;
 
   return (
@@ -239,19 +237,22 @@ export default function SuiviAbonnementsSection() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="ui-title">Suivi abonnements</h1>
-
         <p className="ui-subtitle">
           Gérez les demandes de renouvellement et consultez l'historique des
           abonnements.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {abonnements.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {totalActifs} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {totalExpires} expirés
+          </span>
+        </div>
       </div>
-
-      {/* KPI */}
-      <AbonnementsKpiCards
-        totalAbonnements={abonnements.length}
-        totalActifs={totalActifs}
-        totalExpires={totalExpires}
-      />
 
       <RenouvellementRequestsList
         enAttenteCount={enAttente.length}

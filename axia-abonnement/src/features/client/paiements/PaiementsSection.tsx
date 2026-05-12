@@ -3,7 +3,6 @@ import axiosInstance from "../../../services/api/axiosInstance";
 import EmptyState from "../../../components/common/EmptyState";
 import LoadingState from "../../../components/common/LoadingState";
 
-import PaiementsKpiCards from "./components/PaiementsKpiCards";
 import PaiementsFilters from "./components/PaiementsFilters";
 import PaiementsTable from "./components/PaiementsTable";
 
@@ -119,20 +118,21 @@ export default function PaiementsSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Mes paiements</h1>
-
         <p className="ui-subtitle">
           Consultez vos paiements, statuts et reçus.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {totalDepense.toFixed(2)} TND total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {completedCount} complétés
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+            ● {ceMois.toFixed(2)} TND ce mois
+          </span>
+        </div>
       </div>
-
-      {!loading && !error && (
-        <PaiementsKpiCards
-          totalDepense={totalDepense}
-          totalPaiements={paiements.length}
-          completedCount={completedCount}
-          ceMois={ceMois}
-        />
-      )}
 
       {loading ? (
         <LoadingState heightClassName="min-h-40" />

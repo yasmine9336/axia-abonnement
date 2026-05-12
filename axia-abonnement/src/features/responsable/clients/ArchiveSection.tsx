@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../services/api/axiosInstance";
 
-import ResponsableClientsKpiCards from "./components/ResponsableClientsKpiCards";
 import ResponsableClientsFilters from "./components/ResponsableClientsFilters";
 import ResponsableClientsGrid from "./components/ResponsableClientsGrid";
 import ClientSubscriptionsModal from "./components/ClientSubscriptionsModal";
@@ -90,9 +89,7 @@ export default function ArchiveSection() {
     }
 
     if (memberSinceFilter === "year") {
-      result = result.filter((client) =>
-        isInCurrentYear(client.createdAt),
-      );
+      result = result.filter((client) => isInCurrentYear(client.createdAt));
     }
 
     if (phoneFilter === "withPhone") {
@@ -182,17 +179,21 @@ export default function ArchiveSection() {
     <div className="ui-page">
       <div className="mb-6">
         <h1 className="ui-title">Archive clients</h1>
-
         <p className="ui-subtitle">
-          {actifs} actif(s) · {inactifs} inactif(s) · {clients.length} total
+          Gérez et consultez l'historique de vos clients.
         </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {clients.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {actifs} actifs
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {inactifs} inactifs
+          </span>
+        </div>
       </div>
-
-      <ResponsableClientsKpiCards
-        totalClients={clients.length}
-        actifs={actifs}
-        inactifs={inactifs}
-      />
 
       <ResponsableClientsFilters
         clients={clients}

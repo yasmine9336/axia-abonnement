@@ -3,13 +3,11 @@ import axiosInstance from "../../../services/api/axiosInstance";
 import LoadingState from "../../../components/common/LoadingState";
 import { useAuth } from "../../../hooks/useAuth";
 
-import TransactionsKpiCards from "./components/TransactionsKpiCards";
 import TransactionsFilters from "./components/TransactionsFilters";
 import TransactionsTable from "./components/TransactionsTable";
 
 import type { Paiement, SourceFilter, StatusFilter } from "./types";
 import {
-  getCurrentMonthLabel,
   isCompletedPayment,
   isFailedPayment,
   isPendingPayment,
@@ -55,15 +53,15 @@ export default function TransactionsSection() {
     return paiements
       .filter(
         (paiement) =>
-          isCompletedPayment(paiement) &&
-          new Date(paiement.createdAt) >= debut,
+          isCompletedPayment(paiement) && new Date(paiement.createdAt) >= debut,
       )
       .reduce((sum, paiement) => sum + paiement.montant, 0);
   }, [paiements]);
 
   const countsBySource = useMemo(() => {
-    const clients = paiements.filter((paiement) => !isResponsableTxn(paiement))
-      .length;
+    const clients = paiements.filter(
+      (paiement) => !isResponsableTxn(paiement),
+    ).length;
 
     const responsables = paiements.filter(isResponsableTxn).length;
 
@@ -187,16 +185,23 @@ export default function TransactionsSection() {
       <div className="mb-6">
         <h1 className="ui-title">{pageTitle}</h1>
         <p className="ui-subtitle">{pageSubtitle}</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {revenuTotal.toFixed(2)} TND total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+            ● {revenuMoisCi.toFixed(2)} TND ce mois
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {paiements.length} transactions
+          </span>
+          {countsByStatus.pending > 0 && (
+            <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+              ● {countsByStatus.pending} en attente
+            </span>
+          )}
+        </div>
       </div>
-
-      <TransactionsKpiCards
-        isAdmin={isAdmin}
-        revenuTotal={revenuTotal}
-        revenuMoisCi={revenuMoisCi}
-        totalPaiements={paiements.length}
-        countsByStatus={countsByStatus}
-        currentMonthLabel={getCurrentMonthLabel(now)}
-      />
 
       <TransactionsFilters
         isAdmin={isAdmin}

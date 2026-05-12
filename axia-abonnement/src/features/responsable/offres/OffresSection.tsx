@@ -3,7 +3,6 @@ import axiosInstance from "../../../services/api/axiosInstance";
 
 import LoadingState from "../../../components/common/LoadingState";
 
-import OffresKpiCards from "./components/OffresKpiCards";
 import OffresFilters from "./components/OffresFilters";
 import OffresGrid from "./components/OffresGrid";
 import OffreFormModal from "./components/OffreFormModal";
@@ -109,12 +108,7 @@ export default function OffresSection() {
         o.creePar.toLowerCase().includes(term) ||
         o.services.some((s) => s.toLowerCase().includes(term)),
     );
-  }, [
-    offres,
-    searchTerm,
-    statusFilter,
-    abonnesFilter,
-  ]);
+  }, [offres, searchTerm, statusFilter, abonnesFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredOffres.length / PAGE_SIZE));
 
@@ -223,18 +217,27 @@ export default function OffresSection() {
 
   return (
     <div className="ui-page">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="ui-title">Gestion des offres</h1>
         <p className="ui-subtitle">Créez et gérez les offres d'abonnement.</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            {offres.length} total
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+            ● {activeCount} actives
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+            ● {inactiveCount} inactives
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+            ● {totalAbonnes} abonnés
+          </span>
+          <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+            ● {totalServices} services utilisés
+          </span>
+        </div>
       </div>
-
-      <OffresKpiCards
-        totalOffres={offres.length}
-        activeCount={activeCount}
-        inactiveCount={inactiveCount}
-        totalAbonnes={totalAbonnes}
-        totalServices={totalServices}
-      />
 
       <OffresFilters
         offres={offres}
