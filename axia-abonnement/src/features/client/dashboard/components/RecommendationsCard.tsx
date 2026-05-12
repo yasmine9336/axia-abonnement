@@ -27,7 +27,14 @@ export default function RecommendationsCard() {
         {recommendations.map((rec, i) => (
           <button
             key={rec.item_id}
-            onClick={() => navigate("/dashboard/client/subscriptions")}
+            onClick={() => {
+              if (rec.type === "offre") {
+                localStorage.setItem("pendingOffreId", rec.item_id);
+              } else {
+                localStorage.setItem("pendingServiceId", rec.item_id);
+              }
+              navigate("/dashboard/client/subscribe");
+            }}
             className="w-full text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-start gap-3">
@@ -41,11 +48,13 @@ export default function RecommendationsCard() {
                     {rec.intitule}
                   </span>
 
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    rec.type === "service"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-purple-100 text-purple-700"
-                  }`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      rec.type === "service"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-purple-100 text-purple-700"
+                    }`}
+                  >
                     {rec.type === "service" ? "Service" : "Offre"}
                   </span>
 
