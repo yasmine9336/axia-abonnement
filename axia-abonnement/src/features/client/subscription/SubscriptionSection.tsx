@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import axiosInstance from "../../../services/api/axiosInstance";
-import { API_URL } from "../../../services/api/config";
 
 import ServicesList from "./components/ServicesList";
 import OffresList from "./components/OffresList";

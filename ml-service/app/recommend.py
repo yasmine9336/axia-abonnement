@@ -37,7 +37,7 @@ def preprocess(text: str) -> str:
 def _charger_offres(conn) -> pd.DataFrame:
     offres_df = pd.read_sql(text("""
         SELECT
-            LOWER(CAST(o.Id AS VARCHAR(36)))      AS offre_id,
+            LOWER(CAST(o.Id AS VARCHAR(36)))      AS item_id,
             o.IntituleOffre                        AS intitule,
             o.Description                          AS description,
             CAST(o.Prix AS FLOAT)                 AS prix,
@@ -55,7 +55,7 @@ def _charger_offres(conn) -> pd.DataFrame:
 
     services_raw = pd.read_sql(text("""
         SELECT
-            LOWER(CAST(so.OffreId AS VARCHAR(36)))         AS offre_id,
+            LOWER(CAST(so.OffreId AS VARCHAR(36)))         AS item_id,
             s.IntituleService + ' ' + s.Description        AS service_text
         FROM ServiceOffres so
         JOIN Services s ON s.Id  = so.ServiceId
@@ -64,11 +64,11 @@ def _charger_offres(conn) -> pd.DataFrame:
     """), conn)
 
     services_agg = (services_raw
-                    .groupby("offre_id")["service_text"]
+                    .groupby("item_id")["service_text"]
                     .apply(lambda x: " ".join(x))
                     .reset_index())
 
-    offres_df = offres_df.merge(services_agg, on="offre_id", how="left")
+    offres_df = offres_df.merge(services_agg, on="item_id", how="left")
     offres_df["service_text"] = offres_df["service_text"].fillna("")
     offres_df["texte"] = (
         offres_df["intitule"]    + " " +
@@ -76,20 +76,47 @@ def _charger_offres(conn) -> pd.DataFrame:
         offres_df["secteur"]     + " " +
         offres_df["service_text"]
     )
+    offres_df["type"] = "offre"
     return offres_df
+
+
+def _charger_services(conn) -> pd.DataFrame:
+    svc_df = pd.read_sql(text("""
+        SELECT
+            LOWER(CAST(s.Id AS VARCHAR(36)))          AS item_id,
+            s.IntituleService                          AS intitule,
+            s.Description                              AS description,
+            CAST(s.ParMois AS FLOAT)                  AS prix,
+            ISNULL(u.SecteurActivite, 'General')      AS secteur
+        FROM Services s
+        LEFT JOIN Users u ON u.Id = s.ResponsableId
+        WHERE s.IsActive = 1
+    """), conn)
+
+    svc_df["duree_mois"] = 1
+    svc_df["nb_services"] = 0
+    svc_df["texte"] = (
+        svc_df["intitule"]    + " " +
+        svc_df["description"] + " " +
+        svc_df["secteur"]
+    )
+    svc_df["type"] = "service"
+    return svc_df
 
 
 def refit_vectorizer():
     with get_connection() as conn:
-        offres_df = _charger_offres(conn)
+        offres_df   = _charger_offres(conn)
+        services_df = _charger_services(conn)
 
-    textes = offres_df["texte"].apply(preprocess).tolist()
-    vec = TfidfVectorizer(max_features=200)
+    corpus = pd.concat([offres_df, services_df], ignore_index=True)
+    textes = corpus["texte"].apply(preprocess).tolist()
+    vec = TfidfVectorizer(max_features=300)
     vec.fit(textes)
 
     os.makedirs(os.path.dirname(VECTORIZER_PATH), exist_ok=True)
     joblib.dump(vec, VECTORIZER_PATH)
-    print(f"Vectorizer refit — {len(textes)} offres — {len(vec.vocabulary_)} tokens")
+    print(f"Vectorizer refit — {len(textes)} items — {len(vec.vocabulary_)} tokens")
 
 
 def _norm(col: pd.Series) -> pd.Series:
@@ -107,11 +134,12 @@ def get_recommendations(user_id: str, top_n: int = 3) -> list[dict]:
     vectorizer = joblib.load(VECTORIZER_PATH)
 
     with get_connection() as conn:
-        offres_df = _charger_offres(conn)
+        offres_df   = _charger_offres(conn)
+        services_df = _charger_services(conn)
 
-        ratings_df = pd.read_sql(text("""
+        ratings_offres = pd.read_sql(text("""
             SELECT
-                LOWER(CAST(a.OffreId AS VARCHAR(36))) AS offre_id,
+                LOWER(CAST(a.OffreId AS VARCHAR(36))) AS item_id,
                 AVG(CAST(f.Note AS FLOAT))            AS avg_rating
             FROM Feedbacks f
             JOIN Abonnements a ON a.Id = f.AbonnementId
@@ -119,63 +147,93 @@ def get_recommendations(user_id: str, top_n: int = 3) -> list[dict]:
             GROUP BY a.OffreId
         """), conn)
 
-        popularity_df = pd.read_sql(text("""
+        ratings_services = pd.read_sql(text("""
             SELECT
-                LOWER(CAST(OffreId AS VARCHAR(36))) AS offre_id,
+                LOWER(CAST(a.ServiceId AS VARCHAR(36))) AS item_id,
+                AVG(CAST(f.Note AS FLOAT))              AS avg_rating
+            FROM Feedbacks f
+            JOIN Abonnements a ON a.Id = f.AbonnementId
+            WHERE a.ServiceId IS NOT NULL
+            GROUP BY a.ServiceId
+        """), conn)
+
+        popularity_offres = pd.read_sql(text("""
+            SELECT
+                LOWER(CAST(OffreId AS VARCHAR(36))) AS item_id,
                 COUNT(DISTINCT UserId)              AS nb_subscribers
             FROM Abonnements
             WHERE OffreId IS NOT NULL
             GROUP BY OffreId
         """), conn)
 
+        popularity_services = pd.read_sql(text("""
+            SELECT
+                LOWER(CAST(ServiceId AS VARCHAR(36))) AS item_id,
+                COUNT(DISTINCT UserId)                AS nb_subscribers
+            FROM Abonnements
+            WHERE ServiceId IS NOT NULL
+            GROUP BY ServiceId
+        """), conn)
+
         user_abonnements = pd.read_sql(text("""
             SELECT
-                LOWER(CAST(a.OffreId AS VARCHAR(36))) AS offre_id,
-                a.Statut                               AS statut
+                LOWER(CAST(a.OffreId AS VARCHAR(36)))   AS offre_id,
+                LOWER(CAST(a.ServiceId AS VARCHAR(36))) AS service_id,
+                a.Statut                                AS statut
             FROM Abonnements a
             WHERE LOWER(CAST(a.UserId AS VARCHAR(36))) = LOWER(:uid)
-              AND a.OffreId IS NOT NULL
         """), conn, params={"uid": user_id})
 
-    if offres_df.empty:
-        return []
+    # ── Fusionner ratings et popularité ──────────────────────────────
+    ratings    = pd.concat([ratings_offres,    ratings_services],    ignore_index=True)
+    popularity = pd.concat([popularity_offres, popularity_services], ignore_index=True)
 
-    offres_df = offres_df.merge(ratings_df,    on="offre_id", how="left")
-    offres_df = offres_df.merge(popularity_df, on="offre_id", how="left")
-    offres_df["avg_rating"]     = offres_df["avg_rating"].fillna(3.0)
-    offres_df["nb_subscribers"] = offres_df["nb_subscribers"].fillna(0)
-    offres_df = offres_df.reset_index(drop=True)
+    all_items = pd.concat([offres_df, services_df], ignore_index=True)
+    all_items = all_items.merge(ratings,    on="item_id", how="left")
+    all_items = all_items.merge(popularity, on="item_id", how="left")
+    all_items["avg_rating"]     = all_items["avg_rating"].fillna(3.0)
+    all_items["nb_subscribers"] = all_items["nb_subscribers"].fillna(0)
+    all_items = all_items.reset_index(drop=True)
 
-    textes       = offres_df["texte"].apply(preprocess).tolist()
+    textes       = all_items["texte"].apply(preprocess).tolist()
     tfidf_matrix = vectorizer.transform(textes)
 
-    user_offres    = set(user_abonnements["offre_id"].tolist())
-    candidate_mask = ~offres_df["offre_id"].isin(user_offres)
+    # IDs déjà souscrits
+    user_offre_ids   = set(user_abonnements["offre_id"].dropna().tolist())
+    user_service_ids = set(user_abonnements["service_id"].dropna().tolist())
+    already_ids      = user_offre_ids | user_service_ids
+
+    candidate_mask = ~all_items["item_id"].isin(already_ids)
 
     POIDS_STATUT = {"Actif": 1.0, "Expiré": 0.3}
 
-    if user_offres:
-        profil      = np.zeros(tfidf_matrix.shape[1])
-        total_poids = 0.0
-        for _, row in user_abonnements.iterrows():
-            mask = offres_df["offre_id"] == row["offre_id"]
-            if not mask.any():
+    # ── Profil client ────────────────────────────────────────────────
+    profil      = np.zeros(tfidf_matrix.shape[1])
+    total_poids = 0.0
+
+    for _, row in user_abonnements.iterrows():
+        for id_col in ["offre_id", "service_id"]:
+            iid = row[id_col]
+            if pd.isna(iid):
                 continue
-            idx          = offres_df.index[mask][0]
+            m = all_items["item_id"] == iid
+            if not m.any():
+                continue
+            idx          = all_items.index[m][0]
             p            = POIDS_STATUT.get(row["statut"], 0.3)
             profil      += p * tfidf_matrix[idx].toarray()[0]
             total_poids += p
-        if total_poids > 0:
-            profil /= total_poids
 
-        cand_matrix = tfidf_matrix[candidate_mask.values]
-        sim         = cosine_similarity(profil.reshape(1, -1), cand_matrix)[0]
+    candidates = all_items[candidate_mask].copy().reset_index(drop=True)
+    cand_matrix = tfidf_matrix[candidate_mask.values]
+
+    if total_poids > 0:
+        profil /= total_poids
+        sim = cosine_similarity(profil.reshape(1, -1), cand_matrix)[0]
     else:
-        sim = np.ones(candidate_mask.sum())
+        sim = np.ones(len(candidates))
 
-    candidates               = offres_df[candidate_mask].copy().reset_index(drop=True)
     candidates["similarity"] = sim
-
     candidates["sim_norm"]    = _norm(candidates["similarity"])
     candidates["rating_norm"] = _norm(candidates["avg_rating"])
     candidates["pop_norm"]    = _norm(candidates["nb_subscribers"])
@@ -184,13 +242,17 @@ def get_recommendations(user_id: str, top_n: int = 3) -> list[dict]:
 
     if nb_abonnements <= 1:
         poids_sim, poids_pop = 0.4, 0.4
-        if nb_abonnements == 1 and user_offres:
-            user_offre_id  = list(user_offres)[0]
-            m              = offres_df["offre_id"] == user_offre_id
-            secteur_client = str(offres_df[m]["secteur"].iat[0]) if m.any() else None
-            candidates["score_bonus"] = candidates["secteur"].apply(
-                lambda s: 0.15 if s == secteur_client else 0.0
-            ) if secteur_client else 0.0
+        if nb_abonnements == 1:
+            first = user_abonnements.iloc[0]
+            first_id = first["offre_id"] if not pd.isna(first["offre_id"]) else first["service_id"]
+            if not pd.isna(first_id):
+                m = all_items["item_id"] == first_id
+                secteur_client = str(all_items[m]["secteur"].iat[0]) if m.any() else None
+                candidates["score_bonus"] = candidates["secteur"].apply(
+                    lambda s: 0.15 if s == secteur_client else 0.0
+                ) if secteur_client else 0.0
+            else:
+                candidates["score_bonus"] = 0.0
         else:
             candidates["score_bonus"] = 0.0
     else:
@@ -204,6 +266,7 @@ def get_recommendations(user_id: str, top_n: int = 3) -> list[dict]:
         candidates["score_bonus"]
     )
 
+    # ── Diversité : top 2 + 1 domaine différent ──────────────────────
     top_2                 = candidates.nlargest(2, "score").copy()
     top_2["is_diversity"] = False
     domaines_deja         = set(top_2["secteur"].tolist())
@@ -217,19 +280,22 @@ def get_recommendations(user_id: str, top_n: int = 3) -> list[dict]:
         resultat                 = candidates.nlargest(top_n, "score").copy()
         resultat["is_diversity"] = False
 
+    reason = "popular" if total_poids == 0 else "similar"
+
     return [
         {
-            "offre_id":     row["offre_id"],
+            "type":         row["type"],
+            "item_id":      row["item_id"],
             "intitule":     row["intitule"],
             "description":  row["description"],
             "prix":         float(row["prix"]),
-            "duree_mois":   int(row["duree_mois"]),
-            "nb_services":  int(row["nb_services"]),
+            "duree_mois":   int(row["duree_mois"]) if row["type"] == "offre" else None,
+            "nb_services":  int(row["nb_services"]) if row["type"] == "offre" else None,
             "avg_rating":   round(float(row["avg_rating"]), 2),
             "secteur":      row["secteur"],
             "score":        round(float(row["score"]), 3),
             "is_diversity": bool(row["is_diversity"]),
-            "reason":       "popular" if not user_offres else "similar",
+            "reason":       reason,
         }
         for _, row in resultat.iterrows()
     ]

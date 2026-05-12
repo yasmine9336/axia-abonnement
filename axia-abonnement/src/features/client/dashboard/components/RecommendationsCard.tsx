@@ -1,5 +1,5 @@
-import { Sparkles, Star, Clock, Package, Compass } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Clock, Star, Compass, Layers } from "lucide-react";
 import { useRecommendations } from "../../../../hooks/useRecommendations";
 
 export default function RecommendationsCard() {
@@ -8,15 +8,11 @@ export default function RecommendationsCard() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-base font-bold text-gray-900 mb-4">
-          Recommandations pour vous
-        </h2>
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
-          ))}
-        </div>
+      <div className="ui-card space-y-3">
+        <div className="h-4 w-40 rounded bg-gray-200 animate-pulse" />
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-20 rounded-lg bg-gray-100 animate-pulse" />
+        ))}
       </div>
     );
   }
@@ -24,76 +20,76 @@ export default function RecommendationsCard() {
   if (error || recommendations.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-(--color-primary)" />
-          <h2 className="text-base font-bold text-gray-900">
-            Recommandations pour vous
-          </h2>
-        </div>
-        <span className="text-xs text-gray-400">
-          {recommendations[0]?.reason === "popular"
-            ? "Populaires en ce moment"
-            : "Basé sur vos abonnements"}
-        </span>
-      </div>
+    <div className="ui-card">
+      <h2 className="ui-card-title mb-4">Recommandations pour vous</h2>
 
       <div className="space-y-3">
-        {recommendations.map((rec, index) => (
-          <div
-            key={rec.offre_id}
+        {recommendations.map((rec, i) => (
+          <button
+            key={rec.item_id}
             onClick={() => navigate("/dashboard/client/subscriptions")}
-            className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-(--color-primary) hover:bg-(--color-primary-soft) transition-colors cursor-pointer"
+            className="w-full text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
           >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-5 h-5 rounded-full bg-(--color-primary) text-white text-xs flex items-center justify-center font-bold shrink-0">
-                  {index + 1}
+            <div className="flex items-start gap-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                {i + 1}
+              </span>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-sm truncate">
+                    {rec.intitule}
+                  </span>
+
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    rec.type === "service"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-purple-100 text-purple-700"
+                  }`}>
+                    {rec.type === "service" ? "Service" : "Offre"}
+                  </span>
+
+                  {rec.is_diversity && (
+                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                      <Compass size={10} />
+                      Découverte
+                    </span>
+                  )}
                 </div>
-                <p className="font-semibold text-gray-900 text-sm truncate">
-                  {rec.intitule}
+
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                  {rec.description}
                 </p>
+
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
+                  <span className="font-semibold text-gray-800">
+                    {rec.prix.toFixed(2)} €/mois
+                  </span>
+
+                  {rec.duree_mois != null && (
+                    <span className="flex items-center gap-1">
+                      <Clock size={11} />
+                      {rec.duree_mois} mois
+                    </span>
+                  )}
+
+                  {rec.nb_services != null && rec.nb_services > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Layers size={11} />
+                      {rec.nb_services} service{rec.nb_services > 1 ? "s" : ""}
+                    </span>
+                  )}
+
+                  <span className="flex items-center gap-1">
+                    <Star size={11} className="text-yellow-400" />
+                    {rec.avg_rating.toFixed(1)}
+                  </span>
+                </div>
               </div>
-              <span className="text-sm font-extrabold text-(--color-primary) shrink-0">
-                {rec.prix.toLocaleString("fr-TN")} TND
-              </span>
             </div>
-
-            <p className="text-xs text-gray-400 mb-2 line-clamp-1 ml-7">
-              {rec.description}
-            </p>
-
-            <div className="flex items-center gap-3 ml-7 text-xs text-gray-400">
-              <span className="flex items-center gap-0.5">
-                <Clock className="w-3 h-3" />
-                {rec.duree_mois} mois
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Package className="w-3 h-3" />
-                {rec.nb_services} service{rec.nb_services > 1 ? "s" : ""}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                {rec.avg_rating}/5
-              </span>
-              {rec.is_diversity && (
-                <span className="flex items-center gap-0.5 text-(--color-primary) font-semibold">
-                  <Compass className="w-3 h-3" />
-                  Découverte
-                </span>
-              )}
-            </div>
-          </div>
+          </button>
         ))}
       </div>
-
-      <button
-        onClick={() => navigate("/dashboard/client/subscriptions")}
-        className="mt-4 w-full text-sm text-(--color-primary) font-semibold hover:underline text-center"
-      >
-        Voir toutes les offres →
-      </button>
     </div>
   );
 }
