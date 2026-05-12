@@ -56,7 +56,12 @@ namespace AxiaAbonnement.Services.Implementations
                     CreatedAt = s.CreatedAt,
                     CreePar = s.CreePar,
                     ModifieLe = s.ModifieLe,
-                    ModifiePar = s.ModifiePar
+                    ModifiePar = s.ModifiePar,
+                    NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.ServiceId == s.Id),
+                    MoyenneNote = _ctx.Feedbacks
+                    .Where(f => f.Abonnement.ServiceId == s.Id)
+                    .Select(f => (double?)f.Note)
+                    .Average(),
                 })
                 .ToListAsync();
         }

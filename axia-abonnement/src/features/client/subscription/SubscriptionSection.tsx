@@ -21,8 +21,8 @@ export default function SubscriptionSection() {
   useEffect(() => {
     const loadData = async () => {
       const [offresResponse, servicesResponse] = await Promise.all([
-        axiosInstance.get<Offre[]>("/offres/public"),
-        axios.get<Service[]>(`${API_URL}/api/services/public`),
+        axiosInstance.get<Offre[]>("/offres"),
+        axiosInstance.get<Service[]>("/services"),
       ]);
 
       const offresData = offresResponse.data ?? [];

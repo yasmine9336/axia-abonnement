@@ -16,5 +16,8 @@
         public string? ModifiePar { get; set; }
 
         public int NbOffres { get; set; }
+
+        public double? MoyenneNote { get; set; }
+        public int NombreAvis { get; set; }
     }
 }

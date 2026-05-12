@@ -16,5 +16,8 @@
         public string? ModifiePar { get; set; }
 
         public List<string> Services { get; set; } = [];
+
+        public double? MoyenneNote { get; set; }
+        public int NombreAvis { get; set; }
     }
 }

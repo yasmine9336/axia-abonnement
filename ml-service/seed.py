@@ -25,6 +25,7 @@ def run_seed():
         # ── NETTOYAGE ─────────────────────────────────────────────────
         print("Nettoyage des anciennes données seed...")
         conn.execute(text("DELETE FROM DemandesRenouvellement WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')"))
+        conn.execute(text("DELETE FROM ChatConversations WHERE AssignedResponsableId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable')"))
         conn.execute(text("DELETE FROM Feedbacks WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')"))
         conn.execute(text("DELETE FROM Paiements WHERE UserId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')"))
         conn.execute(text("DELETE FROM Abonnements WHERE UserId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')"))

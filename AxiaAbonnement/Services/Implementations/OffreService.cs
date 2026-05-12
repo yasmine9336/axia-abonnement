@@ -69,7 +69,12 @@ namespace AxiaAbonnement.Services.Implementations
                     ModifieLe = o.ModifieLe,
                     ModifiePar = o.ModifiePar,
                     Services = o.ServiceOffres
-                        .Select(so => so.Service.IntituleService).ToList()
+                        .Select(so => so.Service.IntituleService).ToList(),
+                    NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.OffreId == o.Id),
+                    MoyenneNote = _ctx.Feedbacks
+                    .Where(f => f.Abonnement.OffreId == o.Id)
+                    .Select(f => (double?)f.Note)
+                    .Average(),
                 })
                 .ToListAsync();
         }
