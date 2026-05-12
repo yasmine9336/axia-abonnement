@@ -37,39 +37,71 @@ def run_seed():
 
         # ── RESPONSABLES ──────────────────────────────────────────────
         resp_catalog = [
-            ("Karim Mansour",  "karim@seed.axia.tn"),
-            ("Sonia Trabelsi", "sonia@seed.axia.tn"),
-            ("Ahmed Belhaj",   "ahmed@seed.axia.tn"),
-            ("Leila Bouazizi", "leila@seed.axia.tn"),
-            ("Youssef Gharbi", "youssef@seed.axia.tn"),
+            ("Karim Mansour",  "karim@seed.axia.tn",   "Sport & Fitness"),
+            ("Sonia Trabelsi", "sonia@seed.axia.tn",   "Bien-être & Yoga"),
+            ("Ahmed Belhaj",   "ahmed@seed.axia.tn",   "Formation & Technologie"),
+            ("Leila Bouazizi", "leila@seed.axia.tn",   "Arts & Créativité"),
+            ("Youssef Gharbi", "youssef@seed.axia.tn", "Culture & Coworking"),
         ]
         resp_ids = []
         resp_names = []
-        for name, email in resp_catalog:
+        for name, email, secteur in resp_catalog:
             rid = str(uuid.uuid4())
             resp_ids.append(rid)
             resp_names.append(name)
             conn.execute(text("""
-                INSERT INTO Users (Id, Username, Email, PasswordHash, Role, Statut, IsActive, CreatedAt)
-                VALUES (:id, :name, :email, :pwd, 'Responsable', 'Active', 1, :now)
-            """), {"id": rid, "name": name, "email": email, "pwd": hash_password('Seed1234!'), "now": NOW})
+                INSERT INTO Users (Id, Username, Email, PasswordHash, Role, Statut, IsActive, CreatedAt, SecteurActivite)
+                VALUES (:id, :name, :email, :pwd, 'Responsable', 'Active', 1, :now, :secteur)
+            """), {"id": rid, "name": name, "email": email,
+                   "pwd": hash_password('Seed1234!'), "now": NOW, "secteur": secteur})
 
         print("5 responsables créés")
 
         # ── SERVICES ──────────────────────────────────────────────────
         svc_catalog = [
-            ("Salle de Sport FitZone",          "Acces sport complet + coaching",         59.00,  590.00,  0),
-            ("Espace Coworking HubWork",         "Espace de travail collaboratif premium", 150.00, 1500.00, 0),
-            ("Bibliotheque Numerique ReadPlus",  "Acces illimite livres et articles",      20.00,  200.00,  1),
-            ("Studio Yoga ZenSpace",             "Seances yoga et meditation guidees",     65.00,  650.00,  1),
-            ("Cours de Langue LinguaLearn",      "Cours en ligne multi-langues",           35.00,  350.00,  2),
-            ("Plateforme eLearning TechBoost",   "Formations tech et certifications",      45.00,  450.00,  2),
-            ("Piscine Aqua-Fitness AquaVie",     "Acces piscine et cours aquatiques",      55.00,  550.00,  3),
-            ("Studio Photo Video CreaPix",       "Location studio et montage video",       80.00,  800.00,  3),
-            ("Espace Musique MelodyHub",         "Cours instruments et studio",            70.00,  700.00,  4),
-            ("Club de Lecture LitCircle",        "Club lecture avec livraison mensuelle",  25.00,  250.00,  4),
-            ("Salle de Danse DancePulse",        "Cours de danse tous styles",             50.00,  500.00,  0),
-            ("Centre Meditation MindfulZone",    "Meditation guidee anti-stress",          30.00,  300.00,  1),
+            # ri=0  Karim — Sport & Fitness
+            ("Salle de Sport FitZone",
+             "Accès complet salle musculation cardio coaching personnalisé cours collectifs débutants experts fitness",
+             59.00, 590.00, 0),
+            ("Espace Coworking HubWork",
+             "Espace travail collaboratif premium salles réunion connexion haut débit café inclus",
+             150.00, 1500.00, 0),
+            # ri=1  Sonia — Bien-être & Yoga
+            ("Bibliothèque Numérique ReadPlus",
+             "Accès illimité milliers livres articles presse académique toutes disciplines domaines culture",
+             20.00, 200.00, 1),
+            ("Studio Yoga ZenSpace",
+             "Séances yoga méditation guidées toutes niveaux débutants avancés bien-être corps esprit",
+             65.00, 650.00, 1),
+            # ri=2  Ahmed — Formation & Technologie
+            ("Cours de Langue LinguaLearn",
+             "Cours en ligne multi-langues français anglais espagnol arabe niveau certifiant interactif",
+             35.00, 350.00, 2),
+            ("Plateforme eLearning TechBoost",
+             "Formations technologie cloud DevOps cybersécurité intelligence artificielle certifications reconnues",
+             45.00, 450.00, 2),
+            # ri=3  Leila — Arts & Créativité
+            ("Piscine Aqua-Fitness AquaVie",
+             "Accès piscine olympique cours aquagym natation aqua-fitness coaching aquatique qualifié",
+             55.00, 550.00, 3),
+            ("Studio Photo Vidéo CreaPix",
+             "Location studio photo vidéo professionnel montage retouche formations créativité visuelle",
+             80.00, 800.00, 3),
+            # ri=4  Youssef — Culture & Coworking
+            ("Espace Musique MelodyHub",
+             "Cours instruments guitare piano batterie chant studio enregistrement répétition acoustique",
+             70.00, 700.00, 4),
+            ("Club de Lecture LitCircle",
+             "Club lecture mensuel livraison roman sélection auteurs débats discussions littéraires enrichissants",
+             25.00, 250.00, 4),
+            # ri=0  Karim (suite)
+            ("Salle de Danse DancePulse",
+             "Cours danse salsa hip-hop contemporain débutants experts scène spectacle chorégraphie collective",
+             50.00, 500.00, 0),
+            # ri=1  Sonia (suite)
+            ("Centre Méditation MindfulZone",
+             "Méditation guidée pleine conscience mindfulness réduction stress anxiété bien-être mental quotidien",
+             30.00, 300.00, 1),
         ]
         svc_ids = []
         svc_prix = {}
@@ -83,22 +115,81 @@ def run_seed():
             """), {"id": sid, "nom": nom, "desc": desc, "cree": resp_names[ri],
                    "now": NOW, "pm": pm, "pa": pa, "rid": resp_ids[ri]})
 
-        print("12 services crees")
+        print("12 services créés")
 
-        # ── OFFRES ────────────────────────────────────────────────────
+        # ── OFFRES (22) ───────────────────────────────────────────────
         offre_catalog = [
-            ("Acces Mensuel Sport",        "Sport 1 mois sans engagement",        59.00,  1,  0),
-            ("Pack Trimestriel Sport",     "3 mois sport tarif reduit",           160.00, 3,  0),
-            ("Pack Annuel Sport Premium",  "12 mois sport + coaching perso",      590.00, 12, 0),
-            ("Coworking Mensuel",          "Coworking 1 mois",                    150.00, 1,  0),
-            ("Coworking Trimestriel",      "3 mois + salle de conference",        420.00, 3,  0),
-            ("Lecture Semestriel",         "6 mois bibliotheque numerique",       110.00, 6,  1),
-            ("Lecture Annuel",             "12 mois acces illimite",              200.00, 12, 1),
-            ("Yoga Mensuel Debutant",      "1 mois yoga debutants",               65.00,  1,  1),
-            ("Yoga Pack Trimestriel",      "3 mois yoga toutes seances",          180.00, 3,  1),
-            ("Formation Tech Mensuel",     "1 mois formations tech illimitees",   45.00,  1,  2),
-            ("Formation Tech Annuel",      "12 mois + certification incluse",     450.00, 12, 2),
-            ("Langue Pack Semestriel",     "6 mois cours intensif",               190.00, 6,  2),
+            # ── Karim — Sport & Fitness (ri=0) ───────────────────────
+            ("Accès Mensuel Sport FitZone",
+             "Accès mensuel salle sport musculation cardio cours collectifs coaching sans engagement résiliable",
+             59.00, 1, 0),
+            ("Pack Trimestriel Sport",
+             "Trois mois salle sport tarif réduit coaching inclus accès illimité équipements horaires flexibles",
+             160.00, 3, 0),
+            ("Pack Annuel Sport Premium",          # BUNDLE: FitZone + DancePulse
+             "Douze mois sport complet musculation danse coaching personnalisé accès prioritaire équipements premium",
+             590.00, 12, 0),
+            ("Coworking Mensuel HubWork",
+             "Accès mensuel espace travail collaboratif connexion haut débit salles réunion café inclus",
+             150.00, 1, 0),
+            ("Coworking Trimestriel Premium",
+             "Trois mois coworking premium bureau dédié salles réunion accès illimité connexion rapide café",
+             420.00, 3, 0),
+            ("Pack Fitness Intégral Trimestriel",  # BUNDLE: FitZone + DancePulse + Coworking
+             "Bundle trimestriel sport complet FitZone musculation DancePulse danse coworking coaching accès premium",
+             250.00, 3, 0),
+            # ── Sonia — Bien-être & Yoga (ri=1) ──────────────────────
+            ("Lecture Semestriel ReadPlus",
+             "Six mois accès bibliothèque numérique illimitée livres articles presse toutes disciplines domaines",
+             110.00, 6, 1),
+            ("Lecture Annuel Premium",             # BUNDLE: ReadPlus + Yoga
+             "Douze mois bibliothèque numérique yoga méditation accès complet collections personnelle enrichissement",
+             200.00, 12, 1),
+            ("Yoga Mensuel Débutant",
+             "Un mois yoga guidé débutants postures respiration relaxation bien-être corps esprit quotidien",
+             65.00, 1, 1),
+            ("Yoga Pack Trimestriel",              # BUNDLE: Yoga + MindfulZone
+             "Trois mois yoga méditation mindfulness séances bien-être mental physique complet tous niveaux",
+             180.00, 3, 1),
+            ("Pack Bien-être Intégral",            # BUNDLE: Yoga + MindfulZone
+             "Bundle yoga méditation mindfulness relaxation pleine conscience bien-être mental physique quotidien",
+             90.00, 1, 1),
+            ("Bundle Sérénité Totale",             # BUNDLE: Yoga + MindfulZone + ReadPlus
+             "Yoga méditation lecture numérique mindfulness relaxation culture personnelle sérénité bien-être complet",
+             220.00, 3, 1),
+            # ── Ahmed — Formation & Technologie (ri=2) ────────────────
+            ("Formation Tech Mensuel",
+             "Un mois formations technologie cloud DevOps cybersécurité intelligence artificielle accès illimité",
+             45.00, 1, 2),
+            ("Formation Tech Annuel",              # BUNDLE: eLearning + LinguaLearn
+             "Douze mois formations tech certifications langues DevOps cloud intelligence artificielle parcours complet",
+             450.00, 12, 2),
+            ("Langue Pack Semestriel",
+             "Six mois cours intensif langues étrangères anglais espagnol arabe certifiant interactif ligne",
+             190.00, 6, 2),
+            ("Pack Tech et Langues Complet",       # BUNDLE: eLearning + LinguaLearn
+             "Bundle formations technologie cloud certifications cours langues anglais espagnol interactifs ligne complet",
+             75.00, 1, 2),
+            # ── Leila — Arts & Créativité (ri=3) ─────────────────────
+            ("Aqua-Fitness Mensuel AquaVie",
+             "Accès mensuel piscine olympique cours aquagym natation aqua-fitness coaching aquatique qualifié",
+             55.00, 1, 3),
+            ("Studio Créatif Mensuel CreaPix",
+             "Accès mensuel studio photo vidéo professionnel montage retouche formations créativité visuelle",
+             80.00, 1, 3),
+            ("Bundle Arts Aquatiques Créatifs",    # BUNDLE: AquaVie + CreaPix
+             "Pack natation aqua-fitness studio photo vidéo créativité arts visuels expression artistique trimestriel",
+             120.00, 3, 3),
+            # ── Youssef — Culture & Coworking (ri=4) ─────────────────
+            ("Accès Musique Mensuel MelodyHub",
+             "Accès mensuel cours guitare piano batterie chant studio enregistrement répétition musicale acoustique",
+             70.00, 1, 4),
+            ("Club Lecture Mensuel LitCircle",
+             "Accès mensuel club lecture livraison roman sélection auteurs débats discussions littéraires enrichissants",
+             25.00, 1, 4),
+            ("Bundle Culture Musique Lecture",     # BUNDLE: MelodyHub + LitCircle
+             "Pack mensuel cours musique instruments club lecture livraison roman débats culture enrichissement personnel",
+             85.00, 1, 4),
         ]
         offre_ids = []
         offre_prix = {}
@@ -114,17 +205,55 @@ def run_seed():
             """), {"id": oid, "nom": nom, "desc": desc, "prix": prix, "duree": duree,
                    "cree": resp_names[ri], "now": NOW})
 
-        print("12 offres creees")
+        print("22 offres créées")
 
         # ── LIENS SERVICE-OFFRE ───────────────────────────────────────
-        for si, oi in [(0,0),(0,1),(0,2),(1,3),(1,4),(2,5),(2,6),
-                       (3,7),(3,8),(4,11),(5,9),(5,10)]:
+        # (si, oi) = index service → index offre
+        links = [
+            # Karim singles
+            (0, 0), (0, 1),
+            # Pack Annuel Sport Premium — BUNDLE FitZone + DancePulse
+            (0, 2), (10, 2),
+            # Coworking
+            (1, 3), (1, 4),
+            # Pack Fitness Intégral — BUNDLE FitZone + DancePulse + Coworking
+            (0, 5), (10, 5), (1, 5),
+            # Sonia singles
+            (2, 6),
+            # Lecture Annuel — BUNDLE ReadPlus + Yoga
+            (2, 7), (3, 7),
+            # Yoga singles
+            (3, 8),
+            # Yoga Trimestriel — BUNDLE Yoga + MindfulZone
+            (3, 9), (11, 9),
+            # Pack Bien-être — BUNDLE Yoga + MindfulZone
+            (3, 10), (11, 10),
+            # Bundle Sérénité — BUNDLE Yoga + MindfulZone + ReadPlus
+            (3, 11), (11, 11), (2, 11),
+            # Ahmed singles
+            (5, 12),
+            # Formation Annuel — BUNDLE eLearning + LinguaLearn
+            (5, 13), (4, 13),
+            # Langue single
+            (4, 14),
+            # Pack Tech & Langues — BUNDLE eLearning + LinguaLearn
+            (5, 15), (4, 15),
+            # Leila singles
+            (6, 16), (7, 17),
+            # Bundle Arts — BUNDLE AquaVie + CreaPix
+            (6, 18), (7, 18),
+            # Youssef singles
+            (8, 19), (9, 20),
+            # Bundle Culture — BUNDLE MelodyHub + LitCircle
+            (8, 21), (9, 21),
+        ]
+        for si, oi in links:
             conn.execute(text(
                 "INSERT INTO ServiceOffres (ServiceId, OffreId) VALUES (:s, :o)"
             ), {"s": svc_ids[si], "o": offre_ids[oi]})
 
         conn.commit()
-        print("Liens service-offre crees")
+        print("Liens service-offre créés")
 
         # ── HELPERS ───────────────────────────────────────────────────
         def offres_max(max_mois):
@@ -136,7 +265,8 @@ def run_seed():
             conn.execute(text("""
                 INSERT INTO Users (Id, Username, Email, PasswordHash, Role, Statut, IsActive, CreatedAt, DateNaissance)
                 VALUES (:id, :u, :e, :pwd, 'Client', 'Active', 1, :ca, :dob)
-            """), {"id": uid, "u": username, "e": email, "pwd": hash_password('Seed1234!'), "ca": created_at, "dob": dob})
+            """), {"id": uid, "u": username, "e": email,
+                   "pwd": hash_password('Seed1234!'), "ca": created_at, "dob": dob})
             return uid
 
         def new_abn(uid, use_offre, oid, sid, d_debut, d_fin, statut, is_active):
@@ -162,22 +292,25 @@ def run_seed():
             conn.execute(text("""
                 INSERT INTO Paiements (Id, AbonnementId, UserId, Montant, Statut, CreatedAt, PaymentType)
                 VALUES (:id, :aid, :uid, :m, :st, :dt, 'subscription')
-            """), {"id": str(uuid.uuid4()), "aid": aid, "uid": uid, "m": montant, "st": statut, "dt": dt})
+            """), {"id": str(uuid.uuid4()), "aid": aid, "uid": uid,
+                   "m": montant, "st": statut, "dt": dt})
 
         def new_feedback(uid, aid, note, dt):
             conn.execute(text("""
                 INSERT INTO Feedbacks (Id, ClientId, AbonnementId, Note, CreatedAt)
                 VALUES (:id, :uid, :aid, :note, :dt)
-            """), {"id": str(uuid.uuid4()), "uid": uid, "aid": aid, "note": note, "dt": dt})
+            """), {"id": str(uuid.uuid4()), "uid": uid, "aid": aid,
+                   "note": note, "dt": dt})
 
         def new_demande(aid, uid, statut, dt):
             conn.execute(text("""
                 INSERT INTO DemandesRenouvellement (Id, AbonnementId, ClientId, Statut, CreatedAt)
                 VALUES (:id, :aid, :uid, :st, :dt)
-            """), {"id": str(uuid.uuid4()), "aid": aid, "uid": uid, "st": statut, "dt": dt})
+            """), {"id": str(uuid.uuid4()), "aid": aid, "uid": uid,
+                   "st": statut, "dt": dt})
 
         # ── CHURNERS (900) ────────────────────────────────────────────
-        print("Generation des churners...")
+        print("Génération des churners...")
         churn_profiles = [
             ((18, 28), (50,  150), (2, 4), (1, 2), 0.55, 0.12),
             ((25, 55), (60,  200), (1, 3), (2, 3), 0.45, 0.20),
@@ -193,7 +326,7 @@ def run_seed():
 
             uid = new_user(f"Churner{i+1}", f"churner{i+1}@seed.axia.tn", created_at, dob)
 
-            use_offre = random.random() > 0.35
+            use_offre = random.random() > 0.25   # 75% avec offre
             max_mois  = max(1, (ancien - 5) // 30)
             oid = random.choice(offres_max(max_mois))
             sid = random.choice(svc_ids)
@@ -225,10 +358,10 @@ def run_seed():
                 print(f"  {i+1}/900 churners")
 
         conn.commit()
-        print("900 churners crees")
+        print("900 churners créés")
 
         # ── RENEWERS (900) ────────────────────────────────────────────
-        print("Generation des renewers...")
+        print("Génération des renewers...")
         renew_profiles = [
             ((30, 65), (300,  900), (2, 4), (4, 5), 0.78),
             ((25, 45), (180,  600), (2, 3), (3, 5), 0.65),
@@ -245,7 +378,7 @@ def run_seed():
             uid = new_user(f"Renewer{i+1}", f"renewer{i+1}@seed.axia.tn", created_at, dob)
 
             nb_cycles = random.randint(*p[2])
-            use_offre = random.random() > 0.30
+            use_offre = random.random() > 0.20   # 80% avec offre
             max_mois  = max(1, (ancien - 30) // (nb_cycles * 37))
             oid = random.choice(offres_max(max_mois))
             sid = random.choice(svc_ids)
@@ -289,31 +422,21 @@ def run_seed():
                 print(f"  {i+1}/900 renewers")
 
         conn.commit()
-        print("900 renewers crees")
+        print("900 renewers créés")
 
         # ── CLIENTS ACTIFS (200) ──────────────────────────────────────
-        print("Generation des clients actifs...")
+        print("Génération des clients actifs...")
 
-        # Services de chaque responsable
         resp_services = {
-            resp_ids[0]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 0],
-            resp_ids[1]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 1],
-            resp_ids[2]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 2],
-            resp_ids[3]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 3],
-            resp_ids[4]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 4],
+            resp_ids[ri]: [svc_ids[i] for i, (_, _, _, _, r) in enumerate(svc_catalog) if r == ri]
+            for ri in range(5)
         }
-
-        # Offres de chaque responsable
         resp_offres = {
-            resp_ids[0]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 0],
-            resp_ids[1]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 1],
-            resp_ids[2]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 2],
-            resp_ids[3]: [],
-            resp_ids[4]: [],
+            resp_ids[ri]: [offre_ids[i] for i, (_, _, _, _, r) in enumerate(offre_catalog) if r == ri]
+            for ri in range(5)
         }
 
         for i in range(200):
-            # Round-robin : exactement 40 clients actifs par responsable
             rid = resp_ids[i % 5]
 
             age = random.randint(18, 65)
@@ -326,14 +449,13 @@ def run_seed():
             jours_restants = random.randint(1, 120)
             d_fin = NOW + timedelta(days=jours_restants)
 
-            # Offres de ce responsable compatibles avec l'ancienneté du client
             max_mois = max(1, (ancien - 5) // 30)
             offres_dispo = [o for o in resp_offres[rid] if offre_duree[o] <= max_mois]
             if not offres_dispo and resp_offres[rid]:
                 offres_dispo = [min(resp_offres[rid], key=lambda o: offre_duree[o])]
 
             has_offres = len(offres_dispo) > 0
-            use_offre = has_offres and random.random() > 0.40
+            use_offre = has_offres and random.random() > 0.20   # 80% avec offre
 
             oid = random.choice(offres_dispo) if use_offre else offre_ids[0]
             sid = random.choice(resp_services[rid])
@@ -360,18 +482,18 @@ def run_seed():
                 print(f"  {i+1}/200 actifs")
 
         conn.commit()
-        print("200 clients actifs crees")
+        print("200 clients actifs créés")
 
         # ── RÉSUMÉ ────────────────────────────────────────────────────
         print("\n" + "=" * 45)
-        print("SEED TERMINE AVEC SUCCES")
+        print("SEED TERMINÉ AVEC SUCCÈS")
         print("=" * 45)
         print("  Responsables   :     5")
         print("  Services       :    12")
-        print("  Offres         :    12")
+        print("  Offres         :    22  (dont 10 bundles)")
         print("  Churners       :   900  (label=0)")
         print("  Renewers       :   900  (label=1)")
-        print("  Actifs         :   200  (prediction)")
+        print("  Actifs         :   200  (prédiction)")
         print("  Total clients  :  2000")
         print("=" * 45)
 
