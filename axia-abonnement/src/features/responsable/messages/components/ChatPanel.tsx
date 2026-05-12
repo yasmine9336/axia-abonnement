@@ -59,7 +59,7 @@ export default function ChatPanel({
           <button
             type="button"
             onClick={onCloseConversation}
-            className="flex items-center gap-1.5 text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200"
+            className="flex items-center gap-1.5 text-xs text-blue-500 hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-red-200"
           >
             Fermer
           </button>

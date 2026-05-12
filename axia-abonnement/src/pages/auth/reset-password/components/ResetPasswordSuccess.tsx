@@ -9,8 +9,8 @@ export default function ResetPasswordSuccess({
 }: ResetPasswordSuccessProps) {
   return (
     <div className="space-y-5">
-      <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
-        <p className="text-sm text-green-700 font-medium">
+      <div className="p-4 bg-blue-50 border border-green-100 rounded-xl">
+        <p className="text-sm text-blue-700 font-medium">
           ✓ Mot de passe modifié avec succès
         </p>
       </div>

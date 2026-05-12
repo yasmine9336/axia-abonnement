@@ -7,9 +7,9 @@ export default function AbonnementStatusPill({
 }: AbonnementStatusPillProps) {
   const className =
     statut === "actif"
-      ? "bg-green-100 text-green-700"
+      ? "bg-blue-100 text-blue-700"
       : statut === "expiré"
-        ? "bg-red-100 text-red-700"
+        ? "bg-blue-100 text-blue-700"
         : "bg-gray-100 text-gray-600";
 
   return (

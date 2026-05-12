@@ -24,8 +24,8 @@ export default function TransactionsKpiCards({
       label: isAdmin ? "REVENUS TOTAUX" : "TOTAL REÇU",
       value: `${revenuTotal.toFixed(2)} TND`,
       sub: `${countsByStatus.completed} paiement(s) complété(s)`,
-      icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "CE MOIS-CI",
@@ -38,8 +38,8 @@ export default function TransactionsKpiCards({
       label: "TOTAL TRANSACTIONS",
       value: totalPaiements,
       sub: "toutes périodes",
-      icon: <Receipt className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <Receipt className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
     {
       label: "EN ATTENTE",

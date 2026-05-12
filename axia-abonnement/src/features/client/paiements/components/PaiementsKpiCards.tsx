@@ -19,8 +19,8 @@ export default function PaiementsKpiCards({
       label: "TOTAL PAYÉ",
       value: `${totalDepense.toFixed(2)} TND`,
       sub: "paiements complétés",
-      icon: <Wallet className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <Wallet className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "PAIEMENTS",
@@ -33,8 +33,8 @@ export default function PaiementsKpiCards({
       label: "CE MOIS-CI",
       value: `${ceMois.toFixed(2)} TND`,
       sub: "payé",
-      icon: <BarChart3 className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <BarChart3 className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
   ];
 

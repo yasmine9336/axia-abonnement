@@ -68,7 +68,7 @@ export default function ResponsableSelector({
             </div>
 
             {unreadCount > 0 && (
-              <span className="min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">
+              <span className="min-w-5 h-5 px-1 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0">
                 {formatBadge(unreadCount)}
               </span>
             )}

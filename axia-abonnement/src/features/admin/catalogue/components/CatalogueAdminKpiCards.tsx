@@ -26,8 +26,8 @@ export default function CatalogueAdminKpiCards({
       label: "SERVICES ACTIFS",
       value: activeServices,
       sub: `${totalServices - activeServices} inactifs`,
-      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <CheckCircle className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "TOTAL OFFRES",
@@ -40,8 +40,8 @@ export default function CatalogueAdminKpiCards({
       label: "OFFRES ACTIVES",
       value: activeOffres,
       sub: `${totalOffres - activeOffres} inactives`,
-      icon: <Zap className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <Zap className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
   ];
 

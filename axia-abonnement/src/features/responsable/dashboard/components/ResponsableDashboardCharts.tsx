@@ -144,7 +144,7 @@ export default function ResponsableDashboardCharts({
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
                   Actifs
                 </div>
                 <span className="font-semibold text-gray-900">
@@ -154,7 +154,7 @@ export default function ResponsableDashboardCharts({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
                   Expirés
                 </div>
                 <span className="font-semibold text-gray-900">
@@ -164,7 +164,7 @@ export default function ResponsableDashboardCharts({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-300" />
                   En attente
                 </div>
                 <span className="font-semibold text-gray-900">

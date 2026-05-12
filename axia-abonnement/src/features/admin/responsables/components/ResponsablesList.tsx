@@ -208,8 +208,8 @@ export default function ResponsablesList({
                     <span
                       className={`text-xs font-semibold px-3 py-1 rounded-full ${
                         resp.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-blue-100 text-blue-600"
                       }`}
                     >
                       {resp.isActive ? "Actif" : "Inactif"}
@@ -240,8 +240,8 @@ export default function ResponsablesList({
                       onClick={() => onToggle(resp)}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border transition-colors text-sm font-medium ${
                         resp.isActive
-                          ? "border-orange-200 text-orange-600 hover:bg-orange-50"
-                          : "border-green-200 text-green-700 hover:bg-green-50"
+                          ? "border-orange-200 text-blue-600 hover:bg-blue-50"
+                          : "border-green-200 text-blue-700 hover:bg-blue-50"
                       }`}
                     >
                       <Power size={15} />
@@ -251,7 +251,7 @@ export default function ResponsablesList({
                     <button
                       type="button"
                       onClick={() => onDelete(resp)}
-                      className="p-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                      className="p-2 rounded-xl border border-red-200 text-blue-500 hover:bg-blue-50 transition-colors"
                       aria-label={`Supprimer ${resp.username}`}
                     >
                       <Trash2 size={15} />

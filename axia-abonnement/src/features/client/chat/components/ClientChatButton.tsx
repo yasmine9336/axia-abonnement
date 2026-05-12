@@ -20,7 +20,7 @@ export default function ClientChatButton({
       <MessageCircle size={22} />
 
       {unreadChat > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
           {formatBadge(unreadChat)}
         </span>
       )}

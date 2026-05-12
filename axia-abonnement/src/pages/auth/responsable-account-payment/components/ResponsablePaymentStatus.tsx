@@ -26,7 +26,7 @@ export default function ResponsablePaymentStatus({
   if (status === "error") {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">
+        <p className="text-sm text-blue-600 bg-blue-50 px-4 py-3 rounded-xl">
           {error}
         </p>
 

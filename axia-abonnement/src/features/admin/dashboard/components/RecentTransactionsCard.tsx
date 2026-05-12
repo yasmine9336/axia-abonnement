@@ -72,7 +72,7 @@ export default function RecentTransactionsCard({
                 </div>
               </div>
 
-              <p className="text-sm font-bold text-green-600">
+              <p className="text-sm font-bold text-blue-600">
                 +{paiement.montant} TND
               </p>
             </div>

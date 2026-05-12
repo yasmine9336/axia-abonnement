@@ -61,9 +61,9 @@ export default function RecentAbonnementsCard({
                 <span
                   className={`text-xs font-semibold ${
                     abonnement.statut === "actif"
-                      ? "text-green-600"
+                      ? "text-blue-600"
                       : abonnement.statut === "expiré"
-                        ? "text-red-500"
+                        ? "text-blue-500"
                         : "text-gray-400"
                   }`}
                 >

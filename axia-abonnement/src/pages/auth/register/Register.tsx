@@ -142,7 +142,7 @@ export default function Register() {
 
           {isResponsable && <ResponsableProgress step={step} />}
 
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+          {error && <p className="text-blue-500 text-sm mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {(step === 1 || !isResponsable) && (

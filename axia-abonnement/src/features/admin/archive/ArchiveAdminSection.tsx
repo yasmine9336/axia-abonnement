@@ -135,10 +135,10 @@ export default function ArchiveAdminSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
             {clients.length} total
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalActifs} actifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalInactifs} inactifs
           </span>
         </div>
@@ -164,7 +164,7 @@ export default function ArchiveAdminSection() {
       />
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-red-200 text-blue-700 rounded-xl text-sm">
           {error}
         </div>
       )}

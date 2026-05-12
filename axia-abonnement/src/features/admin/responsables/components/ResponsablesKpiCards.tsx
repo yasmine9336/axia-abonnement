@@ -27,8 +27,8 @@ export default function ResponsablesKpiCards({
       label: "ACTIFS",
       value: activeCount,
       sub: `${inactiveCount} inactif(s)`,
-      icon: <CheckCircle2 className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "TOTAL DEMANDES",
@@ -41,8 +41,8 @@ export default function ResponsablesKpiCards({
       label: "EN ATTENTE",
       value: pendingCount,
       sub: "demandes à traiter",
-      icon: <Clock className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <Clock className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
   ];
 

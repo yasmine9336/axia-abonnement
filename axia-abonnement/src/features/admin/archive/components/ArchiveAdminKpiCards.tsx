@@ -24,14 +24,14 @@ export default function ArchiveAdminKpiCards({
       label: "CLIENTS ACTIFS",
       value: totalActifs,
       sub: "abonnements en cours",
-      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <CheckCircle className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "CLIENTS INACTIFS",
       value: totalInactifs,
       sub: "expirés ou sans abonnement",
-      icon: <Clock className="w-5 h-5 text-red-400" />,
+      icon: <Clock className="w-5 h-5 text-blue-400" />,
       border: "border-t-red-400",
     },
   ];

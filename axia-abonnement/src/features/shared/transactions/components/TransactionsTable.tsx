@@ -121,7 +121,7 @@ export default function TransactionsTable({
                   </div>
                 </td>
 
-                <td className="py-4 px-5 font-semibold text-green-600 whitespace-nowrap">
+                <td className="py-4 px-5 font-semibold text-blue-600 whitespace-nowrap">
                   {paiement.montant.toFixed(2)} TND
                 </td>
 
@@ -175,7 +175,7 @@ export default function TransactionsTable({
 
         <p className="text-sm font-semibold text-gray-900">
           Total complété :{" "}
-          <span className="text-green-600">
+          <span className="text-blue-600">
             {totalFiltered.toFixed(2)} TND
           </span>
         </p>

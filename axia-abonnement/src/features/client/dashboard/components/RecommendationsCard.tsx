@@ -12,7 +12,10 @@ export default function RecommendationsCard() {
         <div className="h-4 w-48 rounded bg-gray-200 animate-pulse mb-4" />
         <div className="grid lg:grid-cols-3 gap-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
+            <div
+              key={i}
+              className="h-36 rounded-xl bg-gray-100 animate-pulse"
+            />
           ))}
         </div>
       </div>
@@ -29,17 +32,9 @@ export default function RecommendationsCard() {
 
       <div className="grid lg:grid-cols-3 gap-4">
         {recommendations.map((rec, i) => (
-          <button
+          <div
             key={rec.item_id}
-            onClick={() => {
-              if (rec.type === "offre") {
-                localStorage.setItem("pendingOffreId", rec.item_id);
-              } else {
-                localStorage.setItem("pendingServiceId", rec.item_id);
-              }
-              navigate("/dashboard/client/subscribe");
-            }}
-            className="text-left rounded-xl border border-gray-100 p-4 hover:border-primary hover:shadow-sm transition-all group"
+            className="rounded-xl border border-gray-100 p-4 hover:border-blue-200 hover:shadow-md hover:bg-linear-to-br hover:from-blue-50 hover:to-white transition-all duration-200 group cursor-pointer"
           >
             <div className="flex items-start justify-between mb-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -47,16 +42,18 @@ export default function RecommendationsCard() {
               </span>
 
               <div className="flex gap-1.5">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  rec.type === "service"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-purple-100 text-purple-700"
-                }`}>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    rec.type === "service"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-blue-100 text-blue-800"
+                  }`}
+                >
                   {rec.type === "service" ? "Service" : "Offre"}
                 </span>
 
                 {rec.is_diversity && (
-                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
                     <Compass size={10} />
                     Découverte
                   </span>
@@ -74,9 +71,13 @@ export default function RecommendationsCard() {
 
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-gray-800">
-                {rec.prix.toFixed(2)} TND/mois
+                {rec.prix.toFixed(2)} TND
+                <span className="text-xs font-normal text-gray-400 ml-1">
+                  {rec.duree_mois != null && rec.duree_mois > 1
+                    ? `/ ${rec.duree_mois} mois`
+                    : "/mois"}
+                </span>
               </span>
-
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 {rec.duree_mois != null && (
                   <span className="flex items-center gap-1">
@@ -91,12 +92,27 @@ export default function RecommendationsCard() {
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <Star size={11} className="text-yellow-400" />
+                  <Star size={11} className="text-blue-400" />
                   {rec.avg_rating.toFixed(1)}
                 </span>
               </div>
             </div>
-          </button>
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <button
+                onClick={() => {
+                  if (rec.type === "offre") {
+                    localStorage.setItem("pendingOffreId", rec.item_id);
+                  } else {
+                    localStorage.setItem("pendingServiceId", rec.item_id);
+                  }
+                  navigate("/dashboard/client/subscribe");
+                }}
+                className="text-xs font-semibold text-primary hover:text-blue-700 transition-colors"
+              >
+                Souscrire →
+              </button>
+            </div>
+          </div>
         ))}
       </div>
     </div>

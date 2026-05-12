@@ -5,8 +5,8 @@ export const TRANSACTIONS_PAGE_SIZE = 4;
 const AVATAR_COLORS = [
   "bg-blue-100 text-blue-700",
   "bg-sky-100 text-sky-700",
-  "bg-green-100 text-green-700",
-  "bg-orange-100 text-orange-700",
+  "bg-blue-100 text-blue-700",
+  "bg-blue-100 text-blue-600",
   "bg-pink-100 text-pink-700",
   "bg-teal-100 text-teal-700",
 ];

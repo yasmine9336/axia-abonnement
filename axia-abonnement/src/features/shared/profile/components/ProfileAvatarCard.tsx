@@ -47,7 +47,7 @@ export default function ProfileAvatarCard({
         />
       </label>
 
-      {photoError && <p className="text-xs text-red-600 mb-2">{photoError}</p>}
+      {photoError && <p className="text-xs text-blue-600 mb-2">{photoError}</p>}
 
       <h3 className="font-bold text-gray-900 text-base mt-2">
         {profile?.username}

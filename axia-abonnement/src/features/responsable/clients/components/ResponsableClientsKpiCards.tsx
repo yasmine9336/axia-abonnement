@@ -24,15 +24,15 @@ export default function ResponsableClientsKpiCards({
       label: "ACTIFS",
       value: actifs,
       sub: "comptes actifs",
-      border: "border-t-green-400",
-      icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+      border: "border-t-blue-500",
+      icon: <CheckCircle className="w-5 h-5 text-blue-500" />,
     },
     {
       label: "INACTIFS",
       value: inactifs,
       sub: "comptes inactifs",
       border: "border-t-red-400",
-      icon: <CircleSlash className="w-5 h-5 text-red-500" />,
+      icon: <CircleSlash className="w-5 h-5 text-blue-500" />,
     },
   ];
 

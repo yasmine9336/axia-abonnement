@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import axiosInstance from "../../../services/api/axiosInstance";
 import { useNotifications } from "../../../hooks/useNotifications";
+import ClientDashboardHero from "./components/ClientDashboardHero";
 
 import RenewalBanner from "./components/RenewalBanner";
-import ClientDashboardKpiCards from "./components/ClientDashboardKpiCards";
 import ExpensesChart from "./components/ExpensesChart";
 import ActiveSubscriptionsCard from "./components/ActiveSubscriptionsCard";
 import RecommendationsCard from "./components/RecommendationsCard";
@@ -16,7 +16,7 @@ import { buildDepensesParMois, getChartLabel, joursRestants } from "./utils";
 export default function ClientDashboardHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount } = useNotifications();
+  useNotifications();
 
   const [abonnements, setAbonnements] = useState<AbonnementItem[]>([]);
   const [paiements, setPaiements] = useState<PaiementItem[]>([]);
@@ -95,13 +95,6 @@ export default function ClientDashboardHome() {
 
   return (
     <div className="ui-page">
-      <div className="mb-6">
-        <h1 className="ui-title">Tableau de bord</h1>
-
-        <p className="ui-subtitle">
-          Bienvenue {user?.username} ! Voici un aperçu de vos abonnements.
-        </p>
-      </div>
 
       <RenewalBanner
         abonnement={prochainRenouvellement}
@@ -109,11 +102,10 @@ export default function ClientDashboardHome() {
         onManage={() => navigate("/dashboard/client/subscriptions")}
       />
 
-      <ClientDashboardKpiCards
-        loading={loadingData}
-        abonnementsActifsCount={abonnementsActifs.length}
+      <ClientDashboardHero
+        username={user?.username}
+        abonnementsActifs={abonnementsActifs.length}
         totalDepense={totalDepense}
-        unreadCount={unreadCount}
         totalCeMois={totalCeMois}
       />
 
@@ -133,7 +125,6 @@ export default function ClientDashboardHome() {
       </div>
 
       <RecommendationsCard />
-
     </div>
   );
 }

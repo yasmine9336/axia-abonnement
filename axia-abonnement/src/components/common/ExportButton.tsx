@@ -126,7 +126,7 @@ export default function ExportButton<T>({
             onClick={() => handleExport("excel")}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
-            <FileSpreadsheet size={16} className="text-green-600" />
+            <FileSpreadsheet size={16} className="text-blue-600" />
             Exporter en Excel
           </button>
 

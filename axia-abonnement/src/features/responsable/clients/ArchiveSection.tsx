@@ -186,10 +186,10 @@ export default function ArchiveSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
             {clients.length} total
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {actifs} actifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {inactifs} inactifs
           </span>
         </div>

@@ -104,7 +104,7 @@ export default function Login() {
           <AuthStatusBanner banner={banner} />
 
           {error && (
-            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+            <p className="text-blue-500 text-sm text-center mb-4">{error}</p>
           )}
 
           <LoginForm

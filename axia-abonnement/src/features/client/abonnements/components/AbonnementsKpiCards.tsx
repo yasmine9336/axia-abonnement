@@ -19,8 +19,8 @@ export default function AbonnementsKpiCards({
         sub="abonnements en cours"
         borderColorClass="border-t-green-500"
         icon={
-          <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500 block" />
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 block" />
           </div>
         }
       />
@@ -31,8 +31,8 @@ export default function AbonnementsKpiCards({
         sub="abonnements terminés"
         borderColorClass="border-t-red-500"
         icon={
-          <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 block" />
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 block" />
           </div>
         }
       />

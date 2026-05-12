@@ -9,8 +9,8 @@ export default function PaymentCancel() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 p-8 text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <XCircle className="w-8 h-8 text-red-500" />
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <XCircle className="w-8 h-8 text-blue-500" />
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-2">

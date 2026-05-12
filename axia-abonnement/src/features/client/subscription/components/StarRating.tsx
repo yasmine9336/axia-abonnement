@@ -12,7 +12,7 @@ export default function StarRating({ moyenne, nombreAvis }: StarRatingProps) {
         <svg
           key={star}
           className={`w-4 h-4 ${
-            star <= Math.round(moyenne) ? "text-yellow-400" : "text-gray-200"
+            star <= Math.round(moyenne) ? "text-blue-400" : "text-gray-200"
           }`}
           fill="currentColor"
           viewBox="0 0 20 20"

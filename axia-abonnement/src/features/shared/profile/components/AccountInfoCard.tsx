@@ -234,14 +234,14 @@ export default function AccountInfoCard({
       </div>
 
       {profileSuccess && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-xl">
-          <p className="text-sm text-green-700">{profileSuccess}</p>
+        <div className="mt-4 p-3 bg-blue-50 border border-green-100 rounded-xl">
+          <p className="text-sm text-blue-700">{profileSuccess}</p>
         </div>
       )}
 
       {profileError && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
-          <p className="text-sm text-red-700">{profileError}</p>
+        <div className="mt-4 p-3 bg-blue-50 border border-red-100 rounded-xl">
+          <p className="text-sm text-blue-700">{profileError}</p>
         </div>
       )}
     </div>

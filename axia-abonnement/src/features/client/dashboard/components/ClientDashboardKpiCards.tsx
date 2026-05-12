@@ -28,8 +28,8 @@ export default function ClientDashboardKpiCards({
       label: "TOTAL PAYÉ",
       value: `${totalDepense.toFixed(2)} TND`,
       sub: "tous paiements",
-      icon: <Wallet className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <Wallet className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "NOTIFICATIONS",
@@ -38,7 +38,7 @@ export default function ClientDashboardKpiCards({
       icon: (
         <Bell
           className={`w-5 h-5 ${
-            unreadCount > 0 ? "text-red-400" : "text-gray-400"
+            unreadCount > 0 ? "text-blue-400" : "text-gray-400"
           }`}
         />
       ),
@@ -48,8 +48,8 @@ export default function ClientDashboardKpiCards({
       label: "CE MOIS-CI",
       value: `${totalCeMois.toFixed(2)} TND`,
       sub: "payé ce mois-ci",
-      icon: <BarChart3 className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <BarChart3 className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
   ];
 

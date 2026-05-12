@@ -92,7 +92,7 @@ export default function OffresGrid({
                   <button
                     type="button"
                     onClick={() => onDeleteRequest(offre.id)}
-                    className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+                    className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50 transition-colors"
                     aria-label={`Supprimer ${offre.intituleOffre}`}
                   >
                     <svg
@@ -130,7 +130,7 @@ export default function OffresGrid({
                   <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
                     PRIX
                   </p>
-                  <p className="text-lg font-extrabold text-green-600">
+                  <p className="text-lg font-extrabold text-blue-600">
                     {offre.prix}{" "}
                     <span className="text-xs font-semibold text-gray-400">
                       TND
@@ -161,8 +161,8 @@ export default function OffresGrid({
                   <span
                     className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                       offre.isActive
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-blue-100 text-blue-700"
                     }`}
                   >
                     {offre.isActive ? "Active" : "Inactive"}

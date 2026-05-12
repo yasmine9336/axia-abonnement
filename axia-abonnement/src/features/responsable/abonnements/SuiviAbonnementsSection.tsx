@@ -245,10 +245,10 @@ export default function SuiviAbonnementsSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
             {abonnements.length} total
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalActifs} actifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalExpires} expirés
           </span>
         </div>

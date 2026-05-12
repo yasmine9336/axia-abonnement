@@ -234,16 +234,16 @@ export default function ServicesSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
             {services.length} total
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {activeCount} actifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {inactiveCount} inactifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-600 font-medium">
             ● {totalAbonnes} abonnés
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">
             ● {totalOffres} offres liées
           </span>
         </div>

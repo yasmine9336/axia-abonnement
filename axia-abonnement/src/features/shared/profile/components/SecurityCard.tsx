@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import type { PasswordForm } from "../types";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
+import { KeyRound } from "lucide-react";
 
 interface SecurityCardProps {
   showPasswordForm: boolean;
@@ -32,8 +33,8 @@ export default function SecurityCard({
       <div className="space-y-3">
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center shrink-0 text-xl">
-              🔑
+            <div className="w-9 h-9 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center shrink-0">
+              <KeyRound size={18} className="text-blue-600" />
             </div>
 
             <div>
@@ -133,13 +134,13 @@ export default function SecurityCard({
             </div>
 
             {passwordSuccess && (
-              <p className="text-sm text-green-700 bg-green-50 p-3 rounded-xl">
+              <p className="text-sm text-blue-700 bg-blue-50 p-3 rounded-xl">
                 {passwordSuccess}
               </p>
             )}
 
             {passwordError && (
-              <p className="text-sm text-red-700 bg-red-50 p-3 rounded-xl">
+              <p className="text-sm text-blue-700 bg-blue-50 p-3 rounded-xl">
                 {passwordError}
               </p>
             )}

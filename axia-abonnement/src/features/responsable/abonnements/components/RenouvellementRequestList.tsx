@@ -43,7 +43,7 @@ export default function RenouvellementRequestsList({
           </h2>
 
           {enAttenteCount > 0 && (
-            <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="bg-blue-50 text-yellow-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {enAttenteCount}
             </span>
           )}
@@ -121,7 +121,7 @@ export default function RenouvellementRequestsList({
                       type="button"
                       disabled={submittingDemandeId === demande.id}
                       onClick={() => onAccept(demande.id)}
-                      className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold disabled:opacity-60"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold disabled:opacity-60"
                     >
                       Accepter
                     </button>
@@ -130,7 +130,7 @@ export default function RenouvellementRequestsList({
                       type="button"
                       disabled={submittingDemandeId === demande.id}
                       onClick={() => onReject(demande.id)}
-                      className="px-3 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-semibold disabled:opacity-60"
+                      className="px-3 py-2 border border-red-200 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-semibold disabled:opacity-60"
                     >
                       Refuser
                     </button>

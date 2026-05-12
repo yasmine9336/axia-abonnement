@@ -9,10 +9,10 @@ export default function SubscriptionStatusBadge({
 }: SubscriptionStatusBadgeProps) {
   const className =
     statut === "actif"
-      ? "bg-green-100 text-green-700"
+      ? "bg-blue-100 text-blue-700"
       : statut === "en_attente"
-        ? "bg-yellow-100 text-yellow-700"
-        : "bg-red-100 text-red-700";
+        ? "bg-blue-50 text-yellow-700"
+        : "bg-blue-100 text-blue-700";
 
   const label = statut === "en_attente" ? "En attente" : statut;
 

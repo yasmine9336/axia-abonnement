@@ -24,8 +24,8 @@ export default function ResponsableDashboardKpiCards({
       label: "REVENU MENSUEL",
       value: formatMoney(stats.revenuMensuel),
       sub: "abonnements mensuels",
-      icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-      border: "border-t-green-400",
+      icon: <TrendingUp className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-500",
     },
     {
       label: "SERVICES ACTIFS",
@@ -38,8 +38,8 @@ export default function ResponsableDashboardKpiCards({
       label: "DEMANDES EN ATTENTE",
       value: Number(stats.demandesEnAttente) || 0,
       sub: "à traiter",
-      icon: <Hourglass className="w-5 h-5 text-orange-500" />,
-      border: "border-t-orange-400",
+      icon: <Hourglass className="w-5 h-5 text-blue-500" />,
+      border: "border-t-blue-400",
     },
   ];
 

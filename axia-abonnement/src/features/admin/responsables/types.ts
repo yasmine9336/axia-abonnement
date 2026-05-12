@@ -44,7 +44,7 @@ export const STATUT_LABEL: Record<string, string> = {
 };
 
 export const STATUT_STYLES: Record<string, string> = {
-  Pending: "bg-yellow-100 text-yellow-700",
-  Accepted: "bg-green-100 text-green-700",
-  Rejected: "bg-red-100 text-red-600",
+  Pending: "bg-blue-50 text-yellow-700",
+  Accepted: "bg-blue-100 text-blue-700",
+  Rejected: "bg-blue-100 text-blue-600",
 };

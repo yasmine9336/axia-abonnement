@@ -170,7 +170,7 @@ export default function SubscriptionCard({
 
               {abonnement.peutRenouveler &&
                 abonnement.statutDemande === "en_attente" && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                  <span className="px-3 py-1 bg-blue-50 text-yellow-700 rounded-full text-xs font-semibold">
                     Demande en attente
                   </span>
                 )}
@@ -184,14 +184,14 @@ export default function SubscriptionCard({
 
               {abonnement.peutRenouveler &&
                 abonnement.statutDemande === "refusée" && (
-                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                     Demande refusée
                   </span>
                 )}
 
               {abonnement.peutRenouveler &&
                 abonnement.statutDemande === "expirée" && (
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-semibold">
                     Délai de paiement expiré
                   </span>
                 )}

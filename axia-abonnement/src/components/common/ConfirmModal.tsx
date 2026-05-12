@@ -48,7 +48,7 @@ export default function ConfirmModal({
             disabled={loading}
             className={`flex-1 text-white font-semibold py-3 rounded-xl transition-colors text-sm disabled:opacity-50 ${
               danger
-                ? "bg-red-500 hover:bg-red-600"
+                ? "bg-blue-500 hover:bg-blue-600"
                 : "bg-(--color-primary) hover:opacity-90"
             }`}
           >

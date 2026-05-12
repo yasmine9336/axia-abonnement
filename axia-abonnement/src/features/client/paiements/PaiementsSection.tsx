@@ -122,7 +122,7 @@ export default function PaiementsSection() {
           Consultez vos paiements, statuts et reçus.
         </p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalDepense.toFixed(2)} TND total
           </span>
           <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
@@ -137,7 +137,7 @@ export default function PaiementsSection() {
       {loading ? (
         <LoadingState heightClassName="min-h-40" />
       ) : error ? (
-        <div className="text-center py-16 text-red-500 text-sm">{error}</div>
+        <div className="text-center py-16 text-blue-500 text-sm">{error}</div>
       ) : paiements.length === 0 ? (
         <EmptyState title="Aucun paiement" />
       ) : (

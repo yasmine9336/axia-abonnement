@@ -11,12 +11,12 @@ export const formatStatut = (statut: string) =>
 
 export const statutBadge = (statut: string) =>
   statut === "completed"
-    ? "bg-green-100 text-green-700"
+    ? "bg-blue-100 text-blue-700"
     : statut === "pending"
-      ? "bg-yellow-100 text-yellow-700"
+      ? "bg-blue-50 text-yellow-700"
       : statut === "expiré"
-        ? "bg-orange-100 text-orange-700"
-        : "bg-red-100 text-red-700";
+        ? "bg-blue-100 text-blue-600"
+        : "bg-blue-100 text-blue-700";
 
 export function formatDateFR(date: string) {
   return new Date(date).toLocaleDateString("fr-FR", {

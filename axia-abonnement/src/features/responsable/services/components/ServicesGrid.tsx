@@ -74,7 +74,7 @@ export default function ServicesGrid({
                 <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
                   MENSUEL
                 </p>
-                <p className="text-lg font-extrabold text-orange-500">
+                <p className="text-lg font-extrabold text-blue-500">
                   {service.parMois}{" "}
                   <span className="text-xs font-semibold text-gray-400">
                     TND/mois
@@ -86,7 +86,7 @@ export default function ServicesGrid({
                 <p className="text-xs text-gray-400 font-semibold tracking-wide mb-1">
                   ANNUEL
                 </p>
-                <p className="text-lg font-extrabold text-green-600">
+                <p className="text-lg font-extrabold text-blue-600">
                   {service.parAnnee}{" "}
                   <span className="text-xs font-semibold text-gray-400">
                     TND/an
@@ -120,7 +120,7 @@ export default function ServicesGrid({
                 <button
                   type="button"
                   onClick={() => onDeleteRequest(service.id)}
-                  className="w-9 h-9 rounded-xl border border-red-200 text-red-400 hover:bg-red-50 transition flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl border border-red-200 text-blue-400 hover:bg-blue-50 transition flex items-center justify-center"
                   aria-label={`Supprimer ${service.intituleService}`}
                 >
                   <svg

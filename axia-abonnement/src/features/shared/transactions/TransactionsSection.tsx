@@ -186,7 +186,7 @@ export default function TransactionsSection() {
         <h1 className="ui-title">{pageTitle}</h1>
         <p className="ui-subtitle">{pageSubtitle}</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {revenuTotal.toFixed(2)} TND total
           </span>
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
@@ -196,7 +196,7 @@ export default function TransactionsSection() {
             {paiements.length} transactions
           </span>
           {countsByStatus.pending > 0 && (
-            <span className="text-xs px-3 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">
+            <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-600 font-medium">
               ● {countsByStatus.pending} en attente
             </span>
           )}
@@ -221,7 +221,7 @@ export default function TransactionsSection() {
       />
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-red-200 text-blue-700 rounded-xl text-sm">
           {error}
         </div>
       )}

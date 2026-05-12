@@ -122,10 +122,10 @@ export default function MesAbonnementsSection() {
         <h1 className="ui-title">Mes abonnements</h1>
         <p className="ui-subtitle">Gérez et suivez tous vos abonnements.</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {actifs.length} actifs
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-700 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {expires.length} expirés
           </span>
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">

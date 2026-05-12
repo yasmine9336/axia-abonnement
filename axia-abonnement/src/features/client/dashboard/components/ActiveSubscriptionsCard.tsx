@@ -58,14 +58,18 @@ export default function ActiveSubscriptionsCard({
                     {abonnement.intituleOffre}
                   </p>
 
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
                     actif
                   </span>
                 </div>
 
                 <p className="text-xs text-gray-400 mb-3">
-                  {abonnement.type === "annuel" ? "Annuel" : "Mensuel"} ·
-                  renouvelle le{" "}
+                  {abonnement.type === "annuel"
+                    ? "Annuel"
+                    : abonnement.type === "mensuel"
+                      ? "Mensuel"
+                      : abonnement.type}{" "}
+                  · renouvelle le{" "}
                   {new Date(abonnement.dateFin).toLocaleDateString("fr-FR")}
                 </p>
 

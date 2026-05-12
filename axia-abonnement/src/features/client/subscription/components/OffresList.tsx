@@ -28,7 +28,7 @@ export default function OffresList({
           </h2>
 
           {isServiceSelected && (
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-xs text-blue-600 mt-1">
               {relatedOffresCount > 0
                 ? "Économisez avec un pack !"
                 : "Aucune offre liée à ce service."}

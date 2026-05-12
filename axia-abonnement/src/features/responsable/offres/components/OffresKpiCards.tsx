@@ -41,10 +41,10 @@ export default function OffresKpiCards({
       label: "OFFRES ACTIVES",
       value: activeCount,
       sub: `${inactiveCount} inactive${inactiveCount !== 1 ? "s" : ""}`,
-      border: "border-t-green-400",
+      border: "border-t-blue-500",
       icon: (
         <svg
-          className="w-5 h-5 text-green-500"
+          className="w-5 h-5 text-blue-500"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
@@ -62,10 +62,10 @@ export default function OffresKpiCards({
       label: "TOTAL ABONNÉS",
       value: totalAbonnes,
       sub: "toutes offres confondues",
-      border: "border-t-orange-400",
+      border: "border-t-blue-400",
       icon: (
         <svg
-          className="w-5 h-5 text-orange-500"
+          className="w-5 h-5 text-blue-500"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}

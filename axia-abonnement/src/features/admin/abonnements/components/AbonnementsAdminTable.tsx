@@ -123,9 +123,9 @@ export default function AbonnementsAdminTable({
                   <span
                     className={`text-xs font-semibold ${
                       abonnement.statut === "actif"
-                        ? "text-green-600"
+                        ? "text-blue-600"
                         : abonnement.statut === "expiré"
-                          ? "text-red-500"
+                          ? "text-blue-500"
                           : "text-amber-600"
                     }`}
                   >
@@ -135,19 +135,19 @@ export default function AbonnementsAdminTable({
                   <div
                     className={`w-8 h-1.5 rounded-full ${
                       abonnement.statut === "actif"
-                        ? "bg-green-200"
+                        ? "bg-blue-200"
                         : abonnement.statut === "expiré"
-                          ? "bg-red-200"
+                          ? "bg-blue-200"
                           : "bg-amber-200"
                     }`}
                   >
                     <div
                       className={`h-full rounded-full ${
                         abonnement.statut === "actif"
-                          ? "bg-green-500 w-full"
+                          ? "bg-blue-500 w-full"
                           : abonnement.statut === "expiré"
-                            ? "bg-red-400 w-1/3"
-                            : "bg-amber-400 w-2/3"
+                            ? "bg-blue-400 w-1/3"
+                            : "bg-blue-300 w-2/3"
                       }`}
                     />
                   </div>

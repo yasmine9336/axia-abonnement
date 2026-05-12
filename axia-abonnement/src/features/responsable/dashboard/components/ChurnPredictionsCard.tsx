@@ -11,21 +11,21 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 const RISK_DOT: Record<string, string> = {
-  eleve: "bg-red-500",
-  moyen: "bg-amber-400",
-  faible: "bg-green-500",
+  eleve: "bg-blue-500",
+  moyen: "bg-blue-300",
+  faible: "bg-blue-500",
 };
 
 const RISK_ACTIVE_STYLE: Record<string, string> = {
-  eleve: "bg-red-50 border-red-300",
-  moyen: "bg-amber-50 border-amber-300",
-  faible: "bg-green-50 border-green-300",
+  eleve: "bg-blue-50 border-red-300",
+  moyen: "bg-blue-50 border-amber-300",
+  faible: "bg-blue-50 border-green-300",
 };
 
 const RISK_TEXT: Record<string, string> = {
-  eleve: "text-red-600",
+  eleve: "text-blue-600",
   moyen: "text-amber-500",
-  faible: "text-green-600",
+  faible: "text-blue-600",
 };
 
 export default function ChurnPredictionsCard() {

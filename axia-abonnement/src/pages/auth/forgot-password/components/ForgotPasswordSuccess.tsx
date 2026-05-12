@@ -15,7 +15,7 @@ export default function ForgotPasswordSuccess({
 }: ForgotPasswordSuccessProps) {
   return (
     <div className="space-y-5">
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-blue-500 text-sm">{error}</p>}
 
       <div className="p-4 bg-gray-50 rounded-xl">
         <p className="text-sm text-gray-600 mb-2">

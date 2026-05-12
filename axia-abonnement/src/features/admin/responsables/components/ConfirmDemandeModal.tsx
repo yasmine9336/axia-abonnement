@@ -81,7 +81,7 @@ export default function ConfirmDemandeModal({
               onClick={onConfirm}
               disabled={submitting}
               className={`px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 ${
-                isAccept ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
+                isAccept ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {submitting

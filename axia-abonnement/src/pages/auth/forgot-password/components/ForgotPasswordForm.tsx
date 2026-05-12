@@ -19,7 +19,7 @@ export default function ForgotPasswordForm({
 }: ForgotPasswordFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-blue-500 text-sm">{error}</p>}
 
       <div>
         <label className="block text-xs text-gray-400 mb-1 uppercase tracking-wide">

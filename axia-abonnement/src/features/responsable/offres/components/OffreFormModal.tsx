@@ -171,8 +171,8 @@ export default function OffreFormModal({
           </div>
 
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
-              <p className="text-sm text-red-700">{formError}</p>
+            <div className="p-3 bg-blue-50 border border-red-100 rounded-xl">
+              <p className="text-sm text-blue-700">{formError}</p>
             </div>
           )}
 

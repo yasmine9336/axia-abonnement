@@ -42,7 +42,7 @@ export default function ClientChatHeader({
 
         {!selected && (
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
             <p className="text-white/80 text-xs">En ligne</p>
           </div>
         )}

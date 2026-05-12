@@ -29,10 +29,10 @@ export default function AbonnementsKpiCards({
         label="ACTIFS"
         value={totalActifs}
         sub="abonnements en cours"
-        borderColorClass="border-t-green-400"
+        borderColorClass="border-t-blue-500"
         icon={
-          <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center">
-            <span className="text-green-600 font-bold">✓</span>
+          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
+            <span className="text-blue-600 font-bold">✓</span>
           </div>
         }
       />
@@ -43,8 +43,8 @@ export default function AbonnementsKpiCards({
         sub="à renouveler"
         borderColorClass="border-t-red-400"
         icon={
-          <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center">
-            <span className="text-red-600 font-bold">⏱</span>
+          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
+            <span className="text-blue-600 font-bold">⏱</span>
           </div>
         }
       />

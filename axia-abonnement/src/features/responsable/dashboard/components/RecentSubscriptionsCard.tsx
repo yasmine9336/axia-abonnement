@@ -8,9 +8,9 @@ interface RecentSubscriptionsCardProps {
 }
 
 const STATUT_STYLES: Record<string, string> = {
-  actif:     "bg-green-100 text-green-700",
-  expiré:    "bg-red-100 text-red-700",
-  suspendu:  "bg-orange-100 text-orange-700",
+  actif:     "bg-blue-100 text-blue-700",
+  expiré:    "bg-blue-100 text-blue-700",
+  suspendu:  "bg-blue-100 text-blue-600",
   annulé:    "bg-gray-100 text-gray-500",
 };
 

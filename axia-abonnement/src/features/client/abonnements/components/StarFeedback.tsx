@@ -52,7 +52,7 @@ export default function StarFeedback({
               <svg
                 className={`w-5 h-5 transition-colors ${
                   star <= (hover || selected)
-                    ? "text-yellow-400"
+                    ? "text-blue-400"
                     : "text-gray-200"
                 }`}
                 fill="currentColor"

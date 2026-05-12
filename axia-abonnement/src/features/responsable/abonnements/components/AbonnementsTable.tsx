@@ -14,9 +14,9 @@ import AbonnementStatusPill from "./AbonnementStatusPill";
 import { useChurn } from "../../../../contexts/ChurnContext";
 
 const RISK_BADGE: Record<string, string> = {
-  eleve: "bg-red-100 text-red-700",
-  moyen: "bg-amber-100 text-amber-700",
-  faible: "bg-green-100 text-green-700",
+  eleve: "bg-blue-100 text-blue-700",
+  moyen: "bg-blue-100 text-blue-700",
+  faible: "bg-blue-100 text-blue-700",
 };
 
 const RISK_LABEL: Record<string, string> = {
@@ -106,7 +106,7 @@ export default function AbonnementsTable({
                       <AbonnementStatusPill statut={String(abonnement.statut)} />
 
                       {abonnement.statut === "actif" && left !== null && left <= 7 && left >= 0 && (
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600">
                           Renouvelle dans {left}j
                         </span>
                       )}

@@ -86,7 +86,7 @@ export default function ConversationsSidebar({
                       {conversation.clientName.charAt(0).toUpperCase()}
                     </div>
                     {isHighRisk && (
-                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-white rounded-full" />
+                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 border-2 border-white rounded-full" />
                     )}
                   </div>
 
@@ -103,7 +103,7 @@ export default function ConversationsSidebar({
                       )}
 
                       {isHighRisk && (
-                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full shrink-0 font-semibold">
+                        <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full shrink-0 font-semibold">
                           Churn
                         </span>
                       )}

@@ -30,8 +30,8 @@ export default function NotificationBell() {
     });
 
   const typeColor = (type: string) => {
-    if (type === "success") return "bg-green-50 border-l-4 border-green-400";
-    if (type === "warning") return "bg-orange-50 border-l-4 border-orange-400";
+    if (type === "success") return "bg-blue-50 border-l-4 border-green-400";
+    if (type === "warning") return "bg-blue-50 border-l-4 border-orange-400";
     return "bg-(--color-primary-soft) border-l-4 border-(--color-primary)";
   };
 
@@ -66,7 +66,7 @@ export default function NotificationBell() {
         </svg>
 
         {badgeCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute top-1 right-1 w-4 h-4 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
             {badgeCount > 9 ? "9+" : badgeCount}
           </span>
         )}
