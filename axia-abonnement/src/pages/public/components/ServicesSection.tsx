@@ -4,20 +4,16 @@ import ServiceCard from "./ServiceCard";
 interface ServicesSectionProps {
   services: Service[];
   loading: boolean;
-  selectedService: string | null;
-  onSelectService: (intituleService: string) => void;
   onSubscribeService: (serviceId: string) => void;
+  onVoirPlus: () => void;
 }
 
 export default function ServicesSection({
   services,
   loading,
-  selectedService,
-  onSelectService,
   onSubscribeService,
+  onVoirPlus,
 }: ServicesSectionProps) {
-  const loopServices = [...services, ...services];
-
   return (
     <section id="services" className="py-20 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
@@ -25,9 +21,8 @@ export default function ServicesSection({
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
             Nos Services
           </h2>
-
           <p className="text-gray-500">
-            Cliquez sur un service pour voir les offres disponibles
+            Découvrez les services les mieux notés par nos abonnés
           </p>
         </div>
       </div>
@@ -44,19 +39,29 @@ export default function ServicesSection({
         </div>
       ) : (
         <div className="overflow-hidden">
-          <div className="flex gap-4 animate-scroll-loop w-max pb-2">
-            {loopServices.map((service, index) => (
+          <div className="flex flex-wrap justify-center gap-4 max-w-6xl mx-auto px-6">
+            {services.map((service) => (
               <ServiceCard
-                key={`${service.id}-${index}`}
+                key={service.id}
                 service={service}
-                selectedService={selectedService}
-                onSelect={onSelectService}
+                selectedService={null}
+                onSelect={() => {}}
                 onSubscribe={onSubscribeService}
               />
             ))}
           </div>
         </div>
       )}
+
+      <div className="flex justify-center mt-10">
+        <button
+          type="button"
+          onClick={onVoirPlus}
+          className="px-8 py-3 rounded-xl font-semibold text-sm text-white bg-(--color-primary) transition-opacity hover:opacity-90"
+        >
+          Voir plus
+        </button>
+      </div>
     </section>
   );
 }

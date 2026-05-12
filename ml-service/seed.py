@@ -31,19 +31,6 @@ def run_seed():
         conn.execute(text("DELETE FROM ServiceOffres WHERE ServiceId IN (SELECT Id FROM Services WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable'))"))
         conn.execute(text("DELETE FROM Services WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable')"))
         conn.execute(text("DELETE FROM Offres WHERE CreePar IN (SELECT Username FROM Users WHERE Email LIKE '%@seed.axia.tn' AND Role = 'Responsable')"))
-        conn.execute(text("""
-            DELETE FROM ChatMessages
-            WHERE ConversationId IN (
-            SELECT Id FROM ChatConversations
-            WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
-            OR AssignedResponsableId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
-            )
-        """))
-        conn.execute(text("""
-            DELETE FROM ChatConversations
-            WHERE ClientId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
-            OR AssignedResponsableId IN (SELECT Id FROM Users WHERE Email LIKE '%@seed.axia.tn')
-        """))
         conn.execute(text("DELETE FROM Users WHERE Email LIKE '%@seed.axia.tn'"))
         conn.commit()
         print("Nettoyage terminé")
@@ -136,6 +123,7 @@ def run_seed():
                 "INSERT INTO ServiceOffres (ServiceId, OffreId) VALUES (:s, :o)"
             ), {"s": svc_ids[si], "o": offre_ids[oi]})
 
+        conn.commit()
         print("Liens service-offre crees")
 
         # ── HELPERS ───────────────────────────────────────────────────
@@ -191,12 +179,11 @@ def run_seed():
         # ── CHURNERS (900) ────────────────────────────────────────────
         print("Generation des churners...")
         churn_profiles = [
-            ((18, 28), (50,  500), (2, 4), (1, 2), 0.55, 0.12),
-            ((25, 55), (60,  700), (1, 3), (2, 3), 0.45, 0.20),
-            ((20, 60), (45,  600), (1, 2), (1, 2), 0.75, 0.25),
-            ((30, 70), (200, 900), (0, 1), (3, 5), 0.40, 0.30),
+            ((18, 28), (50,  150), (2, 4), (1, 2), 0.55, 0.12),
+            ((25, 55), (60,  200), (1, 3), (2, 3), 0.45, 0.20),
+            ((20, 60), (45,  180), (1, 2), (1, 2), 0.75, 0.25),
+            ((18, 70), (40,  120), (0, 2), (3, 4), 0.15, 0.10),
         ]
-
         for i in range(900):
             p = churn_profiles[i % 4]
             age = random.randint(*p[0])
@@ -234,19 +221,20 @@ def run_seed():
                             d_fin - timedelta(days=random.randint(1, 3)))
 
             if (i + 1) % 300 == 0:
+                conn.commit()
                 print(f"  {i+1}/900 churners")
 
+        conn.commit()
         print("900 churners crees")
 
         # ── RENEWERS (900) ────────────────────────────────────────────
         print("Generation des renewers...")
         renew_profiles = [
-            ((30, 65), (100,  900), (2, 4), (4, 5), 0.78),
-            ((25, 45), (80,   600), (2, 3), (3, 5), 0.65),
-            ((18, 35), (50,   500), (2, 3), (2, 4), 0.55),
-            ((35, 70), (150, 1200), (3, 5), (3, 5), 0.70),
+            ((30, 65), (300,  900), (2, 4), (4, 5), 0.78),
+            ((25, 45), (180,  600), (2, 3), (3, 5), 0.65),
+            ((20, 35), (150,  500), (2, 3), (4, 5), 0.70),
+            ((35, 70), (365, 1200), (3, 5), (4, 5), 0.82),
         ]
-
         for i in range(900):
             p = renew_profiles[i % 4]
             age = random.randint(*p[0])
@@ -297,28 +285,59 @@ def run_seed():
                 current = d_fin + timedelta(days=random.randint(1, 7))
 
             if (i + 1) % 300 == 0:
+                conn.commit()
                 print(f"  {i+1}/900 renewers")
 
+        conn.commit()
         print("900 renewers crees")
 
         # ── CLIENTS ACTIFS (200) ──────────────────────────────────────
         print("Generation des clients actifs...")
+
+        # Services de chaque responsable
+        resp_services = {
+            resp_ids[0]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 0],
+            resp_ids[1]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 1],
+            resp_ids[2]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 2],
+            resp_ids[3]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 3],
+            resp_ids[4]: [svc_ids[i] for i, (_, _, _, _, ri) in enumerate(svc_catalog) if ri == 4],
+        }
+
+        # Offres de chaque responsable
+        resp_offres = {
+            resp_ids[0]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 0],
+            resp_ids[1]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 1],
+            resp_ids[2]: [offre_ids[i] for i, (_, _, _, _, ri) in enumerate(offre_catalog) if ri == 2],
+            resp_ids[3]: [],
+            resp_ids[4]: [],
+        }
+
         for i in range(200):
+            # Round-robin : exactement 40 clients actifs par responsable
+            rid = resp_ids[i % 5]
+
             age = random.randint(18, 65)
             dob = rand_dob(age, age + 1)
-            ancien = random.randint(30, 730)
+            ancien = random.randint(60, 730)
             created_at = NOW - timedelta(days=ancien)
 
             uid = new_user(f"Actif{i+1}", f"actif{i+1}@seed.axia.tn", created_at, dob)
 
-            use_offre = random.random() > 0.40
-            max_mois  = max(1, (ancien - 5) // 30)
-            oid = random.choice(offres_max(max_mois))
-            sid = random.choice(svc_ids)
-            duree_j = offre_duree[oid] * 30 if use_offre else 30
-
             jours_restants = random.randint(1, 120)
-            d_fin   = NOW + timedelta(days=jours_restants)
+            d_fin = NOW + timedelta(days=jours_restants)
+
+            # Offres de ce responsable compatibles avec l'ancienneté du client
+            max_mois = max(1, (ancien - 5) // 30)
+            offres_dispo = [o for o in resp_offres[rid] if offre_duree[o] <= max_mois]
+            if not offres_dispo and resp_offres[rid]:
+                offres_dispo = [min(resp_offres[rid], key=lambda o: offre_duree[o])]
+
+            has_offres = len(offres_dispo) > 0
+            use_offre = has_offres and random.random() > 0.40
+
+            oid = random.choice(offres_dispo) if use_offre else offre_ids[0]
+            sid = random.choice(resp_services[rid])
+            duree_j = offre_duree[oid] * 30 if use_offre else 30
             d_debut = d_fin - timedelta(days=duree_j)
 
             aid, montant = new_abn(uid, use_offre, oid, sid, d_debut, d_fin, 'Actif', 1)
@@ -337,12 +356,13 @@ def run_seed():
                             NOW - timedelta(days=random.randint(1, 10)))
 
             if (i + 1) % 50 == 0:
+                conn.commit()
                 print(f"  {i+1}/200 actifs")
 
+        conn.commit()
         print("200 clients actifs crees")
 
         # ── RÉSUMÉ ────────────────────────────────────────────────────
-        conn.commit()
         print("\n" + "=" * 45)
         print("SEED TERMINE AVEC SUCCES")
         print("=" * 45)

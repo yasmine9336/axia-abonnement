@@ -11,6 +11,7 @@ AxiaAbonnement/bin/
 AxiaAbonnement/obj/
 AxiaAbonnement/.vs/
 AxiaAbonnement/appsettings.Development.json
+**/*.csproj.user
 
 # Frontend
 axia-abonnement/node_modules/

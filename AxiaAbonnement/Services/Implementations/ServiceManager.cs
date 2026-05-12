@@ -165,7 +165,7 @@ namespace AxiaAbonnement.Services.Implementations
 
         public async Task<List<PublicServiceDto>> GetPublicServicesAsync()
         {
-            return await _ctx.Services
+            var services = await _ctx.Services
                 .Include(s => s.ServiceOffres)
                 .Where(s => s.IsActive)
                 .Select(s => new PublicServiceDto
@@ -178,11 +178,16 @@ namespace AxiaAbonnement.Services.Implementations
                     NbOffres = s.ServiceOffres.Count,
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.ServiceId == s.Id),
                     MoyenneNote = _ctx.Feedbacks
-                    .Where(f => f.Abonnement.ServiceId == s.Id)
-                    .Select(f => (double?)f.Note)
-                    .Average()
+                        .Where(f => f.Abonnement.ServiceId == s.Id)
+                        .Select(f => (double?)f.Note)
+                        .Average()
                 })
                 .ToListAsync();
+
+            return services
+                .OrderByDescending(s => s.MoyenneNote ?? 0)
+                .Take(4)
+                .ToList();
         }
     }
 }

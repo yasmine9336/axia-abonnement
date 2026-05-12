@@ -1,6 +1,4 @@
 import type { BillingType, Selection, Service } from "../types";
-import { getPrice } from "../utils";
-import SubscriptionOptionCard from "./SubscriptionOptionCard";
 
 interface ServicesListProps {
   services: Service[];
@@ -26,18 +24,52 @@ export default function ServicesList({
           const isSelected =
             selection?.kind === "service" && selection.item.id === service.id;
 
+          const price =
+            type === "annuel"
+              ? (service.parAnnee ?? 0)
+              : (service.parMois ?? 0);
+
           return (
-            <SubscriptionOptionCard
+            <div
               key={service.id}
-              title={service.intituleService}
-              description={service.description}
-              price={getPrice(service, type)}
-              type={type}
-              isSelected={isSelected}
-              moyenneNote={service.moyenneNote}
-              nombreAvis={service.nombreAvis}
+              className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all cursor-pointer hover:shadow-md ${
+                isSelected ? "ring-4" : "border-gray-200"
+              }`}
+              style={
+                isSelected
+                  ? {
+                      borderColor: "var(--color-primary)",
+                      boxShadow:
+                        "0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent)",
+                    }
+                  : undefined
+              }
               onClick={() => onSelect(service)}
-            />
+            >
+              <p className="font-semibold text-gray-900 mb-1">
+                {service.intituleService}
+              </p>
+
+              {service.description && (
+                <p className="text-xs text-gray-400 mb-3">
+                  {service.description}
+                </p>
+              )}
+
+              <p className="text-base font-bold mt-2" style={{ color: "var(--color-primary)" }}>
+                {price.toFixed(2)} TND
+                <span className="text-xs font-normal text-gray-400 ml-1">
+                  /{type === "annuel" ? "an" : "mois"}
+                </span>
+              </p>
+
+              {service.moyenneNote != null && (
+                <p className="text-xs text-gray-400 mt-2">
+                  ★ {Number(service.moyenneNote).toFixed(1)}{" "}
+                  {service.nombreAvis != null && `(${service.nombreAvis} avis)`}
+                </p>
+              )}
+            </div>
           );
         })}
       </div>

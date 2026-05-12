@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +21,6 @@ export default function Landing() {
   const [offres, setOffres] = useState<Offre[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [offresLoading, setOffresLoading] = useState(true);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
 
   useEffect(() => {
     axios
@@ -39,52 +38,40 @@ export default function Landing() {
 
   const handleSubscribe = (offreId: string) => {
     localStorage.setItem("pendingOffreId", offreId);
-    navigate(user ? "/dashboard/client/subscribe" : "/login");
+    navigate(user ? "/dashboard/client/subscribe" : "/login", {
+      state: { from: "/dashboard/client/subscribe" },
+    });
   };
 
   const handleSubscribeService = (serviceId: string) => {
     localStorage.setItem("pendingServiceId", serviceId);
-    navigate(user ? "/dashboard/client/subscribe" : "/login");
+    navigate(user ? "/dashboard/client/subscribe" : "/login", {
+      state: { from: "/dashboard/client/subscribe" },
+    });
   };
 
-  const filteredOffres = useMemo(() => {
-    if (!selectedService) return offres;
-
-    return offres
-      .filter((offre) => offre.services.includes(selectedService))
-      .sort((first, second) => second.services.length - first.services.length);
-  }, [offres, selectedService]);
-
-  const handleServiceClick = (intituleService: string) => {
-    setSelectedService(intituleService);
-
-    document.getElementById("offres")?.scrollIntoView({
-      behavior: "smooth",
+  const handleVoirPlus = () => {
+    navigate(user ? "/dashboard/client/subscribe" : "/login", {
+      state: { from: "/dashboard/client/subscribe" },
     });
   };
 
   return (
     <div className="min-h-screen bg-white font-sans">
       <Navbar />
-
       <HeroSection />
-
       <ServicesSection
         services={services}
         loading={servicesLoading}
-        selectedService={selectedService}
-        onSelectService={handleServiceClick}
         onSubscribeService={handleSubscribeService}
+        onVoirPlus={handleVoirPlus}
       />
-
       <OffresSection
-        offres={filteredOffres}
+        offres={offres}
         loading={offresLoading}
-        selectedService={selectedService}
-        onClearSelectedService={() => setSelectedService(null)}
         onSubscribe={handleSubscribe}
+        onVoirPlus={handleVoirPlus}
       />
-
       <Footer />
     </div>
   );

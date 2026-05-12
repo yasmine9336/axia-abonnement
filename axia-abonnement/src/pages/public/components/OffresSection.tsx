@@ -1,58 +1,19 @@
-import { useEffect, useRef } from "react";
-import { ChevronLeft } from "lucide-react";
 import type { Offre } from "../types";
 import OffreCard from "./OffreCard";
 
 interface OffresSectionProps {
   offres: Offre[];
   loading: boolean;
-  selectedService: string | null;
-  onClearSelectedService: () => void;
   onSubscribe: (offreId: string) => void;
+  onVoirPlus: () => void;
 }
 
 export default function OffresSection({
   offres,
   loading,
-  selectedService,
-  onClearSelectedService,
   onSubscribe,
+  onVoirPlus,
 }: OffresSectionProps) {
-  const offresRef = useRef<HTMLDivElement>(null);
-
-  const loopOffres = [...offres, ...offres, ...offres];
-
-  useEffect(() => {
-    const element = offresRef.current;
-
-    if (!element || offres.length === 0) return;
-
-    if (selectedService) {
-      element.scrollLeft = 0;
-      return;
-    }
-
-    const third = element.scrollWidth / 3;
-    element.scrollLeft = third;
-
-    const handleScroll = () => {
-      const currentThird = element.scrollWidth / 3;
-
-      if (element.scrollLeft >= currentThird * 2) {
-        element.scrollLeft -= currentThird;
-      } else if (element.scrollLeft <= 0) {
-        element.scrollLeft += currentThird;
-      }
-    };
-
-    element.addEventListener("scroll", handleScroll);
-
-    return () => element.removeEventListener("scroll", handleScroll);
-  }, [offres, selectedService]);
-
-  const multiServiceOffres = offres.filter((offre) => offre.services.length > 1);
-  const soloServiceOffres = offres.filter((offre) => offre.services.length === 1);
-
   return (
     <section id="offres" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
@@ -60,32 +21,10 @@ export default function OffresSection({
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
             Nos Offres
           </h2>
-
           <p className="text-gray-500">
-            {selectedService
-              ? `Offres incluant "${selectedService}"`
-              : "Économisez avec nos packs combinés"}
+            Économisez avec nos packs combinés les mieux notés
           </p>
         </div>
-
-        {selectedService && (
-          <div className="flex justify-center mb-8">
-            <button
-              type="button"
-              onClick={onClearSelectedService}
-              className="flex items-center gap-2 text-sm text-gray-500 transition-colors"
-              onMouseEnter={(event) => {
-                event.currentTarget.style.color = "var(--color-primary)";
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.color = "#6b7280";
-              }}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Voir toutes les offres
-            </button>
-          </div>
-        )}
       </div>
 
       {loading ? (
@@ -95,44 +34,14 @@ export default function OffresSection({
       ) : offres.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-gray-400 text-sm">
-            Aucune offre disponible pour ce service.
+            Aucune offre disponible pour le moment.
           </p>
         </div>
-      ) : selectedService ? (
-        <div className="flex flex-col gap-6 w-full">
-          {multiServiceOffres.length > 0 && (
-            <div className="flex justify-center gap-6 overflow-x-auto scrollbar-hide pb-2">
-              {multiServiceOffres.map((offre, index) => (
-                <OffreCard
-                  key={`multi-${offre.id}-${index}`}
-                  offre={offre}
-                  onSubscribe={onSubscribe}
-                />
-              ))}
-            </div>
-          )}
-
-          {soloServiceOffres.length > 0 && (
-            <div className="flex justify-center gap-6">
-              {soloServiceOffres.map((offre, index) => (
-                <OffreCard
-                  key={`solo-${offre.id}-${index}`}
-                  offre={offre}
-                  showRating={false}
-                  onSubscribe={onSubscribe}
-                />
-              ))}
-            </div>
-          )}
-        </div>
       ) : (
-        <div
-          ref={offresRef}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-instant items-stretch pb-4 pt-4"
-        >
-          {loopOffres.map((offre, index) => (
+        <div className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto px-6">
+          {offres.map((offre) => (
             <OffreCard
-              key={`${offre.id}-${index}`}
+              key={offre.id}
               offre={offre}
               buttonLabel="S'abonner"
               onSubscribe={onSubscribe}
@@ -140,6 +49,16 @@ export default function OffresSection({
           ))}
         </div>
       )}
+
+      <div className="flex justify-center mt-10">
+        <button
+          type="button"
+          onClick={onVoirPlus}
+          className="px-8 py-3 rounded-xl font-semibold text-sm text-white bg-(--color-primary) transition-opacity hover:opacity-90"
+        >
+          Voir plus
+        </button>
+      </div>
     </section>
   );
 }

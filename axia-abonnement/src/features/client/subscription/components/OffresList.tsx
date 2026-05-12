@@ -53,7 +53,7 @@ export default function OffresList({
                 title={offre.intituleOffre}
                 description={offre.description}
                 price={getPrice(offre, type)}
-                type={type}
+                dureeEnMois={offre.dureeEnMois}
                 isSelected={isSelected}
                 moyenneNote={offre.moyenneNote}
                 nombreAvis={offre.nombreAvis}

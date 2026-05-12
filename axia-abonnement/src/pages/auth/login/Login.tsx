@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import LoginHeader from "./components/LoginHeader";
 
@@ -12,7 +12,8 @@ import type { LoginFormValues, StatusBanner } from "./types";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from;
   const [error, setError] = useState("");
   const [banner, setBanner] = useState<StatusBanner>(null);
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,7 @@ export default function Login() {
           } else if (outcome.role === "Responsable") {
             navigate("/dashboard/responsable");
           } else {
-            navigate("/dashboard/client");
+            navigate(from ?? "/dashboard/client");
           }
           break;
 

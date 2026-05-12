@@ -3,7 +3,6 @@ import axios from "axios";
 import axiosInstance from "../../../services/api/axiosInstance";
 import { API_URL } from "../../../services/api/config";
 
-import BillingTypeSwitch from "./components/BillingTypeSwitch";
 import ServicesList from "./components/ServicesList";
 import OffresList from "./components/OffresList";
 import SubscriptionSummary from "./components/SubscriptionSummary";
@@ -108,8 +107,6 @@ export default function SubscriptionSection() {
         </p>
       </div>
 
-      <BillingTypeSwitch type={type} onChange={setType} />
-
       <div className="grid lg:grid-cols-[1fr_420px] gap-6 items-start">
         <div className="space-y-8">
           <ServicesList
@@ -132,6 +129,7 @@ export default function SubscriptionSection() {
           selection={selection}
           type={type}
           loading={loading}
+          onTypeChange={setType}
           onPay={() => void handlePay()}
         />
       </div>

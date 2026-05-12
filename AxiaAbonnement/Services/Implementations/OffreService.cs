@@ -67,7 +67,7 @@ namespace AxiaAbonnement.Services.Implementations
 
         public async Task<List<PublicOffreDto>> GetPublicOffresAsync()
         {
-            return await _ctx.Offres
+            var offres = await _ctx.Offres
                 .Include(o => o.ServiceOffres)
                     .ThenInclude(so => so.Service)
                 .Where(o => o.IsActive)
@@ -79,15 +79,19 @@ namespace AxiaAbonnement.Services.Implementations
                     DureeEnMois = o.DureeEnMois,
                     Prix = o.Prix,
                     Services = o.ServiceOffres
-                    .Select(so => so.Service.IntituleService).ToList(),
+                        .Select(so => so.Service.IntituleService).ToList(),
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.OffreId == o.Id),
                     MoyenneNote = _ctx.Feedbacks
-                    .Where(f => f.Abonnement.OffreId == o.Id)
-                    .Select(f => (double?)f.Note)
-                    .Average()
+                        .Where(f => f.Abonnement.OffreId == o.Id)
+                        .Select(f => (double?)f.Note)
+                        .Average()
                 })
-
                 .ToListAsync();
+
+            return offres
+                .OrderByDescending(o => o.MoyenneNote ?? 0)
+                .Take(3)
+                .ToList();
         }
 
         public async Task<OffreDto?> GetOffreByIdAsync(Guid id)

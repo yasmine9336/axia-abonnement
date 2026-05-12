@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { BillingType } from "../types";
 import { getOptionSelectedClass } from "../utils";
 import StarRating from "./StarRating";
 
@@ -7,7 +6,7 @@ interface SubscriptionOptionCardProps {
   title: string;
   description: string;
   price: number;
-  type: BillingType;
+  dureeEnMois?: number;
   isSelected: boolean;
   moyenneNote?: number | null;
   nombreAvis?: number | null;
@@ -19,13 +18,15 @@ export default function SubscriptionOptionCard({
   title,
   description,
   price,
-  type,
+  dureeEnMois,
   isSelected,
   moyenneNote,
   nombreAvis,
   children,
   onClick,
 }: SubscriptionOptionCardProps) {
+  const prixLabel = dureeEnMois ? `${dureeEnMois} mois` : "mois";
+
   return (
     <button
       type="button"
@@ -34,11 +35,7 @@ export default function SubscriptionOptionCard({
     >
       <div className="min-w-0">
         <p className="font-bold text-gray-900 truncate">{title}</p>
-
-        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-          {description}
-        </p>
-
+        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{description}</p>
         <StarRating moyenne={moyenneNote} nombreAvis={nombreAvis} />
       </div>
 
@@ -46,7 +43,7 @@ export default function SubscriptionOptionCard({
         <p className="text-2xl font-extrabold text-(--color-primary)">
           {price}{" "}
           <span className="text-sm font-semibold text-gray-400">
-            TND/{type === "annuel" ? "an" : "mois"}
+            TND/{prixLabel}
           </span>
         </p>
       </div>
