@@ -9,6 +9,7 @@ import ClientDashboardKpiCards from "./components/ClientDashboardKpiCards";
 import ExpensesChart from "./components/ExpensesChart";
 import ActiveSubscriptionsCard from "./components/ActiveSubscriptionsCard";
 import QuickActionsCard from "./components/QuickActionsCard";
+import RecommendationsCard from "./components/RecommendationsCard";
 
 import type { AbonnementItem, PaiementItem } from "./types";
 import {
@@ -135,6 +136,8 @@ export default function ClientDashboardHome() {
           now={now}
           onExplore={() => navigate("/")}
         />
+
+        <RecommendationsCard />
       </div>
 
       <QuickActionsCard onNavigate={navigate} />
