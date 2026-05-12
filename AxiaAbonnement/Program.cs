@@ -95,6 +95,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<IPdfExportService, PdfExportService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 builder.Services.AddHostedService<RenewalPaymentExpiryService>();
 
 builder.Services.AddSingleton(emailConfig);

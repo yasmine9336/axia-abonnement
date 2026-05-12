@@ -10,8 +10,17 @@ namespace AxiaAbonnement.Services.Implementations
     public class OffreService : IOffreService
     {
         private readonly AppDbContext _ctx;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _mlUrl;
+        private readonly string _mlKey;
 
-        public OffreService(AppDbContext ctx) => _ctx = ctx;
+        public OffreService(AppDbContext ctx, IHttpClientFactory httpClientFactory, IConfiguration config)
+        {
+            _ctx = ctx;
+            _httpClientFactory = httpClientFactory;
+            _mlUrl = config["ML:Url"] ?? "http://localhost:8000";
+            _mlKey = config["ML:ApiKey"] ?? "axia-ml-secret-2025";
+        }
 
         private static OffreDto MapToDto(Offre o) => new()
         {
@@ -147,6 +156,8 @@ namespace AxiaAbonnement.Services.Implementations
             _ctx.Offres.Add(offre);
             await _ctx.SaveChangesAsync();
 
+            NotifierRecommendAsync();
+
             await _ctx.Entry(offre)
                 .Collection(o => o.ServiceOffres)
                 .Query()
@@ -208,6 +219,9 @@ namespace AxiaAbonnement.Services.Implementations
             offre.ModifiePar = user.Username;
 
             await _ctx.SaveChangesAsync();
+
+            NotifierRecommendAsync();
+
             return true;
         }
 
@@ -251,6 +265,25 @@ namespace AxiaAbonnement.Services.Implementations
 
             await _ctx.SaveChangesAsync();
             return offre.IsActive;
+        }
+
+        private void NotifierRecommendAsync()
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    var request = new HttpRequestMessage(
+                        HttpMethod.Post, $"{_mlUrl}/train-recommend");
+                    request.Headers.Add("x-api-key", _mlKey);
+                    await client.SendAsync(request);
+                }
+                catch
+                {
+                    // Silencieux — le refit ML ne bloque jamais une opération C#
+                }
+            });
         }
 
     }
