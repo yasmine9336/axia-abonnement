@@ -94,17 +94,17 @@ namespace AxiaAbonnement.Services.Implementations
                 "success"
             );
 
-            var responsables = await _ctx.Users
-                .Where(u => u.Role == UserRole.Responsable && u.Statut == StatutCompte.Active)
+            var adminUsers = await _ctx.Users
+                .Where(u => u.Role == UserRole.Admin && u.Statut == StatutCompte.Active)
                 .ToListAsync();
 
-            foreach (var resp in responsables)
+            foreach (var admin in adminUsers)
             {
                 await _notifService.SendAsync(
-                    resp.Id,
+                    admin.Id,
                     $"Nouveau client inscrit : {user.Username} ({user.Email}).",
                     "info",
-                    "/dashboard/responsable/clients"
+                    "/dashboard/admin/clients"
                 );
             }
 

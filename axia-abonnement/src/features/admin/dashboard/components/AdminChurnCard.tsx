@@ -10,21 +10,21 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 const RISK_DOT: Record<string, string> = {
-  eleve: "bg-blue-500",
-  moyen: "bg-blue-300",
-  faible: "bg-blue-500",
+  eleve: "bg-blue-900",   // très foncé
+  moyen: "bg-blue-500",   // moyen
+  faible: "bg-blue-200",  // clair
 };
 
 const RISK_ACTIVE: Record<string, string> = {
-  eleve: "bg-blue-50 border-blue-600",
-  moyen: "bg-blue-50 border-blue-400",
-  faible: "bg-blue-50 border-sky-300",
+  eleve: "bg-blue-100 border-blue-800",
+  moyen: "bg-blue-50 border-blue-500",
+  faible: "bg-slate-50 border-blue-200",
 };
 
 const RISK_TEXT: Record<string, string> = {
-  eleve: "text-blue-600",
-  moyen: "text-blue-400",
-  faible: "text-blue-600",
+  eleve: "text-blue-900",
+  moyen: "text-blue-500",
+  faible: "text-blue-300",
 };
 
 type RiskFilter = "tous" | "eleve" | "moyen" | "faible";

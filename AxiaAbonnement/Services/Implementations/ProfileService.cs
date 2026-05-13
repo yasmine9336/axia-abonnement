@@ -34,6 +34,8 @@ namespace AxiaAbonnement.Services.Implementations
                 CreatedAt = user.CreatedAt,
                 Gouvernorat = user.Gouvernorat,
                 Ville = user.Ville,
+                DateNaissance = user.DateNaissance,
+                Sexe = user.Sexe,
             };
         }
 

@@ -17,5 +17,7 @@
         public DateTime CreatedAt { get; set; }
         public string? Gouvernorat { get; set; }
         public string? Ville { get; set; }
+        public DateTime? DateNaissance { get; set; }
+        public string? Sexe { get; set; }
     }
 }

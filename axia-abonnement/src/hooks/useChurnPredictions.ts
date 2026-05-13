@@ -48,21 +48,22 @@ export function useChurnPredictions() {
 
         predictions.forEach((p) => {
           const client = clientById.get(p.user_id.toLowerCase());
+          if (!client) return;
           const enriched = {
             ...p,
-            username: client?.username,
-            email: client?.email,
+            username: client.username,
+            email: client.email,
           };
           byId.set(p.user_id.toLowerCase(), enriched);
-          if (client) {
-            byUsername.set(client.username.toLowerCase(), enriched);
-          }
+          byUsername.set(client.username.toLowerCase(), enriched);
         });
 
         setRiskMap(byId);
         setRiskMapByUsername(byUsername);
       })
-      .catch((e) => { setError(e?.message ?? "Erreur ML"); })
+      .catch((e) => {
+        setError(e?.message ?? "Erreur ML");
+      })
       .finally(() => setLoading(false));
   }, []);
 

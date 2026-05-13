@@ -12,6 +12,8 @@ export interface ProfileData {
   secteurActivite?: string | null;
   adresseProfessionnelle?: string | null;
   createdAt?: string;
+  dateNaissance?: string | null;
+  sexe?: string | null;
 }
 
 export interface ProfileStats {

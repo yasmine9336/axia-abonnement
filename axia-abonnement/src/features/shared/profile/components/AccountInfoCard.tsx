@@ -201,6 +201,19 @@ export default function AccountInfoCard({
             </div>
           </>
         )}
+        {profile?.role === "Client" && (
+          <>
+            <ReadOnlyField
+              label="DATE DE NAISSANCE"
+              value={
+                profile.dateNaissance
+                  ? new Date(profile.dateNaissance).toLocaleDateString("fr-FR")
+                  : null
+              }
+            />
+            <ReadOnlyField label="SEXE" value={profile.sexe} />
+          </>
+        )}
 
         {profile?.role === "Responsable" && (
           <>

@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { Stats } from "../types";
 
-const PIE_COLORS = ["#3b82f6", "#1e40af", "#93c5fd"];
+const PIE_COLORS = ["#3b82f6", "#1e3a8a", "#bfdbfe"];
 
 interface PieDataItem {
   name: string;
@@ -154,7 +154,7 @@ export default function ResponsableDashboardCharts({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-900" />
                   Expirés
                 </div>
                 <span className="font-semibold text-gray-900">
@@ -164,7 +164,7 @@ export default function ResponsableDashboardCharts({
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-300" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-200" />
                   En attente
                 </div>
                 <span className="font-semibold text-gray-900">
