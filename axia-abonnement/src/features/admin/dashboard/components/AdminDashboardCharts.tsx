@@ -33,7 +33,7 @@ export default function AdminDashboardCharts({
   const total = pieData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
       <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold text-gray-900">

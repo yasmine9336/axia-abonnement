@@ -19,5 +19,6 @@
 
         public double? MoyenneNote { get; set; }
         public int NombreAvis { get; set; }
+        public string? SecteurActivite { get; set; }
     }
 }

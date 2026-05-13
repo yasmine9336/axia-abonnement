@@ -35,6 +35,7 @@ namespace AxiaAbonnement.Services.Implementations
         {
             var query = _ctx.Services
                 .Include(s => s.ServiceOffres)
+                .Include(s => s.Responsable)
                 .AsQueryable();
 
             // ✅ Enum au lieu de string
@@ -57,6 +58,7 @@ namespace AxiaAbonnement.Services.Implementations
                     CreePar = s.CreePar,
                     ModifieLe = s.ModifieLe,
                     ModifiePar = s.ModifiePar,
+                    SecteurActivite = s.Responsable != null ? s.Responsable.SecteurActivite : null,
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.ServiceId == s.Id),
                     MoyenneNote = _ctx.Feedbacks
                     .Where(f => f.Abonnement.ServiceId == s.Id)

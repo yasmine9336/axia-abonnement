@@ -1,5 +1,7 @@
 import type { FormEvent } from "react";
 import type { Service, ServiceForm } from "../types";
+import { useAuth } from "../../../../hooks/useAuth";
+import { useValidateSector } from "../../../../hooks/useValidateSector";
 
 interface ServiceFormModalProps {
   open: boolean;
@@ -22,13 +24,23 @@ export default function ServiceFormModal({
   onSubmit,
   onFormChange,
 }: ServiceFormModalProps) {
+  const { user } = useAuth();
+  const secteur = user?.secteurActivite ?? "";
+
+  const { result, checking } = useValidateSector(
+    form.intituleService,
+    form.description,
+    secteur,
+  );
+
+  const sectorBlocked = result !== null && !result.valid;
+
   if (!open) return null;
 
   const handleParMoisChange = (rawValue: string) => {
     const parMois = rawValue === "" ? "" : parseFloat(rawValue);
     const parAnnee =
       parMois === "" ? "" : parseFloat((Number(parMois) * 12 * 0.8).toFixed(2));
-
     onFormChange({ ...form, parMois, parAnnee });
   };
 
@@ -50,12 +62,18 @@ export default function ServiceFormModal({
           </button>
         </div>
 
+        {secteur && (
+          <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl">
+            <span className="text-xs font-semibold text-blue-700">Secteur :</span>
+            <span className="text-xs text-blue-600">{secteur}</span>
+          </div>
+        )}
+
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-800 mb-1">
               Intitulé du service
             </label>
-
             <input
               type="text"
               value={form.intituleService}
@@ -72,7 +90,6 @@ export default function ServiceFormModal({
             <label className="block text-sm font-medium text-gray-800 mb-1">
               Description
             </label>
-
             <textarea
               value={form.description}
               onChange={(e) =>
@@ -83,6 +100,27 @@ export default function ServiceFormModal({
               className="ui-input resize-none"
               required
             />
+            {checking && (
+              <p className="mt-1 text-xs text-gray-400 animate-pulse">
+                Vérification du secteur…
+              </p>
+            )}
+            {!checking && sectorBlocked && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
+                <span className="text-red-500 text-base mt-0.5">⚠</span>
+                <div>
+                  <p className="text-sm font-semibold text-red-700">
+                    Ce service ne correspond pas à votre secteur
+                  </p>
+                  <p className="text-xs text-red-600 mt-0.5">{result.message}</p>
+                </div>
+              </div>
+            )}
+            {!checking && result?.valid && (
+              <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                <span>✓</span> Contenu cohérent avec votre secteur
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -90,7 +128,6 @@ export default function ServiceFormModal({
               <label className="block text-sm font-medium text-gray-800 mb-1">
                 Prix / mois <span className="text-gray-400">(TND)</span>
               </label>
-
               <input
                 type="number"
                 value={form.parMois}
@@ -102,17 +139,13 @@ export default function ServiceFormModal({
                 required
               />
             </div>
-
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-800 mb-1">
                 Prix annuel <span className="text-gray-400">(TND)</span>
-                <span
-                  className="px-2 py-0.5 text-xs rounded-full bg-(--color-primary-soft) text-(--color-primary)"
-                >
+                <span className="px-2 py-0.5 text-xs rounded-full bg-(--color-primary-soft) text-(--color-primary)">
                   -20%
                 </span>
               </label>
-
               <input
                 type="number"
                 value={form.parAnnee}
@@ -133,8 +166,8 @@ export default function ServiceFormModal({
           </div>
 
           {formError && (
-            <div className="p-3 bg-blue-50 border border-red-100 rounded-xl">
-              <p className="text-sm text-blue-700">{formError}</p>
+            <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
+              <p className="text-sm text-red-700">{formError}</p>
             </div>
           )}
 
@@ -146,10 +179,9 @@ export default function ServiceFormModal({
             >
               Annuler
             </button>
-
             <button
               type="submit"
-              disabled={formLoading}
+              disabled={formLoading || sectorBlocked || checking}
               className="flex-1 ui-btn-primary py-3 disabled:opacity-50"
             >
               {formLoading

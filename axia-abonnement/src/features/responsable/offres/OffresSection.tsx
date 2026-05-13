@@ -187,8 +187,13 @@ export default function OffresSection() {
       setShowModal(false);
       await fetchOffres();
     } catch (err) {
-      const error = err as { response?: { data?: string } };
-      setFormError(error.response?.data || "Une erreur est survenue.");
+      const error = err as { response?: { data?: unknown } };
+      const data = error.response?.data;
+      const msg =
+        typeof data === "string"
+          ? data
+          : ((data as { title?: string })?.title ?? "Une erreur est survenue.");
+      setFormError(msg);
     } finally {
       setFormLoading(false);
     }

@@ -44,6 +44,7 @@ namespace AxiaAbonnement.Services.Implementations
             var query = _ctx.Offres
                 .Include(o => o.ServiceOffres)
                     .ThenInclude(so => so.Service)
+                    .ThenInclude(s => s.Responsable)
                 .AsQueryable();
 
             // ✅ UserRole.Responsable au lieu de "Responsable"
@@ -68,6 +69,9 @@ namespace AxiaAbonnement.Services.Implementations
                     CreePar = o.CreePar,
                     ModifieLe = o.ModifieLe,
                     ModifiePar = o.ModifiePar,
+                    SecteurActivite = o.ServiceOffres
+                    .Select(so => so.Service.Responsable != null ? so.Service.Responsable.SecteurActivite : null)
+                    .FirstOrDefault(),
                     Services = o.ServiceOffres
                         .Select(so => so.Service.IntituleService).ToList(),
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.OffreId == o.Id),

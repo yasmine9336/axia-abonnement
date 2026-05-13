@@ -4,6 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.train import train
 from app.predict import predict as run_predictions
 from app.recommend import refit_vectorizer, get_recommendations
+from app.validate_sector import validate_sector as run_validate_sector, invalidate_vectorizer_cache
+from pydantic import BaseModel
+
+class ValidateSectorRequest(BaseModel):
+    intitule: str
+    description: str
+    secteur: str
 
 app = FastAPI(title="AxiaAbonnement ML Service")
 
@@ -59,6 +66,7 @@ def train_recommend(x_api_key: str = Header(...)):
     verify_key(x_api_key)
     try:
         refit_vectorizer()
+        invalidate_vectorizer_cache()
         return {"status": "success", "message": "Vectorizer TF-IDF refit avec succès"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -72,5 +80,15 @@ def recommend(user_id: str, top_n: int = 3, x_api_key: str = Header(...)):
         return {"status": "success", "total": len(results), "recommendations": results}
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/validate-sector")
+def validate_sector_endpoint(body: ValidateSectorRequest, x_api_key: str = Header(...)):
+    verify_key(x_api_key)
+    try:
+        result = run_validate_sector(body.intitule, body.description, body.secteur)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

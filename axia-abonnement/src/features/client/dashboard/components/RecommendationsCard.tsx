@@ -25,22 +25,26 @@ export default function RecommendationsCard() {
   if (error || recommendations.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-      <h2 className="text-base font-bold text-gray-900 mb-4">
-        Recommandations pour vous
-      </h2>
+    <div className="bg-linear-to-br from-blue-50/60 to-white rounded-2xl border border-blue-100 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <span className="text-lg">✦</span>
+            Recommandations pour vous
+          </h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Sélectionnées selon vos abonnements
+          </p>
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
-        {recommendations.map((rec, i) => (
+        {recommendations.map((rec) => (
           <div
             key={rec.item_id}
             className="rounded-xl border border-gray-100 p-4 hover:border-blue-200 hover:shadow-md hover:bg-linear-to-br hover:from-blue-50 hover:to-white transition-all duration-200 group cursor-pointer"
           >
-            <div className="flex items-start justify-between mb-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                {i + 1}
-              </span>
-
+            <div className="flex items-start justify-end mb-2">
               <div className="flex gap-1.5">
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full font-medium ${

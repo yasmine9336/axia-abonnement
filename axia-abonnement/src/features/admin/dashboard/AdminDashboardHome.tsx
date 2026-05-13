@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../services/api/axiosInstance";
 
 import AdminDashboardHero from "./components/AdminDashboardHero";
-import AdminDashboardKpiCards from "./components/AdminDashboardKpiCards";
 import AdminDashboardCharts from "./components/AdminDashboardCharts";
 import TopResponsablesCard from "./components/TopResponsablesCard";
 import RecentAbonnementsCard from "./components/RecentAbonnementsCard";
@@ -55,15 +54,9 @@ export default function AdminDashboardHome() {
         currentMonth={currentMonth}
       />
 
-      <AdminDashboardKpiCards
-        stats={stats}
-        responsables={responsables}
-        loading={loading}
-      />
-
       <AdminDashboardCharts stats={stats} loading={loading} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <TopResponsablesCard
           responsables={responsables}
           loading={loading}

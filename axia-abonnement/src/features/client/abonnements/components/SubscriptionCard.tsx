@@ -1,4 +1,5 @@
 import type { Abonnement } from "../types";
+import { Calendar, RefreshCw, Tag, Clock } from "lucide-react";
 import {
   daysBetween,
   formatDateFR,
@@ -21,15 +22,7 @@ export default function SubscriptionCard({
   onRenouveler,
   onPayer,
 }: SubscriptionCardProps) {
-  const progress = getBillingProgress(
-    abonnement.dateDebut,
-    abonnement.dateFin,
-  );
-
-  const joursRestants = Math.max(
-    0,
-    daysBetween(new Date().toISOString(), abonnement.dateFin),
-  );
+  const progress = getBillingProgress(abonnement.dateDebut, abonnement.dateFin);
 
   const totalDays = totalSubscriptionDays(
     abonnement.dateDebut,
@@ -39,6 +32,11 @@ export default function SubscriptionCard({
   const usedDays = usedSubscriptionDays(
     abonnement.dateDebut,
     abonnement.dateFin,
+  );
+
+  const joursRestants = Math.min(
+    Math.max(0, daysBetween(new Date().toISOString(), abonnement.dateFin)),
+    totalDays,
   );
 
   const isExpired = abonnement.statut === "expiré";
@@ -54,7 +52,8 @@ export default function SubscriptionCard({
                 {abonnement.intituleOffre}
               </h3>
 
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20">
+              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/25 border border-white/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse inline-block" />
                 {abonnement.statut === "en_attente"
                   ? "En attente"
                   : abonnement.statut}
@@ -65,60 +64,44 @@ export default function SubscriptionCard({
               {abonnement.description || "—"}
             </p>
           </div>
-
-          <div className="text-right shrink-0">
-            <div className="text-3xl font-extrabold leading-none">
-              {abonnement.montant.toFixed(2)}
-              <span className="text-base font-semibold ml-2">
-                TND/{abonnement.type === "annuel" ? "an" : "mois"}
-              </span>
-            </div>
-
-            <div className="text-white/80 text-sm mt-1">
-              {abonnement.type === "annuel" ? "Annuel" : "Mensuel"}
-            </div>
-          </div>
         </div>
       </div>
 
       <div className="p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">
-              Début
-            </p>
-            <p className="font-semibold text-gray-900">
-              {formatDateFR(abonnement.dateDebut)}
-            </p>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">
-              {isExpired ? "Terminé" : "Renouvellement"}
-            </p>
-            <p className="font-semibold text-gray-900">
-              {formatDateFR(abonnement.dateFin)}
-            </p>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">
-              Tarif
-            </p>
-            <p className="font-semibold text-gray-900">
-              {abonnement.montant.toFixed(2)} TND/
-              {abonnement.type === "annuel" ? "an" : "mois"}
-            </p>
-          </div>
-
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-gray-400">
-              Période
-            </p>
-            <p className="font-semibold text-gray-900 capitalize">
-              {abonnement.type}
-            </p>
-          </div>
+          {[
+            {
+              icon: <Calendar size={14} />,
+              label: "Début",
+              value: formatDateFR(abonnement.dateDebut),
+            },
+            {
+              icon: <RefreshCw size={14} />,
+              label: isExpired ? "Terminé" : "Renouvellement",
+              value: formatDateFR(abonnement.dateFin),
+            },
+            {
+              icon: <Tag size={14} />,
+              label: "Tarif",
+              value: `${abonnement.montant.toFixed(2)} TND`,
+            },
+            {
+              icon: <Clock size={14} />,
+              label: "Période",
+              value: abonnement.type,
+            },
+          ].map(({ icon, label, value }) => (
+            <div
+              key={label}
+              className="bg-gray-50 border border-gray-100 rounded-xl p-3"
+            >
+              <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+                {icon}
+                <p className="text-[11px] uppercase tracking-wide">{label}</p>
+              </div>
+              <p className="font-semibold text-gray-900 capitalize">{value}</p>
+            </div>
+          ))}
         </div>
 
         {isActive && (

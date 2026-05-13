@@ -88,8 +88,9 @@ namespace AxiaAbonnement.Controllers
             var username = User.FindFirstValue(ClaimTypes.Name);
             var email = User.FindFirstValue(ClaimTypes.Email);
             var role = User.FindFirstValue(ClaimTypes.Role);
+            var secteur = User.FindFirstValue("secteurActivite");
 
-            return Ok(new { id, username, email, role });
+            return Ok(new { id, username, email, role, secteurActivite = secteur });
         }
 
         [HttpPost("forgot-password")]

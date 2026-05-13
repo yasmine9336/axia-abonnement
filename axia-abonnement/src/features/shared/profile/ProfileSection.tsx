@@ -186,6 +186,7 @@ export default function ProfileSection() {
             }
           : previous,
       );
+      window.dispatchEvent(new Event("profile-photo-updated"));
     } catch {
       setPhotoError("Erreur lors de l'upload de la photo.");
     } finally {

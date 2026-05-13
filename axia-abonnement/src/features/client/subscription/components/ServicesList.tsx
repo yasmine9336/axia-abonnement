@@ -1,4 +1,5 @@
 import type { BillingType, Selection, Service } from "../types";
+import StarRating from "./StarRating";
 
 interface ServicesListProps {
   services: Service[];
@@ -19,7 +20,7 @@ export default function ServicesList({
         SERVICES
       </h2>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4 max-h-105 overflow-y-auto pr-1 scrollbar-hide">
         {services.map((service) => {
           const isSelected =
             selection?.kind === "service" && selection.item.id === service.id;
@@ -32,8 +33,10 @@ export default function ServicesList({
           return (
             <div
               key={service.id}
-              className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all cursor-pointer hover:shadow-md ${
-                isSelected ? "ring-4" : "border-gray-200"
+              className={`text-left rounded-2xl border p-5 bg-white shadow-sm transition-all cursor-pointer ${
+                isSelected
+                  ? "ring-4"
+                  : "border-gray-200 hover:border-blue-300 hover:shadow-md hover:bg-blue-50/20"
               }`}
               style={
                 isSelected
@@ -46,9 +49,16 @@ export default function ServicesList({
               }
               onClick={() => onSelect(service)}
             >
-              <p className="font-semibold text-gray-900 mb-1">
-                {service.intituleService}
-              </p>
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="font-semibold text-gray-900">
+                  {service.intituleService}
+                </p>
+                {service.moyenneNote != null && service.moyenneNote >= 4.0 && (
+                  <span className="shrink-0 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                    Populaire
+                  </span>
+                )}
+              </div>
 
               {service.description && (
                 <p className="text-xs text-gray-400 mb-3">
@@ -56,19 +66,20 @@ export default function ServicesList({
                 </p>
               )}
 
-              <p className="text-base font-bold mt-2" style={{ color: "var(--color-primary)" }}>
+              <p
+                className="text-base font-bold mt-2"
+                style={{ color: "var(--color-primary)" }}
+              >
                 {price.toFixed(2)} TND
                 <span className="text-xs font-normal text-gray-400 ml-1">
                   /{type === "annuel" ? "an" : "mois"}
                 </span>
               </p>
 
-              {service.moyenneNote != null && (
-                <p className="text-xs text-gray-400 mt-2">
-                  ★ {Number(service.moyenneNote).toFixed(1)}{" "}
-                  {service.nombreAvis != null && `(${service.nombreAvis} avis)`}
-                </p>
-              )}
+              <StarRating
+                moyenne={service.moyenneNote}
+                nombreAvis={service.nombreAvis}
+              />
             </div>
           );
         })}

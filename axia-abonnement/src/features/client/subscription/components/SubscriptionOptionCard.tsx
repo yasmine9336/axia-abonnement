@@ -34,7 +34,14 @@ export default function SubscriptionOptionCard({
       className={getOptionSelectedClass(isSelected)}
     >
       <div className="min-w-0">
-        <p className="font-bold text-gray-900 truncate">{title}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-bold text-gray-900">{title}</p>
+          {moyenneNote != null && moyenneNote >= 4.0 && (
+            <span className="shrink-0 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+              Populaire
+            </span>
+          )}
+        </div>
         <p className="text-sm text-gray-500 mt-1 line-clamp-2">{description}</p>
         <StarRating moyenne={moyenneNote} nombreAvis={nombreAvis} />
       </div>

@@ -7,6 +7,7 @@ export interface User {
   username: string;
   email: string;
   role: string;
+  secteurActivite?: string;
 }
 
 export interface RegisterData {

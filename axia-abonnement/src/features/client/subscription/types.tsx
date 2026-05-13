@@ -7,6 +7,7 @@ export interface Offre {
   services: string[];
   moyenneNote?: number | null;
   nombreAvis?: number | null;
+  secteurActivite?: string | null; 
 }
 
 export interface Service {
@@ -17,6 +18,7 @@ export interface Service {
   parAnnee: number;
   moyenneNote?: number | null;
   nombreAvis?: number | null;
+  secteurActivite?: string | null; 
 }
 
 export type BillingType = "mensuel" | "annuel";

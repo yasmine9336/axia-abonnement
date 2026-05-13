@@ -10,6 +10,9 @@ import ExpensesChart from "./components/ExpensesChart";
 import ActiveSubscriptionsCard from "./components/ActiveSubscriptionsCard";
 import RecommendationsCard from "./components/RecommendationsCard";
 
+import { useMyChurnRisk } from "../../../hooks/useMyChurnRisk";
+import RetentionBanner from "./components/RetentionBanner";
+
 import type { AbonnementItem, PaiementItem } from "./types";
 import { buildDepensesParMois, getChartLabel, joursRestants } from "./utils";
 
@@ -17,6 +20,9 @@ export default function ClientDashboardHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
   useNotifications();
+
+  const { riskLevel } = useMyChurnRisk();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const [abonnements, setAbonnements] = useState<AbonnementItem[]>([]);
   const [paiements, setPaiements] = useState<PaiementItem[]>([]);
@@ -95,7 +101,6 @@ export default function ClientDashboardHome() {
 
   return (
     <div className="ui-page">
-
       <RenewalBanner
         abonnement={prochainRenouvellement}
         joursAvantRenouvellement={joursAvantRenouvellement}
@@ -108,6 +113,13 @@ export default function ClientDashboardHome() {
         totalDepense={totalDepense}
         totalCeMois={totalCeMois}
       />
+
+      {!bannerDismissed && (
+        <RetentionBanner
+          riskLevel={riskLevel}
+          onDismiss={() => setBannerDismissed(true)}
+        />
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
         <ExpensesChart

@@ -26,7 +26,11 @@ export default function SubscriptionSummary({
   const selectionLabel = getSelectionLabel(selection);
 
   const isOffre = selection?.kind === "offre";
-  const typeAffiche = isOffre ? "Offre pack" : type === "annuel" ? "Annuel" : "Mensuel";
+  const typeAffiche = isOffre
+    ? "Offre pack"
+    : type === "annuel"
+      ? "Annuel"
+      : "Mensuel";
   const dureeAffiche = isOffre
     ? `${selection.item.dureeEnMois} mois`
     : type === "annuel"
@@ -38,8 +42,30 @@ export default function SubscriptionSummary({
       <h2 className="text-lg font-bold text-gray-900 mb-4">Récapitulatif</h2>
 
       {!selection ? (
-        <div className="flex items-center justify-center h-56 text-gray-400 text-sm">
-          Sélectionnez un service ou une offre
+        <div className="flex flex-col items-center justify-center h-56 text-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-700">
+              Aucune sélection
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Cliquez sur un service ou une offre
+            </p>
+          </div>
         </div>
       ) : (
         <>
@@ -56,7 +82,10 @@ export default function SubscriptionSummary({
                 }`}
                 style={
                   type === "mensuel"
-                    ? { background: "var(--color-primary)", borderColor: "var(--color-primary)" }
+                    ? {
+                        background: "var(--color-primary)",
+                        borderColor: "var(--color-primary)",
+                      }
                     : undefined
                 }
               >
@@ -72,7 +101,10 @@ export default function SubscriptionSummary({
                 }`}
                 style={
                   type === "annuel"
-                    ? { background: "var(--color-primary)", borderColor: "var(--color-primary)" }
+                    ? {
+                        background: "var(--color-primary)",
+                        borderColor: "var(--color-primary)",
+                      }
                     : undefined
                 }
               >

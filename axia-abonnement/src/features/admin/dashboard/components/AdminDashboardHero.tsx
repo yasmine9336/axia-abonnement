@@ -16,7 +16,7 @@ export default function AdminDashboardHero({
 }: AdminDashboardHeroProps) {
   return (
     <div
-      className="mb-6 rounded-2xl p-6 text-white"
+      className="mb-4 rounded-2xl px-6 py-4 text-white"
       style={{
         background:
           "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%)",

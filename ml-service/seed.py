@@ -38,11 +38,11 @@ def run_seed():
 
         # ── RESPONSABLES ──────────────────────────────────────────────
         resp_catalog = [
-            ("Karim Mansour",  "karim@seed.axia.tn",   "Sport & Fitness"),
-            ("Sonia Trabelsi", "sonia@seed.axia.tn",   "Bien-être & Yoga"),
-            ("Ahmed Belhaj",   "ahmed@seed.axia.tn",   "Formation & Technologie"),
-            ("Leila Bouazizi", "leila@seed.axia.tn",   "Arts & Créativité"),
-            ("Youssef Gharbi", "youssef@seed.axia.tn", "Culture & Coworking"),
+            ("Karim Mansour",  "karim@seed.axia.tn",  "Sport & Fitness"),
+            ("Sonia Trabelsi", "sonia@seed.axia.tn",  "Bien-être & Yoga"),
+            ("Ahmed Belhaj",   "ahmed@seed.axia.tn",  "Formation & Technologie"),
+            ("Leila Bouazizi", "leila@seed.axia.tn",  "Arts & Créativité"),
+            ("Youssef Gharbi", "youssef@seed.axia.tn","Culture & Coworking"),
         ]
         resp_ids = []
         resp_names = []
@@ -53,56 +53,32 @@ def run_seed():
             conn.execute(text("""
                 INSERT INTO Users (Id, Username, Email, PasswordHash, Role, Statut, IsActive, CreatedAt, SecteurActivite)
                 VALUES (:id, :name, :email, :pwd, 'Responsable', 'Active', 1, :now, :secteur)
-            """), {"id": rid, "name": name, "email": email,
-                   "pwd": hash_password('Seed1234!'), "now": NOW, "secteur": secteur})
-
+            """), {"id": rid, "name": name, "email": email, "pwd": hash_password('Seed1234!'), "now": NOW, "secteur": secteur})
         print("5 responsables créés")
 
         # ── SERVICES ──────────────────────────────────────────────────
+        # Index : 0=FitZone  1=DancePulse  2=YogaZen  3=MindfulZone
+        #         4=TechBoost  5=LinguaLearn  6=CreaPix  7=MelodyHub
+        #         8=ReadPlus  9=LitCircle  10=HubWork  11=AquaVie
         svc_catalog = [
-            # ri=0  Karim — Sport & Fitness
-            ("Salle de Sport FitZone",
-             "Accédez à nos équipements de musculation, cardio et cours collectifs avec coaching personnalisé.",
-             59.00, 590.00, 0),
-            ("Espace Coworking HubWork",
-             "Bureau collaboratif premium avec salles de réunion, connexion haut débit et café inclus.",
-             150.00, 1500.00, 0),
-            # ri=1  Sonia — Bien-être & Yoga
-            ("Bibliothèque Numérique ReadPlus",
-             "Plongez dans des milliers de livres, articles et revues académiques dans toutes les disciplines.",
-             20.00, 200.00, 1),
-            ("Studio Yoga ZenSpace",
-             "Des séances de yoga et méditation guidées pour tous les niveaux, du débutant à l'avancé.",
-             65.00, 650.00, 1),
-            # ri=2  Ahmed — Formation & Technologie
-            ("Cours de Langue LinguaLearn",
-             "Apprenez le français, l'anglais, l'espagnol ou l'arabe avec des cours interactifs et certifiants.",
-             35.00, 350.00, 2),
-            ("Plateforme eLearning TechBoost",
-             "Formez-vous en cloud, DevOps, cybersécurité et IA avec des certifications reconnues incluses.",
-             45.00, 450.00, 2),
-            # ri=3  Leila — Arts & Créativité
-            ("Piscine Aqua-Fitness AquaVie",
-             "Profitez de la piscine olympique, des cours d'aquagym et d'un coaching aquatique qualifié.",
-             55.00, 550.00, 3),
-            ("Studio Photo Vidéo CreaPix",
-             "Louez un studio photo-vidéo professionnel et accédez à des formations en montage et retouche.",
-             80.00, 800.00, 3),
-            # ri=4  Youssef — Culture & Coworking
-            ("Espace Musique MelodyHub",
-             "Prenez des cours de guitare, piano, batterie ou chant et enregistrez dans notre studio acoustique.",
-             70.00, 700.00, 4),
-            ("Club de Lecture LitCircle",
-             "Recevez chaque mois un roman sélectionné et participez à des débats littéraires enrichissants.",
-             25.00, 250.00, 4),
-            # ri=0  Karim (suite)
-            ("Salle de Danse DancePulse",
-             "Apprenez la salsa, le hip-hop ou la danse contemporaine avec des chorégraphes professionnels.",
-             50.00, 500.00, 0),
-            # ri=1  Sonia (suite)
-            ("Centre Méditation MindfulZone",
-             "Des séances de méditation guidée et de pleine conscience pour réduire votre stress quotidien.",
-             30.00, 300.00, 1),
+            # Karim — Sport & Fitness (ri=0)
+            ("Salle de Sport FitZone",        "Accédez à nos équipements de musculation, cardio et cours collectifs avec coaching personnalisé.",   59.00,  590.00,  0),
+            ("Salle de Danse DancePulse",     "Apprenez la salsa, le hip-hop ou la danse contemporaine avec des chorégraphes professionnels.",       50.00,  500.00,  0),
+            # Sonia — Bien-être & Yoga (ri=1)
+            ("Studio Yoga ZenSpace",          "Des séances de yoga et méditation guidées pour tous les niveaux, du débutant à l'avancé.",            65.00,  650.00,  1),
+            ("Centre Méditation MindfulZone", "Des séances de méditation guidée et de pleine conscience pour réduire votre stress quotidien.",       30.00,  300.00,  1),
+            # Ahmed — Formation & Technologie (ri=2)
+            ("Plateforme eLearning TechBoost","Formez-vous en cloud, DevOps, cybersécurité et IA avec des certifications reconnues incluses.",       45.00,  450.00,  2),
+            ("Cours de Langue LinguaLearn",   "Apprenez le français, l'anglais, l'espagnol ou l'arabe avec des cours interactifs et certifiants.",   35.00,  350.00,  2),
+            # Leila — Arts & Créativité (ri=3)
+            ("Studio Photo Vidéo CreaPix",    "Louez un studio photo-vidéo professionnel et accédez à des formations en montage et retouche.",       80.00,  800.00,  3),
+            # Youssef — Culture & Coworking (ri=4)
+            ("Espace Musique MelodyHub",      "Prenez des cours de guitare, piano, batterie ou chant et enregistrez dans notre studio acoustique.",  70.00,  700.00,  4),
+            ("Bibliothèque Numérique ReadPlus","Plongez dans des milliers de livres, articles et revues académiques dans toutes les disciplines.",   20.00,  200.00,  4),
+            ("Club de Lecture LitCircle",     "Recevez chaque mois un roman sélectionné et participez à des débats littéraires enrichissants.",      25.00,  250.00,  4),
+            ("Espace Coworking HubWork",      "Bureau collaboratif premium avec salles de réunion, connexion haut débit et café inclus.",            150.00, 1500.00, 4),
+            # Karim — Sport & Fitness suite (ri=0)
+            ("Piscine Aqua-Fitness AquaVie",  "Profitez de la piscine olympique, des cours d'aquagym et d'un coaching aquatique qualifié.",          55.00,  550.00,  0),
         ]
         svc_ids = []
         svc_prix = {}
@@ -119,78 +95,37 @@ def run_seed():
         print("12 services créés")
 
         # ── OFFRES (22) ───────────────────────────────────────────────
+        # Index : 0  1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21
         offre_catalog = [
-            # ── Karim — Sport & Fitness (ri=0) ───────────────────────
-            ("Accès Mensuel Sport FitZone",
-             "Un mois d'accès illimité à la salle de sport, musculation et cardio, sans engagement.",
-             59.00, 1, 0),
-            ("Pack Trimestriel Sport",
-             "Trois mois de sport à tarif réduit avec coaching inclus et accès illimité aux équipements.",
-             160.00, 3, 0),
-            ("Pack Annuel Sport Premium",          # BUNDLE: FitZone + DancePulse
-             "Douze mois de sport complet : musculation, danse et coaching personnalisé avec accès prioritaire.",
-             590.00, 12, 0),
-            ("Coworking Mensuel HubWork",
-             "Un mois dans notre espace collaboratif avec connexion haut débit, salles de réunion et café.",
-             150.00, 1, 0),
-            ("Coworking Trimestriel Premium",
-             "Trois mois de coworking premium avec bureau dédié, salles de réunion et connexion rapide.",
-             420.00, 3, 0),
-            ("Pack Fitness Intégral Trimestriel",  # BUNDLE: FitZone + DancePulse + Coworking
-             "Bundle trimestriel : sport FitZone, danse DancePulse et coworking avec coaching premium inclus.",
-             250.00, 3, 0),
-            # ── Sonia — Bien-être & Yoga (ri=1) ──────────────────────
-            ("Lecture Semestriel ReadPlus",
-             "Six mois d'accès illimité à notre bibliothèque numérique : livres, articles et revues.",
-             110.00, 6, 1),
-            ("Lecture Annuel Premium",             # BUNDLE: ReadPlus + Yoga
-             "Douze mois de bibliothèque numérique et yoga pour l'enrichissement culturel et le bien-être.",
-             200.00, 12, 1),
-            ("Yoga Mensuel Débutant",
-             "Un mois de yoga guidé pour débutants : postures, respiration et relaxation corps et esprit.",
-             65.00, 1, 1),
-            ("Yoga Pack Trimestriel",              # BUNDLE: Yoga + MindfulZone
-             "Trois mois de yoga et méditation mindfulness pour un bien-être mental et physique complet.",
-             180.00, 3, 1),
-            ("Pack Bien-être Intégral",            # BUNDLE: Yoga + MindfulZone
-             "Bundle mensuel yoga, méditation et mindfulness pour une pleine conscience et relaxation totale.",
-             90.00, 1, 1),
-            ("Bundle Sérénité Totale",             # BUNDLE: Yoga + MindfulZone + ReadPlus
-             "Bundle trimestriel yoga, méditation et lecture numérique pour un bien-être et une sérénité complets.",
-             220.00, 3, 1),
-            # ── Ahmed — Formation & Technologie (ri=2) ────────────────
-            ("Formation Tech Mensuel",
-             "Un mois de formations tech en cloud, DevOps, cybersécurité et IA en accès illimité.",
-             45.00, 1, 2),
-            ("Formation Tech Annuel",              # BUNDLE: eLearning + LinguaLearn
-             "Douze mois de formations tech et cours de langues avec certifications DevOps et cloud incluses.",
-             450.00, 12, 2),
-            ("Langue Pack Semestriel",
-             "Six mois de cours intensifs en anglais, espagnol et arabe avec certification interactive.",
-             190.00, 6, 2),
-            ("Pack Tech et Langues Complet",       # BUNDLE: eLearning + LinguaLearn
-             "Bundle formations tech, certifications cloud et cours de langues interactifs en ligne.",
-             75.00, 1, 2),
-            # ── Leila — Arts & Créativité (ri=3) ─────────────────────
-            ("Aqua-Fitness Mensuel AquaVie",
-             "Un mois d'accès à la piscine olympique avec cours d'aquagym et coaching aquatique qualifié.",
-             55.00, 1, 3),
-            ("Studio Créatif Mensuel CreaPix",
-             "Un mois de studio photo-vidéo professionnel avec formations en montage et retouche créative.",
-             80.00, 1, 3),
-            ("Bundle Arts Aquatiques Créatifs",    # BUNDLE: AquaVie + CreaPix
-             "Pack trimestriel : natation, aqua-fitness, studio photo-vidéo et expressions artistiques visuelles.",
-             120.00, 3, 3),
-            # ── Youssef — Culture & Coworking (ri=4) ─────────────────
-            ("Accès Musique Mensuel MelodyHub",
-             "Un mois de cours de guitare, piano, batterie ou chant avec accès au studio d'enregistrement.",
-             70.00, 1, 4),
-            ("Club Lecture Mensuel LitCircle",
-             "Un mois au club de lecture avec livraison d'un roman et participation aux débats littéraires.",
-             25.00, 1, 4),
-            ("Bundle Culture Musique Lecture",     # BUNDLE: MelodyHub + LitCircle
-             "Pack mensuel musique et lecture : cours d'instruments, club livre et débats culturels enrichissants.",
-             85.00, 1, 4),
+            # Karim — Sport & Fitness (ri=0)
+            ("Accès Mensuel Sport FitZone",       "Un mois d'accès illimité à la salle de sport, musculation et cardio, sans engagement.",                                59.00,  1,  0),  # 0
+            ("Pack Fitness Intégral Trimestriel", "Bundle trimestriel : sport FitZone, danse DancePulse et coworking avec coaching premium inclus.",                      250.00, 3,  0),  # 1  BUNDLE FitZone+DancePulse+HubWork
+            ("Pack Annuel Sport Premium",         "Douze mois de sport complet : musculation, danse et coaching personnalisé avec accès prioritaire.",                    590.00, 12, 0),  # 2  BUNDLE FitZone+DancePulse
+            ("Pack Trimestriel Sport",            "Trois mois de sport à tarif réduit avec coaching inclus et accès illimité aux équipements.",                           160.00, 3,  0),  # 3
+            # Sonia — Bien-être & Yoga (ri=1)
+            ("Yoga Mensuel Débutant",             "Un mois de yoga guidé pour débutants : postures, respiration et relaxation corps et esprit.",                           65.00,  1,  1),  # 4
+            ("Bundle Sérénité Totale",            "Bundle trimestriel yoga, méditation et lecture numérique pour un bien-être et une sérénité complets.",                 220.00, 3,  1),  # 5  BUNDLE YogaZen+MindfulZone+ReadPlus
+            ("Pack Bien-être Intégral",           "Bundle mensuel yoga, méditation et mindfulness pour une pleine conscience et relaxation totale.",                        90.00,  1,  1),  # 6  BUNDLE YogaZen+MindfulZone
+            ("Yoga Pack Trimestriel",             "Trois mois de yoga et méditation pour progresser à votre rythme avec accès à toutes les séances.",                     180.00, 3,  1),  # 7
+            # Ahmed — Formation & Technologie (ri=2)
+            ("Formation Tech Mensuel",            "Un mois de formations tech en cloud, DevOps, cybersécurité et IA en accès illimité.",                                   45.00,  1,  2),  # 8
+            ("Formation Tech Annuel",             "Douze mois de formations tech et cours de langues avec certifications DevOps et cloud incluses.",                      450.00, 12, 2),  # 9  BUNDLE TechBoost+LinguaLearn
+            ("Langue Pack Semestriel",            "Six mois de cours intensifs en anglais, espagnol et arabe avec certification interactive.",                             190.00, 6,  2),  # 10
+            ("Pack Tech et Langues Complet",      "Bundle formations tech, certifications cloud et cours de langues interactifs en ligne.",                                 75.00,  1,  2),  # 11 BUNDLE TechBoost+LinguaLearn
+            # Leila — Arts & Créativité (ri=3)
+            ("Studio Créatif Mensuel CreaPix",    "Un mois de studio photo-vidéo professionnel avec formations en montage et retouche créative.",                          80.00,  1,  3),  # 12
+            ("Bundle Arts Aquatiques Créatifs",   "Pack trimestriel : natation, aqua-fitness, studio photo-vidéo et expressions artistiques visuelles.",                  120.00, 3,  3),  # 13 BUNDLE AquaVie+CreaPix
+            # Youssef — Culture & Coworking (ri=4)
+            ("Coworking Mensuel HubWork",         "Un mois dans notre espace collaboratif avec connexion haut débit, salles de réunion et café.",                         150.00, 1,  4),  # 14
+            ("Accès Musique Mensuel MelodyHub",   "Un mois de cours de guitare, piano ou chant avec accès au studio d'enregistrement.",                                    70.00,  1,  4),  # 15
+            ("Lecture Semestriel ReadPlus",       "Six mois d'accès illimité à notre bibliothèque numérique : livres, articles et revues.",                               110.00, 6,  4),  # 16
+            ("Lecture Annuel Premium",            "Douze mois de bibliothèque numérique et yoga pour l'enrichissement culturel et le bien-être.",                         200.00, 12, 4),  # 17 BUNDLE ReadPlus+YogaZen
+            ("Club Lecture Mensuel LitCircle",    "Un mois au club de lecture avec livraison d'un roman et participation aux débats littéraires.",                          25.00,  1,  4),  # 18
+            ("Coworking Trimestriel Premium",     "Trois mois de coworking premium avec bureau dédié, salles de réunion et connexion rapide.",                            420.00, 3,  4),  # 19
+            # Karim — Sport & Fitness suite (ri=0)
+            ("Aqua-Fitness Mensuel AquaVie",      "Un mois d'accès à la piscine olympique avec cours d'aquagym et coaching aquatique qualifié.",                           55.00,  1,  0),  # 20
+            # Youssef — Culture & Coworking suite (ri=4)
+            ("Bundle Culture Musique Lecture",    "Pack trimestriel culture : club lecture, bibliothèque numérique et cours de musique en ligne.",                          85.00,  3,  4),  # 21 BUNDLE MelodyHub+LitCircle
         ]
         offre_ids = []
         offre_prix = {}
@@ -209,44 +144,52 @@ def run_seed():
         print("22 offres créées")
 
         # ── LIENS SERVICE-OFFRE ───────────────────────────────────────
-        # (si, oi) = index service → index offre
+        # svc : 0=FitZone  1=DancePulse  2=YogaZen  3=MindfulZone
+        #       4=TechBoost  5=LinguaLearn  6=CreaPix  7=MelodyHub
+        #       8=ReadPlus  9=LitCircle  10=HubWork  11=AquaVie
+        # offre: voir numéros commentés dans offre_catalog ci-dessus
         links = [
-            # Karim singles
-            (0, 0), (0, 1),
-            # Pack Annuel Sport Premium — BUNDLE FitZone + DancePulse
-            (0, 2), (10, 2),
-            # Coworking
-            (1, 3), (1, 4),
-            # Pack Fitness Intégral — BUNDLE FitZone + DancePulse + Coworking
-            (0, 5), (10, 5), (1, 5),
-            # Sonia singles
-            (2, 6),
-            # Lecture Annuel — BUNDLE ReadPlus + Yoga
-            (2, 7), (3, 7),
-            # Yoga singles
-            (3, 8),
-            # Yoga Trimestriel — BUNDLE Yoga + MindfulZone
-            (3, 9), (11, 9),
-            # Pack Bien-être — BUNDLE Yoga + MindfulZone
-            (3, 10), (11, 10),
-            # Bundle Sérénité — BUNDLE Yoga + MindfulZone + ReadPlus
-            (3, 11), (11, 11), (2, 11),
-            # Ahmed singles
-            (5, 12),
-            # Formation Annuel — BUNDLE eLearning + LinguaLearn
-            (5, 13), (4, 13),
-            # Langue single
-            (4, 14),
-            # Pack Tech & Langues — BUNDLE eLearning + LinguaLearn
-            (5, 15), (4, 15),
-            # Leila singles
-            (6, 16), (7, 17),
-            # Bundle Arts — BUNDLE AquaVie + CreaPix
-            (6, 18), (7, 18),
-            # Youssef singles
-            (8, 19), (9, 20),
-            # Bundle Culture — BUNDLE MelodyHub + LitCircle
-            (8, 21), (9, 21),
+            # Karim — FitZone(0) singles
+            (0, 0),                        # FitZone → Accès Mensuel Sport
+            (0, 3),                        # FitZone → Pack Trimestriel Sport
+            # Pack Annuel Sport Premium — BUNDLE FitZone(0) + DancePulse(1)
+            (0, 2), (1, 2),
+            # Pack Fitness Intégral — BUNDLE FitZone(0) + DancePulse(1) + HubWork(10)
+            (0, 1), (1, 1), (10, 1),
+            # AquaVie(11) single
+            (11, 20),
+            # Bundle Arts Aquatiques — BUNDLE AquaVie(11) + CreaPix(6)
+            (11, 13), (6, 13),
+            # Sonia — YogaZen(2) singles
+            (2, 4),                        # Yoga Mensuel Débutant
+            (2, 7),                        # Yoga Pack Trimestriel
+            # Pack Bien-être — BUNDLE YogaZen(2) + MindfulZone(3)
+            (2, 6), (3, 6),
+            # Bundle Sérénité — BUNDLE YogaZen(2) + MindfulZone(3) + ReadPlus(8)
+            (2, 5), (3, 5), (8, 5),
+            # Ahmed — TechBoost(4) single
+            (4, 8),                        # Formation Tech Mensuel
+            # Formation Tech Annuel — BUNDLE TechBoost(4) + LinguaLearn(5)
+            (4, 9), (5, 9),
+            # LinguaLearn(5) single
+            (5, 10),                       # Langue Pack Semestriel
+            # Pack Tech & Langues — BUNDLE TechBoost(4) + LinguaLearn(5)
+            (4, 11), (5, 11),
+            # Leila — CreaPix(6) single
+            (6, 12),                       # Studio Créatif Mensuel
+            # Youssef — MelodyHub(7) single
+            (7, 15),                       # Accès Musique Mensuel
+            # HubWork(10) singles
+            (10, 14),                      # Coworking Mensuel
+            (10, 19),                      # Coworking Trimestriel
+            # ReadPlus(8) single
+            (8, 16),                       # Lecture Semestriel
+            # Lecture Annuel Premium — BUNDLE ReadPlus(8) + YogaZen(2)
+            (8, 17), (2, 17),
+            # LitCircle(9) single
+            (9, 18),                       # Club Lecture Mensuel
+            # Bundle Culture — BUNDLE MelodyHub(7) + LitCircle(9)
+            (7, 21), (9, 21),
         ]
         for si, oi in links:
             conn.execute(text(
@@ -327,7 +270,7 @@ def run_seed():
 
             uid = new_user(f"Churner{i+1}", f"churner{i+1}@seed.axia.tn", created_at, dob)
 
-            use_offre = random.random() > 0.25   # 75% avec offre
+            use_offre = random.random() > 0.25
             max_mois  = max(1, (ancien - 5) // 30)
             oid = random.choice(offres_max(max_mois))
             sid = random.choice(svc_ids)
@@ -379,7 +322,7 @@ def run_seed():
             uid = new_user(f"Renewer{i+1}", f"renewer{i+1}@seed.axia.tn", created_at, dob)
 
             nb_cycles = random.randint(*p[2])
-            use_offre = random.random() > 0.20   # 80% avec offre
+            use_offre = random.random() > 0.20
             max_mois  = max(1, (ancien - 30) // (nb_cycles * 37))
             oid = random.choice(offres_max(max_mois))
             sid = random.choice(svc_ids)
@@ -456,7 +399,7 @@ def run_seed():
                 offres_dispo = [min(resp_offres[rid], key=lambda o: offre_duree[o])]
 
             has_offres = len(offres_dispo) > 0
-            use_offre = has_offres and random.random() > 0.20   # 80% avec offre
+            use_offre = has_offres and random.random() > 0.20
 
             oid = random.choice(offres_dispo) if use_offre else offre_ids[0]
             sid = random.choice(resp_services[rid])

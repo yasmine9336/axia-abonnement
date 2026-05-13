@@ -31,6 +31,18 @@ export default function Sidebar() {
     void fetchProfilePhoto();
   }, []);
 
+  useEffect(() => {
+    const handler = () => {
+      axiosInstance
+        .get<{ profileImageUrl?: string }>("/profile")
+        .then((res) => setProfileImageUrl(res.data?.profileImageUrl ?? null))
+        .catch(() => {});
+    };
+
+    window.addEventListener("profile-photo-updated", handler);
+    return () => window.removeEventListener("profile-photo-updated", handler);
+  }, []);
+
   const getPhotoUrl = (photoPath?: string | null) => {
     if (!photoPath) return null;
     if (photoPath.startsWith("http")) return photoPath;
@@ -124,9 +136,7 @@ export default function Sidebar() {
             >
               {item.icon}
 
-              <span className="text-sm font-medium truncate">
-                {item.label}
-              </span>
+              <span className="text-sm font-medium truncate">{item.label}</span>
 
               {hasUnreadMessages && (
                 <span className="ml-auto min-w-5 h-5 px-1 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">

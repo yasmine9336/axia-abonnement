@@ -4,9 +4,37 @@ import NotificationBell from "./NotificationBell";
 import ClientChat from "../../features/client/chat/ClientChat";
 import { useAuth } from "../../hooks/useAuth";
 import { ChurnProvider } from "../../contexts/ChurnContext";
+import { useEffect, useState } from "react";
+import axiosInstance from "../../services/api/axiosInstance";
+import { API_URL } from "../../services/api/config";
 
 export default function DashboardLayout() {
   const { user } = useAuth();
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    axiosInstance
+      .get("/profile")
+      .then((res) => setProfileImageUrl(res.data?.profileImageUrl ?? null))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      axiosInstance
+        .get("/profile")
+        .then((res) => setProfileImageUrl(res.data?.profileImageUrl ?? null))
+        .catch(() => {});
+    };
+    window.addEventListener("profile-photo-updated", handler);
+    return () => window.removeEventListener("profile-photo-updated", handler);
+  }, []);
+
+  const photoUrl = profileImageUrl
+    ? profileImageUrl.startsWith("http")
+      ? profileImageUrl
+      : `${API_URL}${profileImageUrl}`
+    : null;
   const needsChurn = user?.role === "Admin" || user?.role === "Responsable";
 
   return (
@@ -38,9 +66,17 @@ export default function DashboardLayout() {
                 <p className="text-xs text-gray-400 mt-0.5">{user?.email}</p>
               </div>
 
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-(--color-primary)">
-                {user?.username?.charAt(0).toUpperCase() || "U"}
-              </div>
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt="Profil"
+                  className="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-(--color-primary)">
+                  {user?.username?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
             </div>
           </div>
         </div>

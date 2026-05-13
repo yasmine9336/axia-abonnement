@@ -4,7 +4,6 @@ import { useAuth } from "../../../hooks/useAuth";
 import axiosInstance from "../../../services/api/axiosInstance";
 
 import ResponsableDashboardHero from "./components/ResponsableDashboardHero";
-import ResponsableDashboardKpiCards from "./components/ResponsableDashboardKpiCards";
 import ResponsableDashboardCharts from "./components/ResponsableDashboardCharts";
 import RecentSubscriptionsCard from "./components/RecentSubscriptionsCard";
 import ChurnPredictionsCard from "./components/ChurnPredictionsCard";
@@ -78,7 +77,6 @@ export default function ResponsableDashboardHome() {
         stats={stats}
       />
 
-      <ResponsableDashboardKpiCards stats={stats} loading={loading} />
 
       <ResponsableDashboardCharts
         stats={stats}
@@ -89,7 +87,7 @@ export default function ResponsableDashboardHome() {
         pieTotal={pieTotal}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-4">
         <RecentSubscriptionsCard
           abonnements={stats.abonnementsRecents}
           loading={loading}

@@ -1,5 +1,6 @@
 import type { AbonnementItem } from "../types";
 import { getProgress, joursRestants, totalJours } from "../utils";
+import { useNavigate } from "react-router-dom";
 
 interface ActiveSubscriptionsCardProps {
   loading: boolean;
@@ -14,6 +15,7 @@ export default function ActiveSubscriptionsCard({
   now,
   onExplore,
 }: ActiveSubscriptionsCardProps) {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <h2 className="text-base font-bold text-gray-900 mb-4">
@@ -58,7 +60,8 @@ export default function ActiveSubscriptionsCard({
                     {abonnement.intituleOffre}
                   </p>
 
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                     actif
                   </span>
                 </div>
@@ -91,6 +94,13 @@ export default function ActiveSubscriptionsCard({
                   <span>{jours} jours restants</span>
                   <span>sur {total} jours</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard/client/subscriptions")}
+                  className="mt-4 w-full text-center text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                >
+                  Voir tous mes abonnements →
+                </button>
               </div>
             );
           })}

@@ -23,9 +23,12 @@ export default function OffresList({
     <div>
       <div className="flex items-end justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xs font-bold tracking-widest text-gray-400">
-            {isServiceSelected ? "OFFRES LIÉES" : "OFFRES / PACKS"}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xs font-bold tracking-widest text-gray-500">
+              {isServiceSelected ? "OFFRES LIÉES" : "OFFRES / PACKS"}
+            </h2>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
           {isServiceSelected && (
             <p className="text-xs text-blue-600 mt-1">
@@ -42,7 +45,7 @@ export default function OffresList({
           Aucune offre disponible.
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4 max-h-105 overflow-y-auto pr-1 scrollbar-hide">
           {offres.map((offre) => {
             const isSelected =
               selection?.kind === "offre" && selection.item.id === offre.id;

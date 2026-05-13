@@ -41,9 +41,9 @@ export function getRelatedOffres(service: Service, offres: Offre[]) {
 }
 
 export function getOptionSelectedClass(isSelected: boolean) {
-  return `text-left rounded-2xl border p-5 bg-white shadow-sm transition-all ${
+  return `text-left rounded-2xl border p-5 bg-white shadow-sm transition-all cursor-pointer ${
     isSelected
-      ? "border-(--color-primary) ring-4 ring-(--color-primary)/10"
-      : "border-gray-200"
+      ? "border-blue-500 ring-4 ring-blue-500/10 bg-blue-50/30"
+      : "border-gray-200 hover:border-blue-300 hover:shadow-md hover:bg-blue-50/20"
   }`;
 }
