@@ -8,10 +8,10 @@ interface RecentSubscriptionsCardProps {
 }
 
 const STATUT_STYLES: Record<string, string> = {
-  actif:    "bg-green-100 text-green-700",
-  expiré:   "bg-red-100 text-red-700",
-  suspendu: "bg-orange-100 text-orange-700",
-  annulé:   "bg-gray-100 text-gray-500",
+  actif: "bg-sky-100 text-sky-700",
+  expiré: "bg-blue-100 text-blue-800",
+  suspendu: "bg-indigo-100 text-indigo-700",
+  annulé: "bg-gray-100 text-gray-500",
 };
 
 const AVATAR_COLORS = [
@@ -23,7 +23,9 @@ const AVATAR_COLORS = [
 ];
 
 function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 86400000,
+  );
   if (diff === 0) return "Aujourd'hui";
   if (diff === 1) return "Hier";
   if (diff < 30) return `Il y a ${diff} j`;
@@ -40,8 +42,12 @@ export default function RecentSubscriptionsCard({
     <div className="bg-white rounded-2xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-base font-bold text-gray-900">Abonnements récents</h2>
-          <p className="text-xs text-gray-400 mt-0.5">{abonnements.length} derniers abonnements</p>
+          <h2 className="text-base font-bold text-gray-900">
+            Abonnements récents
+          </h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {abonnements.length} derniers abonnements
+          </p>
         </div>
         <button
           type="button"
@@ -55,16 +61,26 @@ export default function RecentSubscriptionsCard({
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+            <div
+              key={i}
+              className="h-16 bg-gray-100 rounded-xl animate-pulse"
+            />
           ))}
         </div>
       ) : abonnements.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-10">Aucun abonnement récent</p>
+        <p className="text-sm text-gray-400 text-center py-10">
+          Aucun abonnement récent
+        </p>
       ) : (
         <div className="divide-y divide-gray-50">
           {abonnements.map((abonnement, idx) => (
-            <div key={abonnement.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${AVATAR_COLORS[idx % AVATAR_COLORS.length]}`}>
+            <div
+              key={abonnement.id}
+              className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+            >
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${AVATAR_COLORS[idx % AVATAR_COLORS.length]}`}
+              >
                 {abonnement.clientUsername.charAt(0).toUpperCase()}
               </div>
 
@@ -72,7 +88,9 @@ export default function RecentSubscriptionsCard({
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {abonnement.clientUsername}
                 </p>
-                <p className="text-xs text-gray-400 truncate">{abonnement.intituleOffre}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {abonnement.intituleOffre}
+                </p>
               </div>
 
               <div className="text-right shrink-0">
@@ -80,11 +98,15 @@ export default function RecentSubscriptionsCard({
                   {Number(abonnement.montant).toFixed(2)} TND
                 </p>
                 <div className="flex items-center gap-1.5 justify-end mt-0.5">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUT_STYLES[abonnement.statut] ?? "bg-gray-100 text-gray-500"}`}>
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUT_STYLES[abonnement.statut] ?? "bg-gray-100 text-gray-500"}`}
+                  >
                     {abonnement.statut}
                   </span>
                   {abonnement.dateDebut && (
-                    <span className="text-xs text-gray-400">{timeAgo(abonnement.dateDebut)}</span>
+                    <span className="text-xs text-gray-400">
+                      {timeAgo(abonnement.dateDebut)}
+                    </span>
                   )}
                 </div>
               </div>

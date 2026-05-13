@@ -11,21 +11,21 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 const RISK_BAR: Record<string, string> = {
-  eleve: "bg-red-500",
-  moyen: "bg-amber-400",
-  faible: "bg-green-500",
+  eleve: "bg-blue-700",
+  moyen: "bg-blue-400",
+  faible: "bg-sky-300",
 };
 
 const RISK_ACTIVE_STYLE: Record<string, string> = {
-  eleve: "bg-red-50 border-red-300",
-  moyen: "bg-amber-50 border-amber-300",
-  faible: "bg-green-50 border-green-300",
+  eleve: "bg-blue-100 border-blue-400",
+  moyen: "bg-blue-50 border-blue-300",
+  faible: "bg-sky-50 border-sky-300",
 };
 
 const RISK_TEXT: Record<string, string> = {
-  eleve: "text-red-600",
-  moyen: "text-amber-500",
-  faible: "text-green-600",
+  eleve: "text-blue-800",
+  moyen: "text-blue-500",
+  faible: "text-sky-500",
 };
 
 const AVATAR_COLORS = [
