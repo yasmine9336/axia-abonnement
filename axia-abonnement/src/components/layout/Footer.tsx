@@ -1,25 +1,15 @@
 export default function Footer() {
   return (
-    <footer id="footer" className="bg-gray-50 border-t border-gray-200 py-12 px-6">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <div>
-          <p className="font-bold text-xl text-(--color-primary)">AxiaAbonnement</p>
-          <p className="text-gray-400 text-sm mt-1">
-            © 2026 AxiaAbonnement. Tous droits réservés.
-          </p>
+    <footer id="footer" className="bg-gray-900 text-white py-8 px-6">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <p className="font-bold text-lg text-blue-400">AxiaAbonnement</p>
+        <div className="flex gap-6 text-sm text-gray-400">
+          <a href="#services" className="hover:text-blue-400 transition-colors">Services</a>
+          <a href="#offres" className="hover:text-blue-400 transition-colors">Offres</a>
+          <a href="/register" className="hover:text-blue-400 transition-colors">S'inscrire</a>
+          <a href="/login" className="hover:text-blue-400 transition-colors">Connexion</a>
         </div>
-
-        <div className="flex gap-6 text-sm text-gray-500">
-          <a href="/privacy" className="hover:text-(--color-primary) transition-colors">
-            Politique de confidentialité
-          </a>
-          <a href="/terms" className="hover:text-(--color-primary) transition-colors">
-            Conditions d'utilisation
-          </a>
-          <a href="/contact" className="hover:text-(--color-primary) transition-colors">
-            Contact
-          </a>
-        </div>
+        <p className="text-xs text-gray-500">© 2026 AxiaAbonnement. Tous droits réservés.</p>
       </div>
     </footer>
   );

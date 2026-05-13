@@ -16,14 +16,14 @@ const RISK_DOT: Record<string, string> = {
 };
 
 const RISK_ACTIVE: Record<string, string> = {
-  eleve: "bg-blue-50 border-red-300",
-  moyen: "bg-blue-50 border-amber-300",
-  faible: "bg-blue-50 border-green-300",
+  eleve: "bg-blue-50 border-blue-600",
+  moyen: "bg-blue-50 border-blue-400",
+  faible: "bg-blue-50 border-sky-300",
 };
 
 const RISK_TEXT: Record<string, string> = {
   eleve: "text-blue-600",
-  moyen: "text-amber-500",
+  moyen: "text-blue-400",
   faible: "text-blue-600",
 };
 
@@ -108,7 +108,7 @@ export default function AdminChurnCard() {
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-red-500 text-center py-6">{error}</p>
+        <p className="text-sm text-blue-600 text-center py-6">{error}</p>
       ) : listeFiltre.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-4">Aucun résultat</p>
       ) : (

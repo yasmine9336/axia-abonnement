@@ -73,7 +73,7 @@ export function buildStatCards(
           stats.nombreOffres ?? 0
         } offres`,
         icon: "package",
-        iconClassName: "w-4 h-4 text-pink-500",
+        iconClassName: "w-4 h-4 text-blue-500",
       },
       {
         label: "Membre depuis",

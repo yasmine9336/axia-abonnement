@@ -13,7 +13,7 @@ export const statutBadge = (statut: string) =>
   statut === "completed"
     ? "bg-blue-100 text-blue-700"
     : statut === "pending"
-      ? "bg-blue-50 text-yellow-700"
+      ? "bg-blue-50 text-blue-500"
       : statut === "expiré"
         ? "bg-blue-100 text-blue-600"
         : "bg-blue-100 text-blue-700";

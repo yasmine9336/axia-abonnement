@@ -30,8 +30,8 @@ export default function NotificationBell() {
     });
 
   const typeColor = (type: string) => {
-    if (type === "success") return "bg-blue-50 border-l-4 border-green-400";
-    if (type === "warning") return "bg-blue-50 border-l-4 border-orange-400";
+    if (type === "success") return "bg-sky-50 border-l-4 border-sky-400";
+    if (type === "warning") return "bg-indigo-50 border-l-4 border-indigo-400";
     return "bg-(--color-primary-soft) border-l-4 border-(--color-primary)";
   };
 

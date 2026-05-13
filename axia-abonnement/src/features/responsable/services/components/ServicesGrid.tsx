@@ -120,7 +120,7 @@ export default function ServicesGrid({
                 <button
                   type="button"
                   onClick={() => onDeleteRequest(service.id)}
-                  className="w-9 h-9 rounded-xl border border-red-200 text-blue-400 hover:bg-blue-50 transition flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl border border-blue-200 text-blue-400 hover:bg-blue-50 transition flex items-center justify-center"
                   aria-label={`Supprimer ${service.intituleService}`}
                 >
                   <svg

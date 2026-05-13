@@ -13,7 +13,7 @@ import {
 import ExportButton from "../../../../components/common/ExportButton";
 import type { Stats } from "../types";
 
-const PIE_COLORS = ["#22c55e", "#f59e0b", "#ef4444"];
+const PIE_COLORS = ["#3b82f6", "#93c5fd", "#1e40af"];
 
 interface AdminDashboardChartsProps {
   stats: Stats;

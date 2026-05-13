@@ -125,7 +125,7 @@ export default function PaiementsSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {totalDepense.toFixed(2)} TND total
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-medium">
             {completedCount} complétés
           </span>
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">

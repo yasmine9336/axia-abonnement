@@ -31,7 +31,7 @@ export default function ResponsableClientsKpiCards({
       label: "INACTIFS",
       value: inactifs,
       sub: "comptes inactifs",
-      border: "border-t-red-400",
+      border: "border-t-blue-400",
       icon: <CircleSlash className="w-5 h-5 text-blue-500" />,
     },
   ];

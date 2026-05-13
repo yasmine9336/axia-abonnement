@@ -11,15 +11,9 @@ import {
   Clock,
 } from "lucide-react";
 
-import type {
-  DemandeResponsable,
-  DemandeStatusFilter,
-} from "../types";
+import type { DemandeResponsable, DemandeStatusFilter } from "../types";
 
-import {
-  STATUT_LABEL,
-  STATUT_STYLES,
-} from "../types";
+import { STATUT_LABEL, STATUT_STYLES } from "../types";
 
 interface DemandeTab {
   key: DemandeStatusFilter;
@@ -106,7 +100,7 @@ export default function DemandesResponsablesList({
         </div>
 
         {pendingCount > 0 && (
-          <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 border border-orange-100 px-3 py-1.5 rounded-full text-sm font-semibold">
+          <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-full text-sm font-semibold">
             <Clock size={15} />
             {pendingCount} demande(s) à traiter
           </span>
@@ -251,14 +245,14 @@ export default function DemandesResponsablesList({
                 </div>
 
                 {d.statut === "Rejected" && d.motifRefus && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-red-100 rounded-lg text-xs text-blue-700">
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
                     <strong>Motif du refus : </strong>
                     {d.motifRefus}
                   </div>
                 )}
 
                 {d.statut === "Accepted" && d.dateAcceptation && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-green-100 rounded-lg text-xs text-blue-700">
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
                     Acceptée le{" "}
                     {new Date(d.dateAcceptation).toLocaleDateString("fr-FR")} —
                     en attente de paiement.
@@ -279,7 +273,7 @@ export default function DemandesResponsablesList({
                     <button
                       type="button"
                       onClick={() => onReject(d)}
-                      className="flex-1 flex items-center justify-center gap-1.5 border border-red-200 text-blue-600 hover:bg-blue-50 text-sm font-medium py-2 rounded-xl transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1.5 border border-blue-200 text-blue-600 hover:bg-blue-50 text-sm font-medium py-2 rounded-xl transition-colors"
                     >
                       <XCircle size={15} />
                       Refuser

@@ -41,7 +41,7 @@ export default function AbonnementsKpiCards({
         label="EXPIRÉS"
         value={totalExpires}
         sub="à renouveler"
-        borderColorClass="border-t-red-400"
+        borderColorClass="border-t-blue-400"
         icon={
           <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
             <span className="text-blue-600 font-bold">⏱</span>

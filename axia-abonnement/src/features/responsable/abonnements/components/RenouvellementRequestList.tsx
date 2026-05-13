@@ -43,7 +43,7 @@ export default function RenouvellementRequestsList({
           </h2>
 
           {enAttenteCount > 0 && (
-            <span className="bg-blue-50 text-yellow-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">
               {enAttenteCount}
             </span>
           )}
@@ -62,9 +62,7 @@ export default function RenouvellementRequestsList({
       {enAttenteCount === 0 ? (
         <EmptyState
           icon={
-            <div
-              className="mx-auto w-10 h-10 rounded-2xl flex items-center justify-center bg-(--color-primary-soft)"
-            >
+            <div className="mx-auto w-10 h-10 rounded-2xl flex items-center justify-center bg-(--color-primary-soft)">
               <MailCheck className="w-5 h-5 text-(--color-primary)" />
             </div>
           }
@@ -79,7 +77,7 @@ export default function RenouvellementRequestsList({
             {demandes.map((demande) => (
               <div
                 key={demande.id}
-                className="rounded-2xl border border-yellow-200 bg-yellow-50/30 p-5"
+                className="rounded-2xl border border-blue-200 bg-blue-50/30 p-5"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="space-y-1">
@@ -106,9 +104,7 @@ export default function RenouvellementRequestsList({
                         {demande.type}
                       </span>
                       {" · "}Montant :{" "}
-                      <span className="font-medium">
-                        {demande.montant} TND
-                      </span>
+                      <span className="font-medium">{demande.montant} TND</span>
                     </p>
 
                     <p className="text-xs text-gray-400">
@@ -130,7 +126,7 @@ export default function RenouvellementRequestsList({
                       type="button"
                       disabled={submittingDemandeId === demande.id}
                       onClick={() => onReject(demande.id)}
-                      className="px-3 py-2 border border-red-200 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-semibold disabled:opacity-60"
+                      className="px-3 py-2 border border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-semibold disabled:opacity-60"
                     >
                       Refuser
                     </button>

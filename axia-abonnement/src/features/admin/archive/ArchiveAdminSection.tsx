@@ -164,7 +164,7 @@ export default function ArchiveAdminSection() {
       />
 
       {error && (
-        <div className="mb-4 p-3 bg-blue-50 border border-red-200 text-blue-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm">
           {error}
         </div>
       )}

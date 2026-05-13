@@ -42,14 +42,14 @@ export default function AbonnementsAdminKpiCards({
       value: totalExpires,
       sub: "non renouvelés",
       icon: <Clock className="w-6 h-6 text-blue-400" />,
-      border: "border-t-red-400",
+      border: "border-t-blue-400",
     },
     {
       label: "EN ATTENTE",
       value: totalEnAttente,
       sub: "en cours de traitement",
       icon: <Hourglass className="w-6 h-6 text-blue-400" />,
-      border: "border-t-yellow-400",
+      border: "border-t-indigo-400",
     },
     {
       label: "REVENUS GÉNÉRÉS",

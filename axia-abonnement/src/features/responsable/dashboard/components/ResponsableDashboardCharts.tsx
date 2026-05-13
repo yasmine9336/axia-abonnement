@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { Stats } from "../types";
 
-const PIE_COLORS = ["#22c55e", "#ef4444", "#f59e0b"];
+const PIE_COLORS = ["#3b82f6", "#1e40af", "#93c5fd"];
 
 interface PieDataItem {
   name: string;

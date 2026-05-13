@@ -226,7 +226,7 @@ export default function OffresSection() {
         <h1 className="ui-title">Gestion des offres</h1>
         <p className="ui-subtitle">Créez et gérez les offres d'abonnement.</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-medium">
             {offres.length} total
           </span>
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">

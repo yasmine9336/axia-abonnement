@@ -126,7 +126,7 @@ export default function AbonnementsAdminTable({
                         ? "text-blue-600"
                         : abonnement.statut === "expiré"
                           ? "text-blue-500"
-                          : "text-amber-600"
+                          : "text-indigo-600"
                     }`}
                   >
                     {normalizeStatusLabel(abonnement.statut)}
@@ -138,7 +138,7 @@ export default function AbonnementsAdminTable({
                         ? "bg-blue-200"
                         : abonnement.statut === "expiré"
                           ? "bg-blue-200"
-                          : "bg-amber-200"
+                          : "bg-indigo-200"
                     }`}
                   >
                     <div
@@ -147,7 +147,7 @@ export default function AbonnementsAdminTable({
                           ? "bg-blue-500 w-full"
                           : abonnement.statut === "expiré"
                             ? "bg-blue-400 w-1/3"
-                            : "bg-blue-300 w-2/3"
+                            : "bg-indigo-400 w-2/3"
                       }`}
                     />
                   </div>

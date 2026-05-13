@@ -17,7 +17,7 @@ export default function AbonnementsKpiCards({
         label="ACTIFS"
         value={actifsCount}
         sub="abonnements en cours"
-        borderColorClass="border-t-green-500"
+        borderColorClass="border-t-blue-500"
         icon={
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500 block" />
@@ -29,7 +29,7 @@ export default function AbonnementsKpiCards({
         label="EXPIRÉS"
         value={expiresCount}
         sub="abonnements terminés"
-        borderColorClass="border-t-red-500"
+        borderColorClass="border-t-blue-400"
         icon={
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500 block" />

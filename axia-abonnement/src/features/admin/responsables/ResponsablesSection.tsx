@@ -56,7 +56,7 @@ export default function ResponsablesSection() {
             Gérez les comptes responsables et leurs demandes.
           </p>
           <div className="flex flex-wrap gap-2 mt-3">
-            <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-medium">
               {responsables.length} total
             </span>
             <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
@@ -75,13 +75,13 @@ export default function ResponsablesSection() {
       </div>
 
       {toast && (
-        <div className="mb-4 p-3 bg-blue-50 border border-green-200 text-blue-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm">
           {toast}
         </div>
       )}
 
       {error && !showModal && !confirmAction && (
-        <div className="mb-4 p-3 bg-blue-50 border border-red-200 text-blue-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm">
           {error}
         </div>
       )}

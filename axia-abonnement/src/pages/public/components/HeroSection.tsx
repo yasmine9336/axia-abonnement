@@ -5,29 +5,25 @@ export default function HeroSection() {
   const navigate = useNavigate();
 
   return (
-    <section className="pt-36 pb-24 px-6 bg-linear-to-b from-gray-50 to-white">
+    <section className="pt-36 pb-24 px-6">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
           Gérez vos abonnements{" "}
-          <span className="text-(--color-primary)">
-            en toute simplicité
-          </span>
+          <span className="text-(--color-primary)">en toute simplicité</span>
         </h1>
 
         <p className="text-lg text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
-          AxiaAbonnement est la plateforme moderne pour gérer tous vos
-          abonnements en un seul endroit. Suivez, analysez et optimisez vos
-          paiements récurrents avec des analyses intelligentes.
+          AxiaAbonnement connecte clients et responsables autour d'une gestion
+          d'abonnements claire, rapide et intelligente — dans un seul espace partagé.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <button
             type="button"
             onClick={() => navigate("/register")}
             className="text-white font-semibold px-8 py-3.5 rounded-xl bg-(--color-primary) hover:opacity-90 transition flex items-center gap-2"
           >
             Commencer
-
             <svg
               className="w-4 h-4"
               fill="none"
@@ -42,6 +38,19 @@ export default function HeroSection() {
               />
             </svg>
           </button>
+        </div>
+
+        <div className="flex justify-center gap-12 mb-20">
+          {[
+            { val: "2 min", label: "Pour s'inscrire" },
+            { val: "100%", label: "Suivi en temps réel" },
+            { val: "7j/7", label: "Accès à la plateforme" },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <p className="text-2xl font-extrabold text-blue-700">{s.val}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

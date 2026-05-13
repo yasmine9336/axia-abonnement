@@ -192,7 +192,7 @@ export default function TransactionsSection() {
           <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
             ● {revenuMoisCi.toFixed(2)} TND ce mois
           </span>
-          <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">
+          <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-medium">
             {paiements.length} transactions
           </span>
           {countsByStatus.pending > 0 && (
@@ -221,7 +221,7 @@ export default function TransactionsSection() {
       />
 
       {error && (
-        <div className="mb-4 p-3 bg-blue-50 border border-red-200 text-blue-700 rounded-xl text-sm">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm">
           {error}
         </div>
       )}

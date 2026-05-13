@@ -42,7 +42,9 @@ export default function ServiceFormModal({
   const handleParMoisChange = (rawValue: string) => {
     const parMois = rawValue === "" ? "" : parseFloat(rawValue);
     const parAnnee =
-      parMois === "" ? "" : parseFloat((Number(parMois) * 12 * ANNUAL_DISCOUNT).toFixed(2));
+      parMois === ""
+        ? ""
+        : parseFloat((Number(parMois) * 12 * ANNUAL_DISCOUNT).toFixed(2));
     onFormChange({ ...form, parMois, parAnnee });
   };
 
@@ -66,7 +68,9 @@ export default function ServiceFormModal({
 
         {secteur && (
           <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl">
-            <span className="text-xs font-semibold text-blue-700">Secteur :</span>
+            <span className="text-xs font-semibold text-blue-700">
+              Secteur :
+            </span>
             <span className="text-xs text-blue-600">{secteur}</span>
           </div>
         )}
@@ -108,18 +112,20 @@ export default function ServiceFormModal({
               </p>
             )}
             {!checking && sectorBlocked && (
-              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
-                <span className="text-red-500 text-base mt-0.5">⚠</span>
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2">
+                <span className="text-blue-500 text-base mt-0.5">⚠</span>
                 <div>
-                  <p className="text-sm font-semibold text-red-700">
+                  <p className="text-sm font-semibold text-blue-800">
                     Ce service ne correspond pas à votre secteur
                   </p>
-                  <p className="text-xs text-red-600 mt-0.5">{result.message}</p>
+                  <p className="text-xs text-blue-600 mt-0.5">
+                    {result.message}
+                  </p>
                 </div>
               </div>
             )}
             {!checking && result?.valid && (
-              <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+              <p className="mt-1 text-xs text-blue-500 flex items-center gap-1">
                 <span>✓</span> Contenu cohérent avec votre secteur
               </p>
             )}
@@ -168,8 +174,8 @@ export default function ServiceFormModal({
           </div>
 
           {formError && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
-              <p className="text-sm text-red-700">{formError}</p>
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+              <p className="text-sm text-blue-800">{formError}</p>
             </div>
           )}
 

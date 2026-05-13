@@ -45,8 +45,8 @@ export default function TransactionsKpiCards({
       label: "EN ATTENTE",
       value: countsByStatus.pending,
       sub: "paiements non finalisés",
-      icon: <Clock className="w-5 h-5 text-amber-500" />,
-      border: "border-t-amber-400",
+      icon: <Clock className="w-5 h-5 text-blue-400" />,
+      border: "border-t-blue-300",
     },
   ];
 

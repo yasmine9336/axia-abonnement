@@ -74,7 +74,7 @@ export default function OffresList({
                     ))}
 
                     {offre.services.length > 4 && (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
                         +{offre.services.length - 4}
                       </span>
                     )}

@@ -15,7 +15,7 @@ export default function OffresSection({
   onVoirPlus,
 }: OffresSectionProps) {
   return (
-    <section id="offres" className="py-20 bg-white">
+    <section id="offres" className="py-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-4">
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
@@ -39,13 +39,19 @@ export default function OffresSection({
         </div>
       ) : (
         <div className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto px-6">
-          {offres.map((offre) => (
-            <OffreCard
-              key={offre.id}
-              offre={offre}
-              buttonLabel="S'abonner"
-              onSubscribe={onSubscribe}
-            />
+          {offres.map((offre, index) => (
+            <div key={offre.id} className="relative pt-3">
+              {index === 1 && offres.length >= 2 && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full z-10 whitespace-nowrap">
+                  Populaire
+                </span>
+              )}
+              <OffreCard
+                offre={offre}
+                buttonLabel="S'abonner"
+                onSubscribe={onSubscribe}
+              />
+            </div>
           ))}
         </div>
       )}

@@ -11,29 +11,29 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 const RISK_BAR: Record<string, string> = {
-  eleve: "bg-blue-700",
+  eleve: "bg-blue-900",
   moyen: "bg-blue-400",
-  faible: "bg-sky-300",
+  faible: "bg-sky-200",
 };
 
 const RISK_ACTIVE_STYLE: Record<string, string> = {
-  eleve: "bg-blue-100 border-blue-400",
+  eleve: "bg-blue-100 border-blue-700",
   moyen: "bg-blue-50 border-blue-300",
-  faible: "bg-sky-50 border-sky-300",
+  faible: "bg-sky-50 border-sky-200",
 };
 
 const RISK_TEXT: Record<string, string> = {
-  eleve: "text-blue-800",
-  moyen: "text-blue-500",
-  faible: "text-sky-500",
+  eleve: "text-blue-900",
+  moyen: "text-blue-400",
+  faible: "text-sky-400",
 };
 
 const AVATAR_COLORS = [
   "bg-blue-100 text-blue-700",
-  "bg-purple-100 text-purple-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-sky-100 text-sky-700",
+  "bg-blue-200 text-blue-800",
+  "bg-indigo-50 text-indigo-600",
 ];
 
 export default function ChurnPredictionsCard() {
@@ -99,7 +99,7 @@ export default function ChurnPredictionsCard() {
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-red-500 text-center py-6">{error}</p>
+        <p className="text-sm text-blue-600 text-center py-6">{error}</p>
       ) : listeFiltre.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-6 flex-1">
           Aucun résultat

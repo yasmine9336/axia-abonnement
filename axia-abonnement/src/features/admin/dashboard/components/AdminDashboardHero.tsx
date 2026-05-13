@@ -55,15 +55,13 @@ export default function AdminDashboardHero({
 
             <div className="text-center">
               <p className="text-2xl font-bold">{stats.abonnementsActifs}</p>
-              <p className="text-xs text-white/70 mt-0.5">
-                Abonnements actifs
-              </p>
+              <p className="text-xs text-white/70 mt-0.5">Abonnements actifs</p>
             </div>
 
             <div className="text-center">
               <p
                 className={`text-2xl font-bold ${
-                  stats.demandesEnAttente > 0 ? "text-yellow-300" : ""
+                  stats.demandesEnAttente > 0 ? "text-sky-200" : ""
                 }`}
               >
                 {stats.demandesEnAttente}

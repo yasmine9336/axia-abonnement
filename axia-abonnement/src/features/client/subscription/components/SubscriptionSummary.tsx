@@ -153,7 +153,7 @@ export default function SubscriptionSummary({
           </button>
 
           {payError && (
-            <p className="text-sm text-red-600 text-center mt-3">{payError}</p>
+            <p className="text-sm text-blue-600 text-center mt-3">{payError}</p>
           )}
         </>
       )}

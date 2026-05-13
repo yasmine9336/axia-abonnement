@@ -42,7 +42,7 @@ export default function ClientDashboardKpiCards({
           }`}
         />
       ),
-      border: unreadCount > 0 ? "border-t-red-400" : "border-t-gray-300",
+      border: unreadCount > 0 ? "border-t-blue-300" : "border-t-gray-300",
     },
     {
       label: "CE MOIS-CI",

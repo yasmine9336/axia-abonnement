@@ -1,10 +1,4 @@
-import {
-  ClipboardList,
-  Clock,
-  Shield,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ClipboardList, Clock, Shield, TrendingUp, Users } from "lucide-react";
 import KpiCard from "../../../../components/common/KpiCard";
 import type { ResponsableItem, Stats } from "../types";
 import { formatMoney } from "../utils";
@@ -50,9 +44,7 @@ export default function AdminDashboardKpiCards({
       label: "ABONNEMENTS ACTIFS",
       value: stats.abonnementsActifs,
       sub: "en cours",
-      icon: (
-        <ClipboardList className="w-5 h-5 text-(--color-primary)" />
-      ),
+      icon: <ClipboardList className="w-5 h-5 text-(--color-primary)" />,
       border: "border-t-blue-500",
     },
     {
@@ -61,9 +53,7 @@ export default function AdminDashboardKpiCards({
       sub: "nécessitent validation",
       icon: <Clock className="w-5 h-5 text-blue-400" />,
       border:
-        stats.demandesEnAttente > 0
-          ? "border-t-yellow-400"
-          : "border-t-gray-400",
+        stats.demandesEnAttente > 0 ? "border-t-blue-300" : "border-t-gray-400",
     },
   ];
 

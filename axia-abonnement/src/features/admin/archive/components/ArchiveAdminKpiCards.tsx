@@ -32,7 +32,7 @@ export default function ArchiveAdminKpiCards({
       value: totalInactifs,
       sub: "expirés ou sans abonnement",
       icon: <Clock className="w-5 h-5 text-blue-400" />,
-      border: "border-t-red-400",
+      border: "border-t-blue-400",
     },
   ];
 
