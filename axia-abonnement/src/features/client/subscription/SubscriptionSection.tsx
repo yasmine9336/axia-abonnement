@@ -15,6 +15,7 @@ export default function SubscriptionSection() {
   const [relatedOffres, setRelatedOffres] = useState<Offre[]>([]);
   const [type, setType] = useState<BillingType>("mensuel");
   const [loading, setLoading] = useState(false);
+  const [payError, setPayError] = useState("");
 
   const [secteurActif, setSecteurActif] = useState<string | null>(null);
 
@@ -107,6 +108,9 @@ export default function SubscriptionSection() {
 
       window.location.href = response.data.url;
     } catch {
+      setPayError(
+        "Une erreur est survenue lors du traitement de votre paiement.",
+      );
       setLoading(false);
     }
   };
@@ -192,6 +196,7 @@ export default function SubscriptionSection() {
           selection={selection}
           type={type}
           loading={loading}
+          payError={payError}
           onTypeChange={setType}
           onPay={() => void handlePay()}
         />

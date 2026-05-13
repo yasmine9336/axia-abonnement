@@ -9,8 +9,8 @@ export interface Service {
   isActive: boolean;
   createdAt: string;
   creePar: string;
-  cbModification: string | null;
-  cbModificateur: string | null;
+  modifieLe: string | null;
+  modifiePar: string | null;
 }
 
 export interface ServiceForm {

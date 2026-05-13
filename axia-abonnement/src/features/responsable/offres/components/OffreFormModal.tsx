@@ -97,7 +97,7 @@ export default function OffreFormModal({
               }
               placeholder="Décrivez l'offre..."
               rows={2}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#0F6CBD]/30 focus:border-[#0F6CBD] resize-none"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-(--color-primary)/30 focus:border-(--color-primary) resize-none"
               required
             />
             {checking && (

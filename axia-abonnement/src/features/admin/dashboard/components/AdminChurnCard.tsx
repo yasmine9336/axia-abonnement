@@ -36,7 +36,7 @@ function avatarInitial(username?: string, email?: string): string {
 }
 
 export default function AdminChurnCard() {
-  const { riskMap, loading } = useChurn();
+  const { riskMap, loading, error } = useChurn();
   const [filtreRisque, setFiltreRisque] = useState<RiskFilter>("eleve");
   const navigate = useNavigate();
 
@@ -86,7 +86,9 @@ export default function AdminChurnCard() {
                 : "bg-gray-50 border-gray-200 hover:border-gray-300"
             }`}
           >
-            <span className={`text-lg font-extrabold leading-none ${RISK_TEXT[r]}`}>
+            <span
+              className={`text-lg font-extrabold leading-none ${RISK_TEXT[r]}`}
+            >
               {counts[r]}
             </span>
             <span className="text-xs text-gray-500 mt-0.5">
@@ -99,15 +101,18 @@ export default function AdminChurnCard() {
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+            <div
+              key={i}
+              className="h-10 bg-gray-100 rounded-xl animate-pulse"
+            />
           ))}
         </div>
+      ) : error ? (
+        <p className="text-sm text-red-500 text-center py-6">{error}</p>
       ) : listeFiltre.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-4">
-          Aucun résultat
-        </p>
+        <p className="text-sm text-gray-400 text-center py-4">Aucun résultat</p>
       ) : (
-        <div className="space-y-1 overflow-y-auto pr-1 max-h-36.25">
+        <div className="space-y-1 overflow-y-auto pr-1 max-h-36">
           {listeFiltre.map((p) => (
             <div
               key={p.user_id}
@@ -126,7 +131,9 @@ export default function AdminChurnCard() {
                 <span className="text-xs font-bold text-gray-700">
                   {(p.churn_probability * 100).toFixed(0)}%
                 </span>
-                <span className={`w-2 h-2 rounded-full ${RISK_DOT[p.risk_level] ?? "bg-gray-300"}`} />
+                <span
+                  className={`w-2 h-2 rounded-full ${RISK_DOT[p.risk_level] ?? "bg-gray-300"}`}
+                />
               </div>
             </div>
           ))}
@@ -136,7 +143,8 @@ export default function AdminChurnCard() {
       {!loading && listeFiltre.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
           <span className="text-xs text-gray-400">
-            {RISK_LABELS[filtreRisque] ?? "Tous"} · {listeFiltre.length} client(s)
+            {RISK_LABELS[filtreRisque] ?? "Tous"} · {listeFiltre.length}{" "}
+            client(s)
           </span>
           <div className="flex gap-1">
             {(["eleve", "moyen", "faible"] as const).map((r) => (

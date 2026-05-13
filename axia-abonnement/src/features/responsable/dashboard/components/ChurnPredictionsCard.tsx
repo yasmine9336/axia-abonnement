@@ -37,15 +37,16 @@ const AVATAR_COLORS = [
 ];
 
 export default function ChurnPredictionsCard() {
-  const { riskMap, loading } = useChurn();
+  const { riskMap, loading, error } = useChurn();
   const [filtreRisque, setFiltreRisque] = useState<RiskFilter>("eleve");
 
-  const mesPredictions = Array.from(riskMap.values())
-    .sort((a, b) => b.churn_probability - a.churn_probability);
+  const mesPredictions = Array.from(riskMap.values()).sort(
+    (a, b) => b.churn_probability - a.churn_probability,
+  );
 
   const counts = {
-    eleve:  mesPredictions.filter((p) => p.risk_level === "eleve").length,
-    moyen:  mesPredictions.filter((p) => p.risk_level === "moyen").length,
+    eleve: mesPredictions.filter((p) => p.risk_level === "eleve").length,
+    moyen: mesPredictions.filter((p) => p.risk_level === "moyen").length,
     faible: mesPredictions.filter((p) => p.risk_level === "faible").length,
   };
 
@@ -60,7 +61,9 @@ export default function ChurnPredictionsCard() {
         <BrainCircuit className="w-5 h-5 text-blue-500 shrink-0" />
         <h2 className="text-base font-bold text-gray-900">Risque de churn</h2>
       </div>
-      <p className="text-xs text-gray-400 mb-4">{mesPredictions.length} clients analysés</p>
+      <p className="text-xs text-gray-400 mb-4">
+        {mesPredictions.length} clients analysés
+      </p>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
         {(["eleve", "moyen", "faible"] as const).map((r) => (
@@ -74,10 +77,14 @@ export default function ChurnPredictionsCard() {
                 : "bg-gray-50 border-gray-200 hover:border-gray-300"
             }`}
           >
-            <span className={`text-xl font-extrabold leading-none ${RISK_TEXT[r]}`}>
+            <span
+              className={`text-xl font-extrabold leading-none ${RISK_TEXT[r]}`}
+            >
               {counts[r]}
             </span>
-            <span className="text-xs text-gray-500 mt-0.5">{RISK_LABELS[r]}</span>
+            <span className="text-xs text-gray-500 mt-0.5">
+              {RISK_LABELS[r]}
+            </span>
           </button>
         ))}
       </div>
@@ -85,11 +92,18 @@ export default function ChurnPredictionsCard() {
       {loading ? (
         <div className="space-y-2 flex-1">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+            <div
+              key={i}
+              className="h-12 bg-gray-100 rounded-xl animate-pulse"
+            />
           ))}
         </div>
+      ) : error ? (
+        <p className="text-sm text-red-500 text-center py-6">{error}</p>
       ) : listeFiltre.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-6 flex-1">Aucun résultat</p>
+        <p className="text-sm text-gray-400 text-center py-6 flex-1">
+          Aucun résultat
+        </p>
       ) : (
         <div className="space-y-2 overflow-y-auto flex-1 max-h-55">
           {listeFiltre.map((p, idx) => {
@@ -99,7 +113,9 @@ export default function ChurnPredictionsCard() {
                 key={p.user_id}
                 className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${AVATAR_COLORS[idx % AVATAR_COLORS.length]}`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${AVATAR_COLORS[idx % AVATAR_COLORS.length]}`}
+                >
                   {(p.username ?? "?").charAt(0).toUpperCase()}
                 </div>
 
@@ -114,7 +130,9 @@ export default function ChurnPredictionsCard() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className={`text-xs font-bold shrink-0 ${RISK_TEXT[p.risk_level]}`}>
+                    <span
+                      className={`text-xs font-bold shrink-0 ${RISK_TEXT[p.risk_level]}`}
+                    >
                       {pct}%
                     </span>
                   </div>
@@ -128,7 +146,8 @@ export default function ChurnPredictionsCard() {
       {!loading && listeFiltre.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <span className="text-xs text-gray-400">
-            {filtreRisque === "tous" ? "Tous" : RISK_LABELS[filtreRisque]} · {listeFiltre.length} client(s)
+            {filtreRisque === "tous" ? "Tous" : RISK_LABELS[filtreRisque]} ·{" "}
+            {listeFiltre.length} client(s)
           </span>
         </div>
       )}

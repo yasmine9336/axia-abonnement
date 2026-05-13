@@ -3,6 +3,8 @@ import type { Service, ServiceForm } from "../types";
 import { useAuth } from "../../../../hooks/useAuth";
 import { useValidateSector } from "../../../../hooks/useValidateSector";
 
+const ANNUAL_DISCOUNT = 0.8;
+
 interface ServiceFormModalProps {
   open: boolean;
   editingService: Service | null;
@@ -40,7 +42,7 @@ export default function ServiceFormModal({
   const handleParMoisChange = (rawValue: string) => {
     const parMois = rawValue === "" ? "" : parseFloat(rawValue);
     const parAnnee =
-      parMois === "" ? "" : parseFloat((Number(parMois) * 12 * 0.8).toFixed(2));
+      parMois === "" ? "" : parseFloat((Number(parMois) * 12 * ANNUAL_DISCOUNT).toFixed(2));
     onFormChange({ ...form, parMois, parAnnee });
   };
 

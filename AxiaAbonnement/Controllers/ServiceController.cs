@@ -40,7 +40,7 @@ namespace AxiaAbonnement.Controllers
             return Ok(services);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         [Authorize]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -58,7 +58,7 @@ namespace AxiaAbonnement.Controllers
             return CreatedAtAction(nameof(GetById), new { id = service.Id }, service);
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("{id:guid}")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateServiceDto dto)
         {
@@ -68,7 +68,7 @@ namespace AxiaAbonnement.Controllers
             return Ok(new { Message = "Service modifié avec succès." });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -77,7 +77,7 @@ namespace AxiaAbonnement.Controllers
             return Ok(new { Message = "Service supprimé avec succès." });
         }
 
-        [HttpPatch("{id}/toggle")]
+        [HttpPatch("{id:guid}/toggle")]
         [Authorize(Policy = "ResponsableOnly")]
         public async Task<IActionResult> Toggle(Guid id)
         {

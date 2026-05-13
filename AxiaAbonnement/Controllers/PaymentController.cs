@@ -96,7 +96,7 @@ namespace AxiaAbonnement.Controllers
             return Ok(all);
         }
 
-        [Authorize]
+        [Authorize(Policy = "ResponsableOnly")]
         [HttpPost("create-responsable-account-session")]
         public async Task<IActionResult> CreateResponsableAccountSession()
         {

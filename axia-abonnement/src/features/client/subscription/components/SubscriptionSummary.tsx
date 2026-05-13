@@ -10,6 +10,7 @@ interface SubscriptionSummaryProps {
   selection: Selection | null;
   type: BillingType;
   loading: boolean;
+  payError: string;
   onTypeChange: (type: BillingType) => void;
   onPay: () => void;
 }
@@ -18,6 +19,7 @@ export default function SubscriptionSummary({
   selection,
   type,
   loading,
+  payError,
   onTypeChange,
   onPay,
 }: SubscriptionSummaryProps) {
@@ -149,6 +151,10 @@ export default function SubscriptionSummary({
           >
             {loading ? "Redirection vers Stripe..." : `Payer ${montant} TND`}
           </button>
+
+          {payError && (
+            <p className="text-sm text-red-600 text-center mt-3">{payError}</p>
+          )}
         </>
       )}
     </div>
