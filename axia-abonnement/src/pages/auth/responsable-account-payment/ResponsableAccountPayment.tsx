@@ -30,7 +30,9 @@ export default function ResponsableAccountPayment() {
     setError("");
 
     axiosInstance
-      .post<{ url: string }>("/payment/create-responsable-account-session")
+      .post<{ url: string }>("/payment/create-responsable-account-session", {
+        userId,
+      })
       .then((response) => {
         window.location.href = response.data.url;
       })

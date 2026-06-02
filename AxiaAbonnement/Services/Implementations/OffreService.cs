@@ -47,11 +47,14 @@ namespace AxiaAbonnement.Services.Implementations
                     .ThenInclude(s => s.Responsable)
                 .AsQueryable();
 
-            // ✅ UserRole.Responsable au lieu de "Responsable"
             if (role == UserRole.Responsable)
             {
                 query = query.Where(o =>
                     o.ServiceOffres.Any(so => so.Service.ResponsableId == currentUserId));
+            }
+            else if (role == UserRole.Client)
+            {
+                query = query.Where(o => o.IsActive);
             }
 
             return await query

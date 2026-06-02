@@ -60,13 +60,13 @@ public class PdfExportService : IPdfExportService
     public byte[] GenerateSignedPdf(PdfExportRequestDto dto, string adminName, string adminEmail)
     {
         var unsigned = BuildPdf(dto, adminName, adminEmail);
-        return SignPdf(unsigned, dto.Title, adminEmail);
+        return SignPdf(unsigned, dto.Title, adminEmail, new Rectangle(602, 525, 200, 50));
     }
 
     public byte[] GeneratePaymentReceiptPdf(PaiementDto dto, string clientName, string clientEmail)
     {
         var unsigned = BuildPaymentReceiptPdf(dto, clientName, clientEmail);
-        return SignPdf(unsigned, "Reçu de paiement", clientEmail);
+        return SignPdf(unsigned, "Reçu de paiement", clientEmail, new Rectangle(36, 20, 260, 70));
     }
 
     private byte[] BuildPdf(PdfExportRequestDto dto, string adminName, string adminEmail)
@@ -360,7 +360,7 @@ public class PdfExportService : IPdfExportService
                 .SetFontSize(10)
                 .SetFontColor(dark));
 
-    private byte[] SignPdf(byte[] unsignedPdf, string title, string adminEmail)
+    private byte[] SignPdf(byte[] unsignedPdf, string title, string adminEmail, Rectangle sigRect)
     {
         var pfxBytes = File.ReadAllBytes(_pfxPath);
 
@@ -386,7 +386,8 @@ public class PdfExportService : IPdfExportService
                 .SetReasonLine($"Motif : Export officiel — {title}")
                 .SetLocationLine("Lieu : Tunisie"))
             .SetBackgroundColor(new DeviceRgb(238, 242, 255))
-            .SetBorder(new SolidBorder(new DeviceRgb(79, 70, 229), 1));
+            .SetBorder(new SolidBorder(new DeviceRgb(79, 70, 229), 1))
+            .SetFontSize(7);
 
         var signerProps = new SignerProperties()
             .SetFieldName(fieldName)
@@ -395,7 +396,7 @@ public class PdfExportService : IPdfExportService
             .SetContact(adminEmail)
             .SetSignatureAppearance(sfAppearance)
             .SetPageNumber(1)
-            .SetPageRect(new Rectangle(36, 20, 260, 70));
+            .SetPageRect(sigRect);
 
         signer.SetSignerProperties(signerProps);
 

@@ -17,9 +17,11 @@ namespace AxiaAbonnement.Services.Implementations
             _notifService = notifService;
         }
 
-        private static string StatutToString(StatutAbonnement statut, DateTime dateFin)
+        private static string StatutToString(StatutAbonnement statut, DateTime dateDebut, DateTime dateFin)
         {
-            if (dateFin < DateTime.UtcNow) return "expiré";
+            var now = DateTime.UtcNow;
+            if (dateFin < now) return "expiré";
+            if (dateDebut > now) return "en_attente";
 
             return statut switch
             {
@@ -49,7 +51,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
                 PeutRenouveler = a.Service?.IsActive ?? a.Offre?.IsActive ?? false
             }).ToList();
         }
@@ -79,7 +81,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
                 ClientId = a.UserId,
@@ -127,7 +129,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
                 ClientId = a.UserId
@@ -207,7 +209,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
                 ClientId = a.UserId,
@@ -280,7 +282,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
                 ClientUsername = a.User.Username,
                 ClientEmail = a.User.Email,
                 ClientId = a.UserId
@@ -328,7 +330,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
             }).ToList();
         }
 
@@ -365,7 +367,7 @@ namespace AxiaAbonnement.Services.Implementations
                 DateDebut = a.DateDebut,
                 DateFin = a.DateFin,
                 IsActive = a.IsActive,
-                Statut = StatutToString(a.Statut, a.DateFin),
+                Statut = StatutToString(a.Statut, a.DateDebut, a.DateFin),
             }).ToList();
         }
     }

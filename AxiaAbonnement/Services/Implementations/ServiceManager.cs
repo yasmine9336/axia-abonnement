@@ -10,8 +10,17 @@ namespace AxiaAbonnement.Services.Implementations
     public class ServiceManager : IServiceManager
     {
         private readonly AppDbContext _ctx;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _mlUrl;
+        private readonly string _mlKey;
 
-        public ServiceManager(AppDbContext ctx) => _ctx = ctx;
+        public ServiceManager(AppDbContext ctx, IHttpClientFactory httpClientFactory, IConfiguration config)
+        {
+            _ctx = ctx;
+            _httpClientFactory = httpClientFactory;
+            _mlUrl = config["ML:Url"] ?? "http://localhost:8000";
+            _mlKey = config["ML:ApiKey"] ?? "";
+        }
 
         private static ServiceResponsableDto MapToDto(Service s) => new()
         {
@@ -25,7 +34,6 @@ namespace AxiaAbonnement.Services.Implementations
             IsActive = s.IsActive,
             CreatedAt = s.CreatedAt,
             CreePar = s.CreePar,
-            // ✅ Nommage corrigé
             ModifieLe = s.ModifieLe,
             ModifiePar = s.ModifiePar
         };
@@ -38,9 +46,10 @@ namespace AxiaAbonnement.Services.Implementations
                 .Include(s => s.Responsable)
                 .AsQueryable();
 
-            // ✅ Enum au lieu de string
             if (role == UserRole.Responsable)
                 query = query.Where(s => s.ResponsableId == currentUserId);
+            else if (role == UserRole.Client)
+                query = query.Where(s => s.IsActive);
 
             return await query
                 .Select(s => new ServiceResponsableDto
@@ -61,9 +70,9 @@ namespace AxiaAbonnement.Services.Implementations
                     SecteurActivite = s.Responsable != null ? s.Responsable.SecteurActivite : null,
                     NombreAvis = _ctx.Feedbacks.Count(f => f.Abonnement.ServiceId == s.Id),
                     MoyenneNote = _ctx.Feedbacks
-                    .Where(f => f.Abonnement.ServiceId == s.Id)
-                    .Select(f => (double?)f.Note)
-                    .Average(),
+                        .Where(f => f.Abonnement.ServiceId == s.Id)
+                        .Select(f => (double?)f.Note)
+                        .Average(),
                 })
                 .ToListAsync();
         }
@@ -96,6 +105,7 @@ namespace AxiaAbonnement.Services.Implementations
 
             _ctx.Services.Add(service);
             await _ctx.SaveChangesAsync();
+            NotifierRecommendAsync();
             return MapToDto(service);
         }
 
@@ -108,7 +118,6 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return false;
 
-            // ✅ Cloisonnement avec enum
             if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return false;
 
@@ -124,11 +133,11 @@ namespace AxiaAbonnement.Services.Implementations
             if (dto.ParAnnee.HasValue)
                 service.ParAnnee = dto.ParAnnee.Value;
 
-            // ✅ Nommage corrigé
             service.ModifieLe = DateTime.UtcNow;
             service.ModifiePar = user.Username;
 
             await _ctx.SaveChangesAsync();
+            NotifierRecommendAsync();
             return true;
         }
 
@@ -140,7 +149,6 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return false;
 
-            // ✅ Cloisonnement avec enum
             if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return false;
 
@@ -157,12 +165,10 @@ namespace AxiaAbonnement.Services.Implementations
             var user = await _ctx.Users.FindAsync(responsableId);
             if (user == null) return null;
 
-            // ✅ Cloisonnement avec enum
             if (user.Role == UserRole.Responsable && service.ResponsableId != responsableId)
                 return null;
 
             service.IsActive = !service.IsActive;
-            // ✅ Nommage corrigé
             service.ModifieLe = DateTime.UtcNow;
             service.ModifiePar = user.Username;
 
@@ -195,6 +201,22 @@ namespace AxiaAbonnement.Services.Implementations
                 .OrderByDescending(s => s.MoyenneNote ?? 0)
                 .Take(4)
                 .ToList();
+        }
+
+        private void NotifierRecommendAsync()
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    var request = new HttpRequestMessage(
+                        HttpMethod.Post, $"{_mlUrl}/train-recommend");
+                    request.Headers.Add("x-api-key", _mlKey);
+                    await client.SendAsync(request);
+                }
+                catch { }
+            });
         }
     }
 }

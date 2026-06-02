@@ -96,11 +96,14 @@ namespace AxiaAbonnement.Controllers
             return Ok(all);
         }
 
-        [Authorize(Policy = "ResponsableOnly")]
+        [AllowAnonymous]
         [HttpPost("create-responsable-account-session")]
-        public async Task<IActionResult> CreateResponsableAccountSession()
+        public async Task<IActionResult> CreateResponsableAccountSession([FromBody] CreateResponsableAccountSessionDto dto)
         {
-            var dto = new CreateResponsableAccountSessionDto { UserId = GetUserId() };
+            if (dto.UserId == Guid.Empty)
+                dto.UserId = GetUserId();
+            if (dto.UserId == Guid.Empty)
+                return BadRequest("UserId requis.");
             var url = await _paymentService.CreateResponsableAccountSessionAsync(dto);
             if (url == null) return BadRequest("Utilisateur responsable introuvable ou non éligible.");
             return Ok(new { url });
